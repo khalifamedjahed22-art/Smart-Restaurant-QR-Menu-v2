@@ -1,270 +1,166 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة المطاعم الرقمية الذكية</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    <!-- مكتبات Firebase (تم إضافة مكتبة Auth) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-        button { cursor: pointer; background: #00897b; color: white; border: none; font-weight: bold; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
-        .btn-danger { background: #f44336; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-        .price { font-weight: bold; color: #00897b; }
-        #subOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box; }
-        #mainApp, #editorView, #customerView { display: none; }
-        #qrCodeCanvas { display: flex; justify-content: center; margin-top: 20px; padding: 10px; background: #fff; border: 1px solid #eee; inline-size: max-content; margin-inline: auto; }
-        .hint { font-size: 12px; color: #666; margin-top: -5px; margin-bottom: 10px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منصة المطاعم الذكية</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #eceff1; margin: 0; }
+.container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #cfd8dc; border-radius: 6px; font-size: 16px; }
+.item { display: flex; justify-content: space-between; border-bottom: 1px solid #eff0f1; padding: 12px 0; align-items: center; }
+.payment-box { margin-top: 30px; padding: 15px; background: #e8f5e9; border: 2px solid #81c784; border-radius: 10px; color: #2e7d32; text-align: center; }
+h1, h2, h3 { text-align: center; color: #37474f; margin-bottom: 20px; }
+.btn-action { background: #00897b; color: white; border: none; cursor: pointer; font-weight: bold; }
+.btn-delete { background: #e53935; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+#qrCodeCanvas { display: flex; justify-content: center; margin-top: 20px; }
+#customerView { display: none; }
+.back-link { display: block; text-align: center; margin-top: 20px; color: #607d8b; text-decoration: none; }
+</style>
 </head>
 <body>
 
-<!-- شاشة تسجيل الدخول الآمنة للمدير -->
-<div class="overlay" id="subOverlay">
-    <div style="max-width: 400px; width: 100%; text-align: center;">
-        <h2>تسجيل الدخول للوحة التحكم</h2>
-        <input type="email" id="emailInput" placeholder="البريد الإلكتروني">
-        <input type="password" id="passwordInput" placeholder="كلمة المرور">
-        <button onclick="login()">دخول</button>
-        <p id="loginError" style="color: red; font-size: 14px; display: none;"></p>
-    </div>
-</div>
-
-<div class="container" id="mainApp">
-    <!-- لوحة الإدارة للمطعم -->
+<div class="container" id="appContainer">
     <div id="editorView">
-        <div class="header-bar">
-            <h1>لوحة الإدارة</h1>
-            <button onclick="logout()" class="btn-danger" style="width: auto; padding: 8px 15px;">تسجيل خروج</button>
-        </div>
-        
-        <label>المعرف الفريد للمطعم (بالإنجليزي وبدون مسافات):</label>
-        <input type="text" id="restId" placeholder="مثال: kfc-algeria" onchange="loadRestaurantData()">
-        <p class="hint">هذا المعرف سيستخدم في الرابط وكود QR الخاص بك.</p>
-
-        <label>اسم المطعم (الذي يظهر للزبائن):</label>
-        <input type="text" id="restName" placeholder="مثال: مطعم المدينة">
-        
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        
-        <h3>إضافة طبق جديد</h3>
+        <h1 id="pageTitle">إعداد قائمة المطعم</h1>
+        <input type="text" id="restName" placeholder="اسم المطعم">
         <input type="text" id="itemName" placeholder="اسم الطبق">
         <input type="number" id="itemPrice" placeholder="السعر (دج)">
-        <button onclick="addItem()" style="background:#2196f3;">إضافة إلى القائمة</button>
-        
-        <h3>قائمة الأطباق الحالية:</h3>
+        <button class="btn-action" onclick="addItem()">إضافة الطبق</button>
+        <button class="btn-action" onclick="generateQR()" style="background: #1e88e5;">توليد رابط QR</button>
+        <hr>
         <div id="menuList"></div>
-        
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <button onclick="generateQR()" style="background:#4caf50;">توليد وتحديث كود QR للمطعم</button>
+        <div class="payment-box">
+            <h3>إعدادات الدفع</h3>
+            <input type="text" id="accountHolder" placeholder="اسم صاحب الحساب">
+            <input type="text" id="accountRip" placeholder="رقم الـ CCP / RIP">
+        </div>
         <div id="qrCodeCanvas"></div>
+        <div id="qrLinkArea" style="text-align: center; margin-top: 15px;"></div>
     </div>
-    
-    <!-- واجهة الزبون -->
+
     <div id="customerView">
-        <h1 id="custRestName" style="text-align: center; color: #00897b;">جاري التحميل...</h1>
+        <h1 id="custRestName"></h1>
         <div id="custMenuList"></div>
+        <div class="payment-box">
+            <h3>للدفع عبر بريدي موب</h3>
+            <p><strong>صاحب الحساب:</strong> <span id="custHolder"></span></p>
+            <p><strong>رقم الـ CCP/RIP:</strong> <span id="custRip"></span></p>
+            <p><strong>رسوم الخدمة الثابتة:</strong> 300 دج</p>
+        </div>
+        <a href="." class="back-link">إنشاء قائمتك الخاصة</a>
     </div>
 </div>
 
-<script>
-    // إعدادات Firebase (استبدلها ببيانات مشروعك)
+<script type="module">
+    // 1. استيراد Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+    // 2. إعدادات Firebase الخاصة بك
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
+        authDomain: "mysmartmenu-80a57.firebaseapp.com",
+        projectId: "mysmartmenu-80a57",
+        storageBucket: "mysmartmenu-80a57.firebasestorage.app",
+        messagingSenderId: "482274317209",
+        appId: "1:482274317209:web:65c97f0d5c7bf7c1383908"
     };
-    
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
 
-    let currentRestId = "";
+    // 3. تهيئة Firebase
+    const app = initializeApp(firebaseConfig);
+    console.log("Firebase initialized successfully!");
 
-    // دالة حماية (XSS) لتنظيف المدخلات ومنع الأكواد الخبيثة
-    function escapeHTML(str) {
-        return str.toString().replace(/[&<>'"]/g, 
-            tag => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            }[tag] || tag)
-        );
-    }
+    // ==========================================
+    // كود التطبيق الأساسي
+    // ==========================================
+    let menu = [];
+    const SERVICE_FEE = 300;
 
-    // إدارة تدفق الصفحات عند التحميل
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const resId = urlParams.get('res');
-        
-        // إذا كان هناك معرف مطعم، نعرض واجهة الزبون مباشرة (لا يهم تسجيل الدخول)
-        if (resId) {
-            loadCustomerView(resId);
+        const encodedData = urlParams.get('data');
+
+        if (encodedData) {
+            document.getElementById('editorView').style.display = 'none';
+            document.getElementById('customerView').style.display = 'block';
+            try {
+                const data = JSON.parse(decodeURIComponent(atob(encodedData)));
+                document.getElementById('custRestName').innerText = data.restaurant;
+                document.getElementById('custHolder').innerText = data.accountHolder;
+                document.getElementById('custRip').innerText = data.accountRip;
+                const list = document.getElementById('custMenuList');
+                data.items.forEach(item => {
+                    list.innerHTML += `<div class="item"><span>${item.name}</span><strong>${item.price} دج</strong></div>`;
+                });
+            } catch (e) { document.getElementById('custMenuList').innerHTML = "<p>رابط غير صالح</p>"; }
         } else {
-            // الاستماع لحالة تسجيل الدخول (إذا كان الزائر مديراً)
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    showEditor();
-                } else {
-                    document.getElementById('subOverlay').style.display = 'flex';
-                    document.getElementById('mainApp').style.display = 'none';
-                }
-            });
+            loadFromStorage();
         }
     };
 
-    // --- دوال المصادقة ---
-    function login() {
-        const email = document.getElementById('emailInput').value.trim();
-        const pass = document.getElementById('passwordInput').value.trim();
-        const errorMsg = document.getElementById('loginError');
-        
-        auth.signInWithEmailAndPassword(email, pass)
-            .catch((error) => {
-                errorMsg.style.display = 'block';
-                errorMsg.innerText = "فشل تسجيل الدخول. يرجى التأكد من البيانات.";
-            });
+    function loadFromStorage() {
+        if (localStorage.getItem('restName')) document.getElementById('restName').value = localStorage.getItem('restName');
+        if (localStorage.getItem('accountHolder')) document.getElementById('accountHolder').value = localStorage.getItem('accountHolder');
+        if (localStorage.getItem('accountRip')) document.getElementById('accountRip').value = localStorage.getItem('accountRip');
+        if (localStorage.getItem('menu')) {
+            menu = JSON.parse(localStorage.getItem('menu'));
+            renderEditor();
+        }
     }
 
-    function logout() {
-        auth.signOut().then(() => {
-            window.location.reload();
-        });
-    }
-
-    function showEditor() {
-        document.getElementById('subOverlay').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('editorView').style.display = 'block';
-    }
-
-    // --- دوال الإدارة ---
-    function loadRestaurantData() {
-        currentRestId = document.getElementById('restId').value.trim().toLowerCase();
-        if(!currentRestId) return;
-
-        db.ref('restaurants/' + currentRestId + '/name').once('value').then((snapshot) => {
-            if(snapshot.val()) document.getElementById('restName').value = snapshot.val();
-        });
-
-        db.ref('restaurants/' + currentRestId + '/menu').on('value', (snapshot) => {
-            const menuData = snapshot.val() || {};
-            renderEditorMenu(menuData);
+    function renderEditor() {
+        const list = document.getElementById('menuList');
+        list.innerHTML = '';
+        menu.forEach((item, index) => {
+            list.innerHTML += `<div class="item"><span>${item.name}</span><strong>${item.price} دج</strong><button class="btn-delete" onclick="removeItem(${index})">حذف</button></div>`;
         });
     }
 
     function addItem() {
-        if (!currentRestId) {
-            alert("يرجى إدخال المعرف الفريد للمطعم أولاً!");
-            return;
-        }
-        
-        // استخدام escapeHTML لتنظيف المدخلات
-        const name = escapeHTML(document.getElementById('itemName').value.trim());
-        const price = escapeHTML(document.getElementById('itemPrice').value.trim());
-        const restName = escapeHTML(document.getElementById('restName').value.trim()) || "مطعم غير مسمى";
-
-        if(name && price) {
-            db.ref('restaurants/' + currentRestId).update({ name: restName });
-            
-            db.ref('restaurants/' + currentRestId + '/menu').push({
-                name: name,
-                price: price
-            });
-
-            document.getElementById('itemName').value = "";
-            document.getElementById('itemPrice').value = "";
-        }
+        const n = document.getElementById('itemName'), p = document.getElementById('itemPrice');
+        if (n.value.trim() && p.value > 0) {
+            menu.push({name: n.value, price: p.value});
+            localStorage.setItem('menu', JSON.stringify(menu));
+            renderEditor();
+            n.value = ''; p.value = '';
+        } else { alert("يرجى إدخال اسم وسعر صحيح!"); }
     }
 
-    function renderEditorMenu(menuData) {
-        const list = document.getElementById('menuList');
-        list.innerHTML = "";
-        
-        for (let key in menuData) {
-            const item = menuData[key];
-            // المدخلات هنا آمنة لأننا نظفناها قبل الحفظ
-            list.innerHTML += `
-                <div class="item">
-                    <span>${item.name} - <span class="price">${item.price} دج</span></span>
-                    <button onclick="removeItem('${key}')" class="btn-danger" style="width:auto; padding: 5px 10px; margin:0;">حذف</button>
-                </div>
-            `;
-        }
-    }
-
-    function removeItem(itemKey) {
-        if(confirm("هل أنت متأكد من حذف هذا الطبق؟")) {
-            db.ref('restaurants/' + currentRestId + '/menu/' + itemKey).remove();
-        }
+    function removeItem(index) {
+        menu.splice(index, 1);
+        localStorage.setItem('menu', JSON.stringify(menu));
+        renderEditor();
     }
 
     function generateQR() {
-        const restIdInput = document.getElementById('restId').value.trim().toLowerCase();
-        const restName = escapeHTML(document.getElementById('restName').value.trim());
-        
-        if(!restIdInput || !restName) {
-            alert("يرجى ملء اسم المطعم والمعرف الفريد!");
-            return;
-        }
+        const restName = document.getElementById('restName').value.trim();
+        const holder = document.getElementById('accountHolder').value;
+        const rip = document.getElementById('accountRip').value;
+        if (!restName) { alert("أدخل اسم المطعم أولاً!"); return; }
 
-        db.ref('restaurants/' + restIdInput).update({ name: restName });
+        localStorage.setItem('restName', restName);
+        localStorage.setItem('accountHolder', holder);
+        localStorage.setItem('accountRip', rip);
 
-        const url = window.location.href.split('?')[0] + '?res=' + restIdInput;
-        
+        const dataToEncode = {
+            restaurant: restName,
+            items: menu,
+            accountHolder: holder,
+            accountRip: rip,
+            serviceFee: SERVICE_FEE
+        };
+
+        const menuUrl = window.location.href.split('?')[0] + '?data=' + btoa(encodeURIComponent(JSON.stringify(dataToEncode)));
         document.getElementById('qrCodeCanvas').innerHTML = "";
-        new QRCode(document.getElementById('qrCodeCanvas'), { text: url, width: 200, height: 200 });
+        new QRCode(document.getElementById('qrCodeCanvas'), { text: menuUrl, width: 200, height: 200 });
+        document.getElementById('qrLinkArea').innerHTML = `<a href="${menuUrl}" target="_blank">رابط القائمة جاهز - اضغط هنا</a>`;
     }
 
-    // --- دوال الزبون ---
-    function loadCustomerView(resId) {
-        document.getElementById('subOverlay').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('customerView').style.display = 'block';
-        
-        db.ref('restaurants/' + resId).on('value', (snapshot) => {
-            const data = snapshot.val();
-            
-            if (data) {
-                // استخدام innerHTML آمن هنا لأن البيانات مرت على escapeHTML
-                document.getElementById('custRestName').innerHTML = data.name;
-                
-                const menuListHTML = [];
-                const menuData = data.menu || {};
-                
-                for(let key in menuData) {
-                    const item = menuData[key];
-                    menuListHTML.push(`
-                        <div class="item">
-                            <span>${item.name}</span>
-                            <span class="price">${item.price} دج</span>
-                        </div>
-                    `);
-                }
-                
-                document.getElementById('custMenuList').innerHTML = menuListHTML.length > 0 ? menuListHTML.join('') : "<p style='text-align:center; color:#666;'>القائمة فارغة حالياً</p>";
-            } else {
-                document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px;'>عذراً، هذا المطعم غير مسجل لدينا!</h1>";
-            }
-        });
-    }
+    // تصدير الدوال للـ window لتعمل الأزرار
+    window.addItem = addItem;
+    window.removeItem = removeItem;
+    window.generateQR = generateQR;
 </script>
 </body>
 </html>
