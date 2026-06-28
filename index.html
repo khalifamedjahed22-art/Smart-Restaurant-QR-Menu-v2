@@ -3,142 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة المطاعم الرقمية</title>
+    <title>منصة المطاعم الرقمية الذكية</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- مكتبات Firebase (تم إضافة مكتبة Auth) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f7f6; padding: 20px; }
         .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { cursor: pointer; background: #00897b; color: white; border: none; font-weight: bold; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        #subOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        button { cursor: pointer; background: #00897b; color: white; border: none; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-danger { background: #f44336; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .price { font-weight: bold; color: #00897b; }
+        #subOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box; }
         #mainApp, #editorView, #customerView { display: none; }
-        #qrCodeCanvas { display: flex; justify-content: center; margin-top: 20px; }
+        #qrCodeCanvas { display: flex; justify-content: center; margin-top: 20px; padding: 10px; background: #fff; border: 1px solid #eee; inline-size: max-content; margin-inline: auto; }
+        .hint { font-size: 12px; color: #666; margin-top: -5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
+<!-- شاشة تسجيل الدخول الآمنة للمدير -->
 <div class="overlay" id="subOverlay">
-    <h2>تفعيل خدمة القائمة</h2>
-    <input type="text" id="activationKey" placeholder="كود التفعيل">
-    <button onclick="checkKey()">دخول</button>
+    <div style="max-width: 400px; width: 100%; text-align: center;">
+        <h2>تسجيل الدخول للوحة التحكم</h2>
+        <input type="email" id="emailInput" placeholder="البريد الإلكتروني">
+        <input type="password" id="passwordInput" placeholder="كلمة المرور">
+        <button onclick="login()">دخول</button>
+        <p id="loginError" style="color: red; font-size: 14px; display: none;"></p>
+    </div>
 </div>
 
 <div class="container" id="mainApp">
+    <!-- لوحة الإدارة للمطعم -->
     <div id="editorView">
-        <h1>لوحة الإدارة</h1>
-        <input type="text" id="restName" placeholder="اسم المطعم">
-        <hr>
+        <div class="header-bar">
+            <h1>لوحة الإدارة</h1>
+            <button onclick="logout()" class="btn-danger" style="width: auto; padding: 8px 15px;">تسجيل خروج</button>
+        </div>
+        
+        <label>المعرف الفريد للمطعم (بالإنجليزي وبدون مسافات):</label>
+        <input type="text" id="restId" placeholder="مثال: kfc-algeria" onchange="loadRestaurantData()">
+        <p class="hint">هذا المعرف سيستخدم في الرابط وكود QR الخاص بك.</p>
+
+        <label>اسم المطعم (الذي يظهر للزبائن):</label>
+        <input type="text" id="restName" placeholder="مثال: مطعم المدينة">
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        
+        <h3>إضافة طبق جديد</h3>
         <input type="text" id="itemName" placeholder="اسم الطبق">
-        <input type="number" id="itemPrice" placeholder="السعر">
-        <button onclick="addItem()" style="background:#2196f3;">إضافة الطبق</button>
+        <input type="number" id="itemPrice" placeholder="السعر (دج)">
+        <button onclick="addItem()" style="background:#2196f3;">إضافة إلى القائمة</button>
+        
+        <h3>قائمة الأطباق الحالية:</h3>
         <div id="menuList"></div>
-        <hr>
-        <button onclick="generateQR()" style="background:#4caf50;">توليد كود QR للمطعم</button>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <button onclick="generateQR()" style="background:#4caf50;">توليد وتحديث كود QR للمطعم</button>
         <div id="qrCodeCanvas"></div>
     </div>
     
+    <!-- واجهة الزبون -->
     <div id="customerView">
-        <h1 id="custRestName"></h1>
+        <h1 id="custRestName" style="text-align: center; color: #00897b;">جاري التحميل...</h1>
         <div id="custMenuList"></div>
     </div>
 </div>
 
 <script>
-    const VALID_KEYS = ["REST123", "KHALIFA2026"]; 
-    let menu = JSON.parse(localStorage.getItem('myMenu') || '[]');
+    // إعدادات Firebase (استبدلها ببيانات مشروعك)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
 
-    // --- منطق التشغيل ---
+    let currentRestId = "";
+
+    // دالة حماية (XSS) لتنظيف المدخلات ومنع الأكواد الخبيثة
+    function escapeHTML(str) {
+        return str.toString().replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag)
+        );
+    }
+
+    // إدارة تدفق الصفحات عند التحميل
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
+        const resId = urlParams.get('res');
         
-        // 1. رابط الزبون (QR) له الأولوية
-        if (urlParams.get('data')) {
-            loadCustomerView(urlParams.get('data'));
-        } 
-        // 2. رابط المدير السري
-        else if (window.location.search.includes('admin')) {
-            showEditor();
-        } 
-        // 3. حالة التفعيل المحفوظة
-        else if (localStorage.getItem('isActivated') === 'true') {
-            showEditor();
-        } 
-        // 4. لا شيء؟ أظهر الاشتراك
-        else {
-            document.getElementById('subOverlay').style.display = 'flex';
+        // إذا كان هناك معرف مطعم، نعرض واجهة الزبون مباشرة (لا يهم تسجيل الدخول)
+        if (resId) {
+            loadCustomerView(resId);
+        } else {
+            // الاستماع لحالة تسجيل الدخول (إذا كان الزائر مديراً)
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    showEditor();
+                } else {
+                    document.getElementById('subOverlay').style.display = 'flex';
+                    document.getElementById('mainApp').style.display = 'none';
+                }
+            });
         }
     };
 
-    // --- دوال المدير ---
-    function checkKey() {
-        const inputKey = document.getElementById('activationKey').value;
-        if (VALID_KEYS.includes(inputKey)) {
-            localStorage.setItem('isActivated', 'true');
-            showEditor();
-        } else {
-            alert("كود خاطئ");
-        }
+    // --- دوال المصادقة ---
+    function login() {
+        const email = document.getElementById('emailInput').value.trim();
+        const pass = document.getElementById('passwordInput').value.trim();
+        const errorMsg = document.getElementById('loginError');
+        
+        auth.signInWithEmailAndPassword(email, pass)
+            .catch((error) => {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "فشل تسجيل الدخول. يرجى التأكد من البيانات.";
+            });
+    }
+
+    function logout() {
+        auth.signOut().then(() => {
+            window.location.reload();
+        });
     }
 
     function showEditor() {
         document.getElementById('subOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         document.getElementById('editorView').style.display = 'block';
-        renderEditor();
+    }
+
+    // --- دوال الإدارة ---
+    function loadRestaurantData() {
+        currentRestId = document.getElementById('restId').value.trim().toLowerCase();
+        if(!currentRestId) return;
+
+        db.ref('restaurants/' + currentRestId + '/name').once('value').then((snapshot) => {
+            if(snapshot.val()) document.getElementById('restName').value = snapshot.val();
+        });
+
+        db.ref('restaurants/' + currentRestId + '/menu').on('value', (snapshot) => {
+            const menuData = snapshot.val() || {};
+            renderEditorMenu(menuData);
+        });
     }
 
     function addItem() {
-        const name = document.getElementById('itemName').value;
-        const price = document.getElementById('itemPrice').value;
+        if (!currentRestId) {
+            alert("يرجى إدخال المعرف الفريد للمطعم أولاً!");
+            return;
+        }
+        
+        // استخدام escapeHTML لتنظيف المدخلات
+        const name = escapeHTML(document.getElementById('itemName').value.trim());
+        const price = escapeHTML(document.getElementById('itemPrice').value.trim());
+        const restName = escapeHTML(document.getElementById('restName').value.trim()) || "مطعم غير مسمى";
+
         if(name && price) {
-            menu.push({name, price});
-            localStorage.setItem('myMenu', JSON.stringify(menu));
-            renderEditor();
+            db.ref('restaurants/' + currentRestId).update({ name: restName });
+            
+            db.ref('restaurants/' + currentRestId + '/menu').push({
+                name: name,
+                price: price
+            });
+
+            document.getElementById('itemName').value = "";
+            document.getElementById('itemPrice').value = "";
         }
     }
 
-    function renderEditor() {
+    function renderEditorMenu(menuData) {
         const list = document.getElementById('menuList');
-        list.innerHTML = menu.map((item, index) => `
-            <div class="item">
-                <span>${item.name} - ${item.price} دج</span>
-                <button onclick="removeItem(${index})" style="background:#f44336; width:auto;">حذف</button>
-            </div>
-        `).join('');
+        list.innerHTML = "";
+        
+        for (let key in menuData) {
+            const item = menuData[key];
+            // المدخلات هنا آمنة لأننا نظفناها قبل الحفظ
+            list.innerHTML += `
+                <div class="item">
+                    <span>${item.name} - <span class="price">${item.price} دج</span></span>
+                    <button onclick="removeItem('${key}')" class="btn-danger" style="width:auto; padding: 5px 10px; margin:0;">حذف</button>
+                </div>
+            `;
+        }
     }
 
-    function removeItem(index) {
-        menu.splice(index, 1);
-        localStorage.setItem('myMenu', JSON.stringify(menu));
-        renderEditor();
+    function removeItem(itemKey) {
+        if(confirm("هل أنت متأكد من حذف هذا الطبق؟")) {
+            db.ref('restaurants/' + currentRestId + '/menu/' + itemKey).remove();
+        }
     }
 
     function generateQR() {
-        const restName = document.getElementById('restName').value;
-        const data = { restaurant: restName, items: menu };
-        const encoded = btoa(JSON.stringify(data));
-        const url = window.location.href.split('?')[0] + '?data=' + encoded;
+        const restIdInput = document.getElementById('restId').value.trim().toLowerCase();
+        const restName = escapeHTML(document.getElementById('restName').value.trim());
+        
+        if(!restIdInput || !restName) {
+            alert("يرجى ملء اسم المطعم والمعرف الفريد!");
+            return;
+        }
+
+        db.ref('restaurants/' + restIdInput).update({ name: restName });
+
+        const url = window.location.href.split('?')[0] + '?res=' + restIdInput;
         
         document.getElementById('qrCodeCanvas').innerHTML = "";
         new QRCode(document.getElementById('qrCodeCanvas'), { text: url, width: 200, height: 200 });
     }
 
     // --- دوال الزبون ---
-    function loadCustomerView(encodedData) {
+    function loadCustomerView(resId) {
         document.getElementById('subOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         document.getElementById('customerView').style.display = 'block';
         
-        try {
-            const data = JSON.parse(atob(encodedData));
-            document.getElementById('custRestName').innerText = data.restaurant;
-            document.getElementById('custMenuList').innerHTML = data.items.map(item => `
-                <div class="item"><span>${item.name}</span><span>${item.price} دج</span></div>
-            `).join('');
-        } catch(e) {
-            document.body.innerHTML = "<h1>رابط غير صالح</h1>";
-        }
+        db.ref('restaurants/' + resId).on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data) {
+                // استخدام innerHTML آمن هنا لأن البيانات مرت على escapeHTML
+                document.getElementById('custRestName').innerHTML = data.name;
+                
+                const menuListHTML = [];
+                const menuData = data.menu || {};
+                
+                for(let key in menuData) {
+                    const item = menuData[key];
+                    menuListHTML.push(`
+                        <div class="item">
+                            <span>${item.name}</span>
+                            <span class="price">${item.price} دج</span>
+                        </div>
+                    `);
+                }
+                
+                document.getElementById('custMenuList').innerHTML = menuListHTML.length > 0 ? menuListHTML.join('') : "<p style='text-align:center; color:#666;'>القائمة فارغة حالياً</p>";
+            } else {
+                document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px;'>عذراً، هذا المطعم غير مسجل لدينا!</h1>";
+            }
+        });
     }
 </script>
 </body>
