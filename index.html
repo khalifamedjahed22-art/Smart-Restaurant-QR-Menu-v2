@@ -15,15 +15,20 @@
     .btn-action { background: #00897b; color: white; border: none; cursor: pointer; font-weight: bold; }
     .btn-delete { background: #e53935; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
     #qrCodeCanvas { display: flex; justify-content: center; margin-top: 20px; }
-    /* إخفاء الإعدادات افتراضياً */
-    #editorView { display: none; }
-    #customerView { display: none; }
+    
+    /* إخفاء الواجهات افتراضياً لضمان الخصوصية */
+    #editorView, #customerView, #welcomeView { display: none; }
     .back-link { display: block; text-align: center; margin-top: 20px; color: #607d8b; text-decoration: none; }
 </style>
 </head>
 <body> 
 
 <div class="container" id="appContainer">
+    <div id="welcomeView" style="display: block; text-align: center;">
+        <h1>مرحباً بك في منصة المطاعم</h1>
+        <p>يرجى مسح كود QR الخاص بالمطعم للدخول للقائمة.</p>
+    </div>
+
     <div id="editorView">
         <h1 id="pageTitle">إعداد قائمة المطعم</h1>
         <input type="text" id="restName" placeholder="اسم المطعم">
@@ -51,6 +56,7 @@
             <p><strong>رقم الـ CCP/RIP:</strong> <span id="custRip"></span></p>
             <p><strong>رسوم الخدمة الثابتة:</strong> 300 دج</p>
         </div>
+        <a href="." class="back-link">عودة للرئيسية</a>
     </div>
 </div> 
 
@@ -65,6 +71,7 @@ window.onload = function() {
 
     if (encodedData) {
         // عرض واجهة الزبون
+        document.getElementById('welcomeView').style.display = 'none';
         document.getElementById('customerView').style.display = 'block';
         try {
             const data = JSON.parse(decodeURIComponent(atob(encodedData)));
@@ -77,13 +84,12 @@ window.onload = function() {
             });
         } catch (e) { document.getElementById('custMenuList').innerHTML = "<p>رابط غير صالح</p>"; }
     } else if (isAdmin) {
-        // عرض واجهة الإدارة (إذا كان الرابط يحتوي على ?admin)
+        // عرض واجهة الإدارة (فقط إذا أضفت ?admin للرابط)
+        document.getElementById('welcomeView').style.display = 'none';
         document.getElementById('editorView').style.display = 'block';
         loadFromStorage();
-    } else {
-        // صفحة فارغة أو رسالة ترحيب إذا فتح الرابط بدون معطيات
-        document.getElementById('appContainer').innerHTML = "<h2 style='text-align:center;'>مرحباً بك!</h2><p style='text-align:center;'>يرجى مسح كود QR الخاص بالمطعم للدخول للقائمة.</p>";
     }
+    // إذا لم تكن هناك بارامترات، ستبقى صفحة الترحيب ظاهرة فقط
 }; 
 
 function loadFromStorage() {
