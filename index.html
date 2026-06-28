@@ -3,152 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>منصة المطاعم الذكية</title>
+<title>منصة المطاعم الرقمية</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #eceff1; margin: 0; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-    input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #cfd8dc; border-radius: 6px; font-size: 16px; }
-    .item { display: flex; justify-content: space-between; border-bottom: 1px solid #eff0f1; padding: 12px 0; align-items: center; }
-    .payment-box { margin-top: 30px; padding: 15px; background: #e8f5e9; border: 2px solid #81c784; border-radius: 10px; color: #2e7d32; text-align: center; }
-    h1, h2, h3 { text-align: center; color: #37474f; margin-bottom: 20px; }
-    .btn-action { background: #00897b; color: white; border: none; cursor: pointer; font-weight: bold; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: #f4f7f6; }
+    .container { max-width: 500px; margin: auto; background: white; min-height: 100vh; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #cfd8dc; border-radius: 6px; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+    .pay-card { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; }
+    #editorView, #customerView, #mainApp { display: none; }
+    .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
     .btn-delete { background: #e53935; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-    #qrCodeCanvas { display: flex; justify-content: center; margin-top: 20px; }
-    
-    /* إخفاء الواجهات افتراضياً لضمان الخصوصية */
-    #editorView, #customerView, #welcomeView { display: none; }
-    .back-link { display: block; text-align: center; margin-top: 20px; color: #607d8b; text-decoration: none; }
 </style>
 </head>
-<body> 
+<body>
 
-<div class="container" id="appContainer">
-    <div id="welcomeView" style="display: block; text-align: center;">
-        <h1>مرحباً بك في منصة المطاعم</h1>
-        <p>يرجى مسح كود QR الخاص بالمطعم للدخول للقائمة.</p>
+<div class="overlay" id="subOverlay">
+    <div class="pay-card">
+        <h2>تفعيل خدمة القائمة الرقمية</h2>
+        <p>الاشتراك الشهري: <strong>4,000 دج</strong></p>
+        <div style="background:#f8f9fa; padding:10px; font-weight:bold; margin-bottom:10px;">CCP: 007 99999 0018864026 62</div>
+        <input type="text" id="activationKey" placeholder="أدخل كود التفعيل هنا">
+        <button onclick="checkKey()" style="background:#00897b; color:white; border:none; cursor:pointer;">تفعيل الدخول</button>
+        <a href="https://wa.me/213562419291" style="display:block; margin-top:15px; color:#25D366; text-decoration:none;">أرسل الإيصال للواتساب للحصول على الكود</a>
     </div>
+</div>
 
+<div class="container" id="mainApp">
     <div id="editorView">
-        <h1 id="pageTitle">إعداد قائمة المطعم</h1>
+        <h1>لوحة التحكم</h1>
         <input type="text" id="restName" placeholder="اسم المطعم">
-        <input type="text" id="itemName" placeholder="اسم الطبق">
-        <input type="number" id="itemPrice" placeholder="السعر (دج)">
-        <button class="btn-action" onclick="addItem()">إضافة الطبق</button>
-        <button class="btn-action" onclick="generateQR()" style="background: #1e88e5;">توليد رابط QR</button>
+        <input type="text" id="whatsappNumber" placeholder="رقم واتساب المطعم (213...)">
         <hr>
+        <input type="text" id="itemName" placeholder="اسم الطبق">
+        <input type="number" id="itemPrice" placeholder="السعر">
+        <button onclick="addItem()" style="background:#00897b; color:white; border:none;">إضافة الطبق</button>
+        <button onclick="generateQR()" style="background:#1e88e5; color:white; border:none; margin-top:5px;">توليد كود QR</button>
         <div id="menuList"></div>
-        <div class="payment-box">
-            <h3>إعدادات الدفع</h3>
-            <input type="text" id="accountHolder" placeholder="اسم صاحب الحساب">
-            <input type="text" id="accountRip" placeholder="رقم الـ CCP / RIP">
-        </div>
-        <div id="qrCodeCanvas"></div>
-        <div id="qrLinkArea" style="text-align: center; margin-top: 15px;"></div>
-    </div> 
-
+        <div id="qrCodeCanvas" style="margin-top:20px; display:flex; justify-content:center;"></div>
+    </div>
+    
     <div id="customerView">
         <h1 id="custRestName"></h1>
         <div id="custMenuList"></div>
-        <div class="payment-box">
-            <h3>للدفع عبر بريدي موب</h3>
-            <p><strong>صاحب الحساب:</strong> <span id="custHolder"></span></p>
-            <p><strong>رقم الـ CCP/RIP:</strong> <span id="custRip"></span></p>
-            <p><strong>رسوم الخدمة الثابتة:</strong> 300 دج</p>
-        </div>
-        <a href="." class="back-link">عودة للرئيسية</a>
     </div>
-</div> 
+</div>
 
 <script>
-let menu = [];
-const SERVICE_FEE = 300; 
+    // --- قائمة الأكواد المسموحة (قم بتحديثها يدوياً عند كل اشتراك جديد) ---
+    const VALID_KEYS = ["REST123", "KHALIFA2026", "FOOD99"]; 
+    let menu = [];
 
-window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedData = urlParams.get('data'); 
-    const isAdmin = window.location.search.includes('admin');
-
-    if (encodedData) {
-        // عرض واجهة الزبون
-        document.getElementById('welcomeView').style.display = 'none';
-        document.getElementById('customerView').style.display = 'block';
-        try {
-            const data = JSON.parse(decodeURIComponent(atob(encodedData)));
-            document.getElementById('custRestName').innerText = data.restaurant;
-            document.getElementById('custHolder').innerText = data.accountHolder;
-            document.getElementById('custRip').innerText = data.accountRip;
-            const list = document.getElementById('custMenuList');
-            data.items.forEach(item => {
-                list.innerHTML += `<div class="item"><span>${item.name}</span><strong>${item.price} دج</strong></div>`;
-            });
-        } catch (e) { document.getElementById('custMenuList').innerHTML = "<p>رابط غير صالح</p>"; }
-    } else if (isAdmin) {
-        // عرض واجهة الإدارة (فقط إذا أضفت ?admin للرابط)
-        document.getElementById('welcomeView').style.display = 'none';
-        document.getElementById('editorView').style.display = 'block';
-        loadFromStorage();
+    function checkKey() {
+        const inputKey = document.getElementById('activationKey').value;
+        if (VALID_KEYS.includes(inputKey)) {
+            localStorage.setItem('isActivated', 'true');
+            showEditor();
+        } else {
+            alert("كود خاطئ، يرجى التواصل معنا للحصول على كود صحيح.");
+        }
     }
-    // إذا لم تكن هناك بارامترات، ستبقى صفحة الترحيب ظاهرة فقط
-}; 
 
-function loadFromStorage() {
-    if (localStorage.getItem('restName')) document.getElementById('restName').value = localStorage.getItem('restName');
-    if (localStorage.getItem('accountHolder')) document.getElementById('accountHolder').value = localStorage.getItem('accountHolder');
-    if (localStorage.getItem('accountRip')) document.getElementById('accountRip').value = localStorage.getItem('accountRip');
-    if (localStorage.getItem('menu')) {
-        menu = JSON.parse(localStorage.getItem('menu'));
+    function showEditor() {
+        document.getElementById('subOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('editorView').style.display = 'block';
         renderEditor();
     }
-} 
 
-function renderEditor() {
-    const list = document.getElementById('menuList');
-    list.innerHTML = '';
-    menu.forEach((item, index) => {
-        list.innerHTML += `<div class="item"><span>${item.name}</span><strong>${item.price} دج</strong><button class="btn-delete" onclick="removeItem(${index})">حذف</button></div>`;
-    });
-} 
+    function renderEditor() {
+        const list = document.getElementById('menuList');
+        list.innerHTML = '';
+        menu.forEach((item, index) => {
+            list.innerHTML += `<div class="item"><span>${item.name} - ${item.price} دج</span><button class="btn-delete" onclick="removeItem(${index})">حذف</button></div>`;
+        });
+    }
 
-function addItem() {
-    const n = document.getElementById('itemName'), p = document.getElementById('itemPrice');
-    if (n.value.trim() && p.value > 0) {
-        menu.push({name: n.value, price: p.value});
+    function addItem() {
+        const name = document.getElementById('itemName').value;
+        const price = document.getElementById('itemPrice').value;
+        if(name && price) {
+            menu.push({name, price});
+            localStorage.setItem('menu', JSON.stringify(menu));
+            renderEditor();
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+        }
+    }
+
+    function removeItem(index) {
+        menu.splice(index, 1);
         localStorage.setItem('menu', JSON.stringify(menu));
         renderEditor();
-        n.value = ''; p.value = '';
-    } else { alert("يرجى إدخال اسم وسعر صحيح!"); }
-} 
+    }
 
-function removeItem(index) {
-    menu.splice(index, 1);
-    localStorage.setItem('menu', JSON.stringify(menu));
-    renderEditor();
-} 
+    function generateQR() {
+        const restName = document.getElementById('restName').value;
+        const waNum = document.getElementById('whatsappNumber').value;
+        const dataToEncode = { restaurant: restName, items: menu, whatsapp: waNum };
+        const menuUrl = window.location.href.split('?')[0] + '?data=' + btoa(encodeURIComponent(JSON.stringify(dataToEncode)));
+        document.getElementById('qrCodeCanvas').innerHTML = "";
+        new QRCode(document.getElementById('qrCodeCanvas'), { text: menuUrl, width: 200, height: 200 });
+    }
 
-function generateQR() {
-    const restName = document.getElementById('restName').value.trim();
-    const holder = document.getElementById('accountHolder').value;
-    const rip = document.getElementById('accountRip').value;
-    if (!restName) { alert("أدخل اسم المطعم أولاً!"); return; } 
-
-    localStorage.setItem('restName', restName);
-    localStorage.setItem('accountHolder', holder);
-    localStorage.setItem('accountRip', rip); 
-
-    const dataToEncode = {
-        restaurant: restName,
-        items: menu,
-        accountHolder: holder,
-        accountRip: rip,
-        serviceFee: SERVICE_FEE
-    }; 
-
-    const menuUrl = window.location.href.split('?')[0] + '?data=' + btoa(encodeURIComponent(JSON.stringify(dataToEncode)));
-    document.getElementById('qrCodeCanvas').innerHTML = "";
-    new QRCode(document.getElementById('qrCodeCanvas'), { text: menuUrl, width: 200, height: 200 });
-    document.getElementById('qrLinkArea').innerHTML = `<a href="${menuUrl}" target="_blank">رابط القائمة جاهز - اضغط هنا</a>`;
-}
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const data = params.get('data');
+        
+        if (data) {
+            document.getElementById('subOverlay').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('customerView').style.display = 'block';
+            try {
+                const decoded = JSON.parse(decodeURIComponent(atob(data)));
+                document.getElementById('custRestName').innerText = decoded.restaurant;
+                decoded.items.forEach(item => {
+                    document.getElementById('custMenuList').innerHTML += `<div class="item"><span>${item.name}</span><strong>${item.price} دج</strong></div>`;
+                });
+            } catch(e) { document.getElementById('custMenuList').innerHTML = "رابط غير صالح"; }
+        } else if (localStorage.getItem('isActivated') === 'true') {
+            menu = JSON.parse(localStorage.getItem('menu') || '[]');
+            showEditor();
+        }
+    };
 </script>
 </body>
 </html>
