@@ -6,23 +6,26 @@
     <title>MySmartMenu - القائمة الذكية</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f4f4; }
-        .view { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .view { display: none; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        .ccp-box { background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #2e7d32; border: 1px solid #c8e6c9; }
         .item { border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background: #fff; text-align: right; }
-        input, textarea { display: block; width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { padding: 10px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; margin: 5px; }
+        input, textarea { display: block; width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        button { padding: 12px 20px; cursor: pointer; background: #008080; color: white; border: none; border-radius: 8px; width: 100%; font-size: 16px; margin-top: 10px; }
         .btn-delete { background: #dc3545; }
         .btn-edit { background: #007bff; }
     </style>
-    <!-- مكتبة QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
     <!-- شاشة التفعيل -->
     <div id="subscriptionView" class="view" style="display: block;">
-        <h2>أدخل كود التفعيل</h2>
-        <input type="password" id="activationCode" placeholder="كود التفعيل">
-        <button onclick="window.verifyActivation()">دخول</button>
+        <h2>تفعيل خدمة القائمة الرقمية</h2>
+        <p>الاشتراك الشهري: 4,000 دج</p>
+        <div class="ccp-box">CCP: 007 99999 0018864026 62</div>
+        <input type="password" id="activationCode" placeholder="أدخل كود التفعيل هنا">
+        <button onclick="window.verifyActivation()">تفعيل الدخول</button>
+        <p style="margin-top: 15px; color: #666; font-size: 14px;">أرسل الإيصال للواتساب للحصول على الكود</p>
     </div>
 
     <!-- شاشة الإدارة -->
@@ -35,10 +38,10 @@
         <textarea id="itemDesc" placeholder="الوصف"></textarea>
         <input type="file" id="itemImage">
         <button id="addBtn" onclick="window.addItem()">إضافة الطبق</button>
-        <button id="cancelBtn" style="display:none;" onclick="window.cancelEdit()">إلغاء</button>
+        <button id="cancelBtn" style="display:none; background:#6c757d;" onclick="window.cancelEdit()">إلغاء</button>
         <div id="menuList"></div>
         <hr>
-        <button onclick="window.generateQR()">إنشاء QR Code</button>
+        <button style="background:#28a745;" onclick="window.generateQR()">إنشاء QR Code</button>
         <div id="qrCodeCanvas" style="margin-top:20px; display:inline-block;"></div>
     </div>
 
@@ -48,7 +51,6 @@
         <div id="customerMenuList"></div>
     </div>
 
-    <!-- الكود البرمجي -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -147,7 +149,7 @@
                 if(item.isAvailable) {
                     const waLink = `https://wa.me/${phoneNumber}?text=مرحباً، أريد طلب: ${item.name}`;
                     list.innerHTML += `<div class="item"> <strong>${item.name}</strong> - ${item.price} دج 
-                    <br><a href="${waLink}" target="_blank" style="display:block; margin-top:5px; padding:8px; background:#25d366; color:white; text-decoration:none; border-radius:5px; text-align:center;">طلب عبر واتساب 📲</a> </div>`;
+                    <br><a href="${waLink}" target="_blank" style="display:block; margin-top:5px; padding:10px; background:#25d366; color:white; text-decoration:none; border-radius:5px; text-align:center;">طلب عبر واتساب 📲</a> </div>`;
                 }
             });
         };
