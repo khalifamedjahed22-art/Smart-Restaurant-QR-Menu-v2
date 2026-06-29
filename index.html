@@ -1,66 +1,8 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة المطاعم الذكية</title>
-    <!-- مكتبة توليد الـ QR -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body  { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; background: #f4f7f6; margin: 0; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        input, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        .btn-action { background: #00897b; color: white; border: none; cursor: pointer; font-weight: bold; }
-        .btn-edit { background: #ffa000; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .btn-delete { background: #d32f2f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .item { border-bottom: 2px solid #eee; padding: 15px 0; display: flex; flex-direction: column; }
-        .unavailable { opacity: 0.5; filter: grayscale(1); }
-        .badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; display: inline-block; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <input type="hidden" id="restName">
-
-    <div id="subscriptionView">
-        <h2>إدارة المطعم</h2>
-        <input type="text" id="restaurantLoginName" placeholder="اسم المطعم (بالأجنبية)">
-        <button class="btn-action" id="loginBtn" onclick="window.checkSubscription()">دخول</button>
-    </div>
-
-    <div id="editorView" style="display:none;">
-        <h3>إضافة / تعديل طبق</h3>
-        <input type="text" id="itemName" placeholder="اسم الطبق">
-        <input type="text" id="itemCategory" placeholder="التصنيف">
-        <textarea id="itemDesc" placeholder="وصف الطبق"></textarea>
-        <input type="number" id="itemPrice" placeholder="السعر (دج)">
-        <input type="file" id="itemImage" accept="image/*">
-        
-        <div style="display: flex; gap: 5px;">
-            <button class="btn-action" id="addBtn" onclick="window.addItem()">إضافة الطبق</button>
-            <button id="cancelBtn" style="display:none; background:#78909c; color:white; border:none;" onclick="window.cancelEdit()">إلغاء</button>
-        </div>
-        
-        <div id="menuList"></div>
-        <hr>
-        <button onclick="window.generateQR()" style="background:#1e88e5; color:white; border:none; padding:10px; width:100%;">توليد رابط QR</button>
-        <div id="qrCodeCanvas" style="text-align: center; margin-top: 10px;"></div>
-        <button onclick="window.logoutRestaurant()" style="background:#607d8b; color:white; border:none; padding:10px; width:100%; margin-top:10px;">تسجيل خروج</button>
-    </div>
-
-    <div id="customerView" style="display:none;">
-        <h2 id="customerRestName" style="color:#00897b;"></h2>
-        <div id="customerMenuList"></div>
-    </div>
-</div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-    // إعدادات Firebase الخاصة بك
     const firebaseConfig = {
         apiKey: "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
         authDomain: "mysmartmenu-80a57.firebaseapp.com",
@@ -77,8 +19,18 @@
     let menu = [];
     let editingIndex = -1;
 
-    const escapeHTML = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // تفعيل الدخول
+    window.verifyActivation = () => {
+        const code = document.getElementById('activationCode').value;
+        if (code === "12345") { // يمكنك تغيير الكود هنا
+            document.getElementById('subscriptionView').style.display = 'none';
+            document.getElementById('editorView').style.display = 'block';
+        } else {
+            alert("كود التفعيل غير صحيح");
+        }
+    };
 
+    // تحميل القائمة
     window.onload = async () => {
         const params = new URLSearchParams(window.location.search);
         if (params.has('rest')) {
@@ -94,26 +46,12 @@
         }
     };
 
-    window.checkSubscription = async () => {
-        const name = document.getElementById('restaurantLoginName').value.trim().toLowerCase();
-        if (!name) return alert("أدخل اسم المطعم");
-        const docSnap = await getDoc(doc(db, "restaurants", name));
-        if (docSnap.exists() && docSnap.data().isActive) {
-            document.getElementById('restName').value = name;
-            menu = docSnap.data().menu || [];
-            document.getElementById('subscriptionView').style.display = 'none';
-            document.getElementById('editorView').style.display = 'block';
-            renderAdminMenu();
-        } else {
-            alert("المطعم غير موجود أو غير مفعل");
-        }
-    };
-
+    // إضافة أو تحديث طبق
     window.addItem = async () => {
         const restName = document.getElementById('restName').value;
+        if(!restName) return alert("يرجى إدخال اسم المطعم في الحقل المخصص");
+        
         const name = document.getElementById('itemName').value;
-        const category = document.getElementById('itemCategory').value;
-        const desc = document.getElementById('itemDesc').value;
         const price = document.getElementById('itemPrice').value;
         const imgInput = document.getElementById('itemImage');
 
@@ -125,47 +63,53 @@
             imageUrl = await getDownloadURL(snapshot.ref);
         }
 
-        const newItem = { name, category, description: desc, price, image: imageUrl, isAvailable: true };
-        if (editingIndex > -1) menu[editingIndex] = newItem; else menu.push(newItem);
-        
+        const newItem = { 
+            name, 
+            category: document.getElementById('itemCategory').value, 
+            description: document.getElementById('itemDesc').value, 
+            price, 
+            image: imageUrl, 
+            isAvailable: true 
+        };
+
+        if (editingIndex > -1) menu[editingIndex] = newItem; 
+        else menu.push(newItem);
+
         await setDoc(doc(db, "restaurants", restName), { menu }, { merge: true });
         window.cancelEdit();
         renderAdminMenu();
     };
 
+    // عرض القائمة للإدارة
     window.renderAdminMenu = () => {
         const list = document.getElementById('menuList');
         list.innerHTML = "";
         menu.forEach((item, index) => {
             list.innerHTML += `
-                <div class="item ${item.isAvailable ? '' : 'unavailable'}">
-                    <strong>${escapeHTML(item.name)}</strong>
-                    <span class="badge">${escapeHTML(item.category || '')}</span>
-                    <p>${escapeHTML(item.description || '')}</p>
-                    <strong>${escapeHTML(item.price)} دج</strong>
-                    <div style="margin-top:5px; display:flex; gap:5px;">
+                <div class="item">
+                    <strong>${item.name}</strong> - ${item.price} دج
+                    <div style="margin-top:5px;">
                         <button class="btn-edit" onclick="window.editItem(${index})">تعديل</button>
-                        <button class="btn-action" style="background:#4caf50;" onclick="window.toggleAvailability(${index})">حالة</button>
                         <button class="btn-delete" onclick="window.deleteItem(${index})">حذف</button>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     };
 
+    // عرض القائمة للزبائن
     window.renderCustomerMenu = () => {
         const list = document.getElementById('customerMenuList');
+        const phoneNumber = "00562419291";
         menu.forEach(item => {
             if(item.isAvailable) {
-                list.innerHTML += `<div><strong>${item.name}</strong> - ${item.price} دج</div>`;
+                const waLink = `https://wa.me/${phoneNumber}?text=مرحباً، أريد طلب: ${item.name}`;
+                list.innerHTML += `
+                    <div class="item">
+                        <strong>${item.name}</strong> - ${item.price} دج
+                        <a href="${waLink}" target="_blank" style="margin-top:5px; padding:8px; background:#25d366; color:white; text-decoration:none; border-radius:5px; text-align:center;">طلب عبر واتساب 📲</a>
+                    </div>`;
             }
         });
-    };
-
-    window.toggleAvailability = async (index) => {
-        menu[index].isAvailable = !menu[index].isAvailable;
-        await setDoc(doc(db, "restaurants", document.getElementById('restName').value), { menu }, { merge: true });
-        renderAdminMenu();
     };
 
     window.editItem = (index) => {
@@ -175,7 +119,7 @@
         document.getElementById('itemDesc').value = item.description;
         document.getElementById('itemPrice').value = item.price;
         editingIndex = index;
-        document.getElementById('addBtn').innerText = "تحديث";
+        document.getElementById('addBtn').innerText = "تحديث الطبق";
         document.getElementById('cancelBtn').style.display = 'block';
     };
 
@@ -194,17 +138,11 @@
     };
 
     window.generateQR = () => {
-        const url = window.location.href.split('?')[0] + '?rest=' + document.getElementById('restName').value;
+        const restName = document.getElementById('restName').value;
+        if(!restName) return alert("أدخل اسم المطعم أولاً");
+        const url = window.location.href.split('?')[0] + '?rest=' + restName;
         const container = document.getElementById('qrCodeCanvas');
         container.innerHTML = "";
         new window.QRCode(container, { text: url, width: 150, height: 150 });
     };
-
-    window.logoutRestaurant = () => {
-        document.getElementById('editorView').style.display = 'none';
-        document.getElementById('subscriptionView').style.display = 'block';
-        document.getElementById('restName').value = "";
-    };
 </script>
-</body>
-</html>
