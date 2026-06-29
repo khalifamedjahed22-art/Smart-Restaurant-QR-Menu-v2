@@ -1,193 +1,658 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MySmartMenu - القائمة الذكية</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f4f4; }
-        .view { display: none; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .ccp-box { background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .item { border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background: #fff; text-align: right; }
-        input, textarea { display: block; width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        button { padding: 12px 20px; cursor: pointer; background: #008080; color: white; border: none; border-radius: 8px; width: 100%; font-size: 16px; margin-top: 10px; }
-        .btn-delete { background: #dc3545; }
-        .btn-edit { background: #007bff; }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySmartMenu - القائمة الذكية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --teal:       #008080;
+    --teal-dark:  #006666;
+    --teal-light: #e0f2f1;
+    --gold:       #c9a84c;
+    --danger:     #e53935;
+    --success:    #2e7d32;
+    --blue:       #1565c0;
+    --gray-bg:    #f5f7f8;
+    --gray-border:#e0e0e0;
+    --text:       #212121;
+    --muted:      #757575;
+    --white:      #ffffff;
+    --radius:     12px;
+    --shadow:     0 4px 20px rgba(0,0,0,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cairo', Arial, sans-serif;
+    background: var(--gray-bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    max-width: 480px;
+    margin: 40px auto;
+  }
+
+  /* ── LOGO / HEADER ── */
+  .logo {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--teal);
+    margin-bottom: 4px;
+  }
+  .logo span { color: var(--gold); }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--teal-dark);
+    border-right: 4px solid var(--gold);
+    padding-right: 10px;
+    margin: 20px 0 14px;
+  }
+
+  /* ── CCP BOX ── */
+  .ccp-box {
+    background: var(--teal-light);
+    border: 1px solid #b2dfdb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-weight: 700;
+    color: var(--teal-dark);
+    font-size: 15px;
+    margin: 14px 0;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ccp-box::before { content: "🏦"; font-size: 20px; }
+
+  /* ── INPUTS ── */
+  input[type="text"],
+  input[type="number"],
+  input[type="password"],
+  textarea,
+  select {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0;
+    border: 1.5px solid var(--gray-border);
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    color: var(--text);
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--teal);
+    background: var(--white);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  input[type="file"] {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    border: 1.5px dashed var(--gray-border);
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    background: #fafafa;
+    cursor: pointer;
+  }
+  label.field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 2px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 13px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary  { background: var(--teal);    color: var(--white); }
+  .btn-success  { background: var(--success); color: var(--white); }
+  .btn-danger   { background: var(--danger);  color: var(--white); }
+  .btn-blue     { background: var(--blue);    color: var(--white); }
+  .btn-gray     { background: #78909c;        color: var(--white); }
+  .btn-wa       { background: #25d366;        color: var(--white); }
+  .btn-sm {
+    width: auto;
+    display: inline-block;
+    padding: 7px 14px;
+    font-size: 13px;
+    margin-top: 6px;
+    margin-left: 6px;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--teal-dark);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    transition: transform 0.35s ease;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── MENU ITEM CARD (admin) ── */
+  .admin-item {
+    border: 1px solid var(--gray-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .admin-item-info { flex: 1; text-align: right; }
+  .admin-item-info strong { display: block; font-size: 15px; color: var(--text); }
+  .admin-item-info .price { color: var(--teal); font-weight: 700; font-size: 14px; }
+  .admin-item-info .cat   { color: var(--muted); font-size: 12px; }
+  .admin-item-actions { display: flex; flex-direction: column; gap: 4px; }
+
+  /* ── CUSTOMER VIEW ── */
+  .customer-header {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+    color: white;
+    padding: 30px 20px 20px;
+    text-align: center;
+  }
+  .customer-header h1 { font-size: 26px; font-weight: 900; }
+  .customer-header p  { opacity: 0.8; font-size: 13px; margin-top: 4px; }
+
+  .customer-body { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+  .category-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--teal-dark);
+    margin: 20px 0 10px;
+    border-bottom: 2px solid var(--teal-light);
+    padding-bottom: 6px;
+  }
+
+  .customer-item {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    margin: 10px 0;
+    overflow: hidden;
+    display: flex;
+    gap: 0;
+  }
+  .customer-item-img {
+    width: 90px;
+    min-height: 90px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .customer-item-img-placeholder {
+    width: 90px;
+    min-height: 90px;
+    background: var(--teal-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .customer-item-body {
+    padding: 12px 14px;
+    flex: 1;
+    text-align: right;
+  }
+  .customer-item-body strong { font-size: 15px; display: block; margin-bottom: 4px; }
+  .customer-item-body .desc { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .customer-item-body .price { font-size: 14px; font-weight: 700; color: var(--teal); margin-bottom: 8px; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--gray-border); margin: 20px 0; }
+
+  /* ── QR SECTION ── */
+  #qrCodeCanvas {
+    margin: 20px auto 0;
+    display: flex;
+    justify-content: center;
+  }
+  #qrCodeCanvas canvas,
+  #qrCodeCanvas img {
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  }
+
+  /* ── SPINNER ── */
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 3px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .empty .icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* ── LOGOUT ── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+</style>
 </head>
 <body>
 
-    <!-- شاشة التفعيل -->
-    <div id="subscriptionView" class="view" style="display: block;">
-        <h2>تفعيل خدمة القائمة الرقمية</h2>
-        <p>الاشتراك الشهري: 4,000 دج</p>
-        <div class="ccp-box">CCP: 007 99999 0018864026 62</div>
-        <input type="password" id="activationCode" placeholder="أدخل كود التفعيل هنا">
-        <button onclick="window.verifyActivation()">تفعيل الدخول</button>
-        
-        <!-- زر الواتساب -->
-        <a href="https://wa.me/213562419291?text=مرحباً، أرسلت إيصال الدفع لتفعيل خدمة القائمة الرقمية" target="_blank" 
-           style="display:block; margin-top: 20px; padding: 10px; background:#25d366; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">
-           أرسل الإيصال للواتساب للحصول على الكود 📲
-        </a>
+<!-- ══════════════════════════════════════
+     ACTIVATION SCREEN
+══════════════════════════════════════ -->
+<div id="subscriptionView" class="view active">
+  <div class="card">
+    <div class="logo">My<span>Smart</span>Menu</div>
+    <div class="subtitle">القائمة الرقمية الذكية للمطاعم</div>
+
+    <div class="section-title">تفعيل الخدمة</div>
+    <p style="font-size:14px; color:var(--muted); margin-bottom:12px;">
+      اشترك شهرياً بـ <strong style="color:var(--teal);">4,000 دج</strong> واحصل على قائمة رقمية احترافية مع QR Code خاص بمطعمك.
+    </p>
+    <div class="ccp-box">CCP: 007 99999 0018864026 62</div>
+
+    <a href="https://wa.me/213562419291?text=مرحباً، أرسلت إيصال الدفع لتفعيل خدمة القائمة الرقمية"
+       target="_blank" class="btn btn-wa" style="text-decoration:none; display:block;">
+      📲 أرسل الإيصال على واتساب
+    </a>
+
+    <hr class="divider">
+
+    <div class="section-title">لديك كود؟ سجّل الدخول</div>
+    <label class="field-label">كود التفعيل</label>
+    <input type="password" id="activationCode" placeholder="أدخل الكود هنا">
+    <button class="btn btn-primary" onclick="verifyActivation()">تفعيل الدخول</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN / EDITOR SCREEN
+══════════════════════════════════════ -->
+<div id="editorView" class="view">
+  <div class="card">
+    <div class="topbar">
+      <div class="logo" style="margin:0;">My<span>Smart</span>Menu</div>
+      <button class="btn btn-gray" style="width:auto;padding:8px 16px;font-size:13px;margin:0;" onclick="logout()">خروج</button>
     </div>
 
-    <!-- شاشة الإدارة -->
-    <div id="editorView" class="view">
-        <h2>لوحة التحكم</h2>
-        <input type="text" id="restName" placeholder="اسم المطعم (باللاتينية)">
-        <input type="text" id="itemName" placeholder="اسم الطبق">
-        <input type="number" id="itemPrice" placeholder="السعر">
-        <input type="text" id="itemCategory" placeholder="القسم">
-        <textarea id="itemDesc" placeholder="الوصف"></textarea>
-        <input type="file" id="itemImage">
-        <button id="addBtn" onclick="window.addItem()">إضافة الطبق</button>
-        <button id="cancelBtn" style="display:none; background:#6c757d;" onclick="window.cancelEdit()">إلغاء</button>
-        <div id="menuList"></div>
-        <hr>
-        <button style="background:#28a745;" onclick="window.generateQR()">إنشاء QR Code</button>
-        <div id="qrCodeCanvas" style="margin-top:20px; display:inline-block;"></div>
+    <div class="section-title">إعدادات المطعم</div>
+    <label class="field-label">اسم المطعم (باللاتينية — يُستخدم في الرابط)</label>
+    <input type="text" id="restName" placeholder="مثال: burger_house">
+
+    <hr class="divider">
+    <div class="section-title" id="formTitle">إضافة طبق جديد</div>
+
+    <label class="field-label">اسم الطبق</label>
+    <input type="text" id="itemName" placeholder="مثال: برغر كلاسيكي">
+
+    <label class="field-label">القسم</label>
+    <input type="text" id="itemCategory" placeholder="مثال: وجبات رئيسية">
+
+    <label class="field-label">السعر (دج)</label>
+    <input type="number" id="itemPrice" placeholder="مثال: 850">
+
+    <label class="field-label">الوصف (اختياري)</label>
+    <textarea id="itemDesc" placeholder="وصف مختصر للطبق..."></textarea>
+
+    <label class="field-label">صورة الطبق (اختياري)</label>
+    <input type="file" id="itemImage" accept="image/*">
+
+    <button class="btn btn-success" id="addBtn" onclick="addItem()">✅ إضافة الطبق</button>
+    <button class="btn btn-gray" id="cancelBtn" style="display:none;" onclick="cancelEdit()">إلغاء التعديل</button>
+
+    <hr class="divider">
+    <div class="section-title">قائمة الأطباق</div>
+    <div id="menuList"><div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد. أضف أول طبق!</div></div>
+
+    <hr class="divider">
+    <button class="btn btn-primary" onclick="generateQR()">📱 إنشاء QR Code</button>
+    <div id="qrCodeCanvas"></div>
+    <div id="qrLink" style="text-align:center; margin-top:10px; font-size:13px; color:var(--muted); word-break:break-all;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CUSTOMER MENU SCREEN
+══════════════════════════════════════ -->
+<div id="customerView" class="view">
+  <div class="customer-header">
+    <h1 id="customerRestName">قائمة المطعم</h1>
+    <p>اختر طبقك وأرسل طلبك مباشرة عبر واتساب</p>
+  </div>
+  <div class="customer-body">
+    <div id="customerMenuList"><div class="empty"><div class="icon">⏳</div>جارٍ تحميل القائمة...</div></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     FIREBASE + APP LOGIC
+══════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+/* ── Firebase Config ── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
+  authDomain:        "mysmartmenu-80a57.firebaseapp.com",
+  projectId:         "mysmartmenu-80a57",
+  storageBucket:     "mysmartmenu-80a57.firebasestorage.app",
+  messagingSenderId: "482274317209",
+  appId:             "1:482274317209:web:65c97f0d5c7bf7c1383908"
+};
+
+const app     = initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+const storage = getStorage(app);
+
+/* ── State ── */
+let menu         = [];
+let editingIndex = -1;
+const WA_NUMBER  = "00562419291";
+const VALID_CODE = "SMART2025"; // ← غيّر الكود من هنا (لا يظهر للمستخدم)
+
+/* ── Helpers ── */
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `جارٍ الحفظ... <span class="spinner"></span>`
+    : (editingIndex > -1 ? '💾 تحديث الطبق' : '✅ إضافة الطبق');
+}
+
+/* ── Activation ── */
+window.verifyActivation = () => {
+  const code = document.getElementById('activationCode').value.trim();
+  if (code === VALID_CODE) {
+    showView('editorView');
+    loadRestaurantData();
+  } else {
+    toast('❌ كود التفعيل غير صحيح');
+  }
+};
+
+window.logout = () => {
+  showView('subscriptionView');
+  document.getElementById('activationCode').value = '';
+};
+
+/* ── Load existing data on admin open ── */
+async function loadRestaurantData() {
+  const restName = document.getElementById('restName').value.trim();
+  if (!restName) return;
+  try {
+    const snap = await getDoc(doc(db, "restaurants", restName));
+    if (snap.exists()) {
+      menu = snap.data().menu || [];
+      renderAdminMenu();
+      toast('✅ تم تحميل بيانات المطعم');
+    }
+  } catch (e) { /* silent */ }
+}
+
+document.getElementById('restName')?.addEventListener('blur', loadRestaurantData);
+
+/* ── Add / Edit Item ── */
+window.addItem = async () => {
+  const restName = document.getElementById('restName').value.trim();
+  const name     = document.getElementById('itemName').value.trim();
+  const price    = document.getElementById('itemPrice').value.trim();
+
+  if (!restName) return toast('⚠️ أدخل اسم المطعم أولاً');
+  if (!name || !price) return toast('⚠️ الاسم والسعر مطلوبان');
+
+  setLoading('addBtn', true);
+
+  try {
+    let imageUrl = editingIndex > -1 ? menu[editingIndex].image : "";
+    const imgInput = document.getElementById('itemImage');
+    if (imgInput.files && imgInput.files[0]) {
+      const snapshot = await uploadBytes(
+        ref(storage, `menus/${restName}/${Date.now()}_${imgInput.files[0].name}`),
+        imgInput.files[0]
+      );
+      imageUrl = await getDownloadURL(snapshot.ref);
+    }
+
+    const newItem = {
+      name,
+      category:    document.getElementById('itemCategory').value.trim(),
+      description: document.getElementById('itemDesc').value.trim(),
+      price,
+      image:       imageUrl,
+      isAvailable: true
+    };
+
+    if (editingIndex > -1) menu[editingIndex] = newItem;
+    else menu.push(newItem);
+
+    await setDoc(doc(db, "restaurants", restName), { menu }, { merge: true });
+    cancelEdit();
+    renderAdminMenu();
+    toast('✅ تم حفظ الطبق بنجاح');
+  } catch (err) {
+    console.error(err);
+    toast('❌ حدث خطأ أثناء الحفظ');
+  } finally {
+    setLoading('addBtn', false);
+  }
+};
+
+/* ── Render Admin Menu ── */
+window.renderAdminMenu = () => {
+  const list = document.getElementById('menuList');
+  if (!menu.length) {
+    list.innerHTML = `<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد. أضف أول طبق!</div>`;
+    return;
+  }
+  list.innerHTML = menu.map((item, i) => `
+    <div class="admin-item">
+      <div class="admin-item-info">
+        <strong>${item.name}</strong>
+        <span class="price">${item.price} دج</span>
+        <span class="cat">${item.category || '—'}</span>
+      </div>
+      <div class="admin-item-actions">
+        <button class="btn btn-blue btn-sm" onclick="editItem(${i})">✏️ تعديل</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem(${i})">🗑️ حذف</button>
+      </div>
     </div>
+  `).join('');
+};
 
-    <!-- شاشة الزبون -->
-    <div id="customerView" class="view">
-        <h1 id="customerRestName"></h1>
-        <div id="customerMenuList"></div>
-    </div>
+/* ── Edit Item ── */
+window.editItem = (index) => {
+  const item = menu[index];
+  document.getElementById('itemName').value     = item.name;
+  document.getElementById('itemCategory').value = item.category;
+  document.getElementById('itemDesc').value     = item.description;
+  document.getElementById('itemPrice').value    = item.price;
+  editingIndex = index;
+  document.getElementById('formTitle').textContent = 'تعديل الطبق';
+  document.getElementById('addBtn').textContent    = '💾 تحديث الطبق';
+  document.getElementById('cancelBtn').style.display = 'block';
+  document.getElementById('itemName').scrollIntoView({ behavior: 'smooth' });
+};
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+/* ── Cancel Edit ── */
+window.cancelEdit = () => {
+  editingIndex = -1;
+  document.getElementById('formTitle').textContent    = 'إضافة طبق جديد';
+  document.getElementById('addBtn').textContent       = '✅ إضافة الطبق';
+  document.getElementById('cancelBtn').style.display  = 'none';
+  ['itemName','itemCategory','itemDesc','itemPrice','itemImage']
+    .forEach(id => document.getElementById(id).value = '');
+};
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
-            authDomain: "mysmartmenu-80a57.firebaseapp.com",
-            projectId: "mysmartmenu-80a57",
-            storageBucket: "mysmartmenu-80a57.firebasestorage.app",
-            messagingSenderId: "482274317209",
-            appId: "1:482274317209:web:65c97f0d5c7bf7c1383908"
-        };
+/* ── Delete Item ── */
+window.deleteItem = async (index) => {
+  if (!confirm('هل أنت متأكد من حذف هذا الطبق؟')) return;
+  const restName = document.getElementById('restName').value.trim();
+  menu.splice(index, 1);
+  await setDoc(doc(db, "restaurants", restName), { menu }, { merge: true });
+  renderAdminMenu();
+  toast('🗑️ تم حذف الطبق');
+};
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+/* ── Generate QR ── */
+window.generateQR = () => {
+  const restName = document.getElementById('restName').value.trim();
+  if (!restName) return toast('⚠️ أدخل اسم المطعم أولاً');
+  const url = window.location.href.split('?')[0] + '?rest=' + encodeURIComponent(restName);
+  const container = document.getElementById('qrCodeCanvas');
+  container.innerHTML = '';
+  new window.QRCode(container, { text: url, width: 200, height: 200, colorDark: '#006666' });
+  document.getElementById('qrLink').innerHTML =
+    `🔗 <a href="${url}" target="_blank" style="color:var(--teal);">${url}</a>`;
+  toast('✅ تم إنشاء QR Code');
+};
 
-        let menu = [];
-        let editingIndex = -1;
+/* ── Customer View ── */
+window.onload = async () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('rest')) {
+    const rest = params.get('rest');
+    showView('customerView');
+    document.getElementById('customerRestName').textContent = 'قائمة ' + rest;
+    try {
+      const snap = await getDoc(doc(db, "restaurants", rest));
+      if (snap.exists()) {
+        menu = snap.data().menu || [];
+        renderCustomerMenu();
+      } else {
+        document.getElementById('customerMenuList').innerHTML =
+          `<div class="empty"><div class="icon">😕</div>لم يتم العثور على قائمة لهذا المطعم.</div>`;
+      }
+    } catch {
+      document.getElementById('customerMenuList').innerHTML =
+        `<div class="empty"><div class="icon">⚠️</div>خطأ في تحميل القائمة. تحقق من اتصالك.</div>`;
+    }
+  }
+};
 
-        window.verifyActivation = () => {
-            const code = document.getElementById('activationCode').value;
-            if (code === "12345") {
-                document.getElementById('subscriptionView').style.display = 'none';
-                document.getElementById('editorView').style.display = 'block';
-            } else {
-                alert("كود التفعيل غير صحيح");
-            }
-        };
+/* ── Render Customer Menu ── */
+window.renderCustomerMenu = () => {
+  const list = document.getElementById('customerMenuList');
+  const available = menu.filter(i => i.isAvailable);
 
-        window.onload = async () => {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('rest')) {
-                const rest = params.get('rest');
-                document.getElementById('subscriptionView').style.display = 'none';
-                document.getElementById('customerView').style.display = 'block';
-                document.getElementById('customerRestName').innerText = "قائمة " + rest;
-                const docSnap = await getDoc(doc(db, "restaurants", rest));
-                if (docSnap.exists()) {
-                    menu = docSnap.data().menu || [];
-                    renderCustomerMenu();
-                }
-            }
-        };
+  if (!available.length) {
+    list.innerHTML = `<div class="empty"><div class="icon">😕</div>القائمة فارغة حالياً.</div>`;
+    return;
+  }
 
-        window.addItem = async () => {
-            const restName = document.getElementById('restName').value;
-            if(!restName) return alert("يرجى إدخال اسم المطعم");
+  // Group by category
+  const categories = {};
+  available.forEach(item => {
+    const cat = item.category || 'أخرى';
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push(item);
+  });
 
-            const name = document.getElementById('itemName').value;
-            const price = document.getElementById('itemPrice').value;
-            const imgInput = document.getElementById('itemImage');
-
-            if(!name || !price) return alert("الاسم والسعر مطلوبان");
-
-            let imageUrl = editingIndex > -1 ? menu[editingIndex].image : "";
-            if (imgInput.files && imgInput.files[0]) {
-                const snapshot = await uploadBytes(ref(storage, `menus/${restName}/${Date.now()}`), imgInput.files[0]);
-                imageUrl = await getDownloadURL(snapshot.ref);
-            }
-
-            const newItem = { 
-                name, 
-                category: document.getElementById('itemCategory').value, 
-                description: document.getElementById('itemDesc').value, 
-                price, 
-                image: imageUrl, 
-                isAvailable: true 
-            };
-
-            if (editingIndex > -1) menu[editingIndex] = newItem;
-            else menu.push(newItem);
-
-            await setDoc(doc(db, "restaurants", restName), { menu }, { merge: true });
-            window.cancelEdit();
-            renderAdminMenu();
-        };
-
-        window.renderAdminMenu = () => {
-            const list = document.getElementById('menuList');
-            list.innerHTML = "";
-            menu.forEach((item, index) => {
-                list.innerHTML += `<div class="item"> <strong>${item.name}</strong> - ${item.price} دج 
-                <div> <button class="btn-edit" onclick="window.editItem(${index})">تعديل</button> <button class="btn-delete" onclick="window.deleteItem(${index})">حذف</button> </div> </div>`;
-            });
-        };
-
-        window.renderCustomerMenu = () => {
-            const list = document.getElementById('customerMenuList');
-            const phoneNumber = "00562419291";
-            menu.forEach(item => {
-                if(item.isAvailable) {
-                    const waLink = `https://wa.me/${phoneNumber}?text=مرحباً، أريد طلب: ${item.name}`;
-                    list.innerHTML += `<div class="item"> <strong>${item.name}</strong> - ${item.price} دج <br><a href="${waLink}" target="_blank" style="display:block; margin-top:5px; padding:10px; background:#25d366; color:white; text-decoration:none; border-radius:5px; text-align:center;">طلب عبر واتساب 📲</a> </div>`;
-                }
-            });
-        };
-
-        window.editItem = (index) => {
-            const item = menu[index];
-            document.getElementById('itemName').value = item.name;
-            document.getElementById('itemCategory').value = item.category;
-            document.getElementById('itemDesc').value = item.description;
-            document.getElementById('itemPrice').value = item.price;
-            editingIndex = index;
-            document.getElementById('addBtn').innerText = "تحديث الطبق";
-            document.getElementById('cancelBtn').style.display = 'block';
-        };
-
-        window.cancelEdit = () => {
-            editingIndex = -1;
-            document.getElementById('addBtn').innerText = "إضافة الطبق";
-            document.getElementById('cancelBtn').style.display = 'none';
-            ['itemName', 'itemCategory', 'itemDesc', 'itemPrice', 'itemImage'].forEach(id => document.getElementById(id).value = "");
-        };
-
-        window.deleteItem = async (index) => {
-            if(!confirm("هل أنت متأكد؟")) return;
-            menu.splice(index, 1);
-            await setDoc(doc(db, "restaurants", document.getElementById('restName').value), { menu }, { merge: true });
-            renderAdminMenu();
-        };
-
-        window.generateQR = () => {
-            const restName = document.getElementById('restName').value;
-            if(!restName) return alert("أدخل اسم المطعم أولاً");
-            const url = window.location.href.split('?')[0] + '?rest=' + restName;
-            const container = document.getElementById('qrCodeCanvas');
-            container.innerHTML = "";
-            new window.QRCode(container, { text: url, width: 150, height: 150 });
-        };
-    </script>
+  let html = '';
+  for (const [cat, items] of Object.entries(categories)) {
+    html += `<div class="category-title">🍴 ${cat}</div>`;
+    items.forEach(item => {
+      const waLink = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('مرحباً، أريد طلب: ' + item.name)}`;
+      const imgPart = item.image
+        ? `<img class="customer-item-img" src="${item.image}" alt="${item.name}" loading="lazy">`
+        : `<div class="customer-item-img-placeholder">🍽️</div>`;
+      html += `
+        <div class="customer-item">
+          ${imgPart}
+          <div class="customer-item-body">
+            <strong>${item.name}</strong>
+            ${item.description ? `<div class="desc">${item.description}</div>` : ''}
+            <div class="price">${item.price} دج</div>
+            <a href="${waLink}" target="_blank" class="btn btn-wa" style="display:block; text-decoration:none; font-size:13px; padding:9px; margin:0;">
+              📲 اطلب الآن
+            </a>
+          </div>
+        </div>`;
+    });
+  }
+  list.innerHTML = html;
+};
+</script>
 </body>
 </html>
