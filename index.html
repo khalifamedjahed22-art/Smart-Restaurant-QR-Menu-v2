@@ -342,6 +342,9 @@
     <div class="section-title">إعدادات المطعم</div>
     <label class="field-label">اسم المطعم (باللاتينية — يُستخدم في الرابط)</label>
     <input type="text" id="restName" placeholder="مثال: burger_house">
+    <label class="field-label">رقم واتساب للطلبات (مع رمز الدولة، بدون +)</label>
+    <input type="text" id="restWhatsapp" placeholder="مثال: 213562419291">
+    <button class="btn btn-primary" style="margin-top:8px;" onclick="saveRestInfo()">💾 حفظ إعدادات المطعم</button>
 
     <hr class="divider">
     <div class="section-title" id="formTitle">إضافة طبق جديد</div>
@@ -416,8 +419,8 @@ const storage = getStorage(app);
 /* ── State ── */
 let menu         = [];
 let editingIndex = -1;
-const WA_NUMBER  = "00562419291";
-const VALID_CODE = "SMART2025"; // ← غيّر الكود من هنا (لا يظهر للمستخدم)
+let waNumber     = "";   // يُحمَّل من Firebase
+const VALID_CODE = "SMART2025";
 
 /* ── Helpers ── */
 function showView(id) {
@@ -464,7 +467,12 @@ async function loadRestaurantData() {
   try {
     const snap = await getDoc(doc(db, "restaurants", restName));
     if (snap.exists()) {
-      menu = snap.data().menu || [];
+      const data = snap.data();
+      menu = data.menu || [];
+      if (data.whatsapp) {
+        document.getElementById('restWhatsapp').value = data.whatsapp;
+        waNumber = data.whatsapp;
+      }
       renderAdminMenu();
       toast('✅ تم تحميل بيانات المطعم');
     }
@@ -472,6 +480,21 @@ async function loadRestaurantData() {
 }
 
 document.getElementById('restName')?.addEventListener('blur', loadRestaurantData);
+
+/* ── Save Restaurant Info ── */
+window.saveRestInfo = async () => {
+  const restName = document.getElementById('restName').value.trim();
+  const wa       = document.getElementById('restWhatsapp').value.trim();
+  if (!restName) return toast('⚠️ أدخل اسم المطعم أولاً');
+  if (!wa)       return toast('⚠️ أدخل رقم واتساب المطعم');
+  try {
+    await setDoc(doc(db, "restaurants", restName), { whatsapp: wa }, { merge: true });
+    waNumber = wa;
+    toast('✅ تم حفظ إعدادات المطعم');
+  } catch {
+    toast('❌ خطأ في الحفظ');
+  }
+};
 
 /* ── Add / Edit Item ── */
 window.addItem = async () => {
@@ -598,7 +621,9 @@ window.onload = async () => {
     try {
       const snap = await getDoc(doc(db, "restaurants", rest));
       if (snap.exists()) {
-        menu = snap.data().menu || [];
+        const data = snap.data();
+        menu     = data.menu     || [];
+        waNumber = data.whatsapp || "";
         renderCustomerMenu();
       } else {
         document.getElementById('customerMenuList').innerHTML =
@@ -633,7 +658,10 @@ window.renderCustomerMenu = () => {
   for (const [cat, items] of Object.entries(categories)) {
     html += `<div class="category-title">🍴 ${cat}</div>`;
     items.forEach(item => {
-      const waLink = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('مرحباً، أريد طلب: ' + item.name)}`;
+      const waMsg  = `مرحباً، أريد طلب: ${item.name} - السعر: ${item.price} دج`;
+      const waLink = waNumber
+        ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`
+        : `#`;
       const imgPart = item.image
         ? `<img class="customer-item-img" src="${item.image}" alt="${item.name}" loading="lazy">`
         : `<div class="customer-item-img-placeholder">🍽️</div>`;
@@ -644,7 +672,10 @@ window.renderCustomerMenu = () => {
             <strong>${item.name}</strong>
             ${item.description ? `<div class="desc">${item.description}</div>` : ''}
             <div class="price">${item.price} دج</div>
-            <a href="${waLink}" target="_blank" class="btn btn-wa" style="display:block; text-decoration:none; font-size:13px; padding:9px; margin:0;">
+            <a href="${waLink}" target="_blank" rel="noopener noreferrer"
+               class="btn btn-wa"
+               style="display:block; text-decoration:none; font-size:13px; padding:9px; margin:0;"
+               onclick="event.stopPropagation();">
               📲 اطلب الآن
             </a>
           </div>
