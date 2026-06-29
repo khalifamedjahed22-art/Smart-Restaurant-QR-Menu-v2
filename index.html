@@ -21,7 +21,6 @@
 <body>
 
 <div class="container">
-    <!-- حقل مخفي لتخزين اسم المطعم الحالي في الجلسة -->
     <input type="hidden" id="restName">
 
     <div id="subscriptionView">
@@ -61,14 +60,14 @@
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-    // [هام جداً]: يجب استبدال البيانات أدناه ببيانات مشروعك من Firebase Console
-    const firebaseConfig = { 
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
+    // إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
+        authDomain: "mysmartmenu-80a57.firebaseapp.com",
+        projectId: "mysmartmenu-80a57",
+        storageBucket: "mysmartmenu-80a57.firebasestorage.app",
+        messagingSenderId: "482274317209",
+        appId: "1:482274317209:web:65c97f0d5c7bf7c1383908"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -78,10 +77,8 @@
     let menu = [];
     let editingIndex = -1;
 
-    // [أمان]: دالة لمنع هجمات XSS عن طريق تنظيف النصوص المدخلة قبل عرضها في المتصفح
     const escapeHTML = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    // [منطق]: تحميل القائمة تلقائياً إذا كان الرابط يحتوي على اسم مطعم (?rest=name)
     window.onload = async () => {
         const params = new URLSearchParams(window.location.search);
         if (params.has('rest')) {
@@ -100,7 +97,6 @@
     window.checkSubscription = async () => {
         const name = document.getElementById('restaurantLoginName').value.trim().toLowerCase();
         if (!name) return alert("أدخل اسم المطعم");
-        // [تحقق]: نتحقق من وجود المطعم وحالة تفعيله في قاعدة البيانات
         const docSnap = await getDoc(doc(db, "restaurants", name));
         if (docSnap.exists() && docSnap.data().isActive) {
             document.getElementById('restName').value = name;
@@ -124,7 +120,6 @@
         if(!name || !price) return alert("الاسم والسعر مطلوبان");
 
         let imageUrl = editingIndex > -1 ? menu[editingIndex].image : "";
-        // [تخزين]: رفع الصور في مسار خاص بكل مطعم
         if (imgInput.files && imgInput.files[0]) {
             const snapshot = await uploadBytes(ref(storage, `menus/${restName}/${Date.now()}`), imgInput.files[0]);
             imageUrl = await getDownloadURL(snapshot.ref);
@@ -199,7 +194,6 @@
     };
 
     window.generateQR = () => {
-        // [تنبيه]: تأكد أن الرابط الحالي هو رابط استضافتك وليس localhost
         const url = window.location.href.split('?')[0] + '?rest=' + document.getElementById('restName').value;
         const container = document.getElementById('qrCodeCanvas');
         container.innerHTML = "";
