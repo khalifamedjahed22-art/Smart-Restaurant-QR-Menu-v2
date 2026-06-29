@@ -25,7 +25,12 @@
         <div class="ccp-box">CCP: 007 99999 0018864026 62</div>
         <input type="password" id="activationCode" placeholder="أدخل كود التفعيل هنا">
         <button onclick="window.verifyActivation()">تفعيل الدخول</button>
-        <p style="margin-top: 15px; color: #666; font-size: 14px;">أرسل الإيصال للواتساب للحصول على الكود</p>
+        
+        <!-- زر الواتساب -->
+        <a href="https://wa.me/213562419291?text=مرحباً، أرسلت إيصال الدفع لتفعيل خدمة القائمة الرقمية" target="_blank" 
+           style="display:block; margin-top: 20px; padding: 10px; background:#25d366; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">
+           أرسل الإيصال للواتساب للحصول على الكود 📲
+        </a>
     </div>
 
     <!-- شاشة الإدارة -->
@@ -99,7 +104,7 @@
 
         window.addItem = async () => {
             const restName = document.getElementById('restName').value;
-            if(!restName) return alert("يرجى إدخال اسم المطعم في الحقل المخصص");
+            if(!restName) return alert("يرجى إدخال اسم المطعم");
 
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
@@ -113,13 +118,13 @@
                 imageUrl = await getDownloadURL(snapshot.ref);
             }
 
-            const newItem = {
-                name,
-                category: document.getElementById('itemCategory').value,
-                description: document.getElementById('itemDesc').value,
-                price,
-                image: imageUrl,
-                isAvailable: true
+            const newItem = { 
+                name, 
+                category: document.getElementById('itemCategory').value, 
+                description: document.getElementById('itemDesc').value, 
+                price, 
+                image: imageUrl, 
+                isAvailable: true 
             };
 
             if (editingIndex > -1) menu[editingIndex] = newItem;
@@ -135,10 +140,7 @@
             list.innerHTML = "";
             menu.forEach((item, index) => {
                 list.innerHTML += `<div class="item"> <strong>${item.name}</strong> - ${item.price} دج 
-                <div style="margin-top:5px;"> 
-                    <button class="btn-edit" onclick="window.editItem(${index})">تعديل</button>
-                    <button class="btn-delete" onclick="window.deleteItem(${index})">حذف</button> 
-                </div> </div>`;
+                <div> <button class="btn-edit" onclick="window.editItem(${index})">تعديل</button> <button class="btn-delete" onclick="window.deleteItem(${index})">حذف</button> </div> </div>`;
             });
         };
 
@@ -148,8 +150,7 @@
             menu.forEach(item => {
                 if(item.isAvailable) {
                     const waLink = `https://wa.me/${phoneNumber}?text=مرحباً، أريد طلب: ${item.name}`;
-                    list.innerHTML += `<div class="item"> <strong>${item.name}</strong> - ${item.price} دج 
-                    <br><a href="${waLink}" target="_blank" style="display:block; margin-top:5px; padding:10px; background:#25d366; color:white; text-decoration:none; border-radius:5px; text-align:center;">طلب عبر واتساب 📲</a> </div>`;
+                    list.innerHTML += `<div class="item"> <strong>${item.name}</strong> - ${item.price} دج <br><a href="${waLink}" target="_blank" style="display:block; margin-top:5px; padding:10px; background:#25d366; color:white; text-decoration:none; border-radius:5px; text-align:center;">طلب عبر واتساب 📲</a> </div>`;
                 }
             });
         };
