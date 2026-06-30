@@ -8,22 +8,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root {
---teal: #008080;
---teal-dark: #006666;
---teal-light: #e0f2f1;
---gold: #c9a84c;
---danger: #e53935;
---success: #2e7d32;
---blue: #1565c0;
---gray-bg: #f5f7f8;
---gray-border:#e0e0e0;
---text: #212121;
---muted: #757575;
---white: #ffffff;
---radius: 12px;
---shadow: 0 4px 20px rgba(0,0,0,0.10);
+  --teal: #008080;
+  --teal-dark: #006666;
+  --teal-light: #e0f2f1;
+  --gold: #c9a84c;
+  --danger: #e53935;
+  --success: #2e7d32;
+  --blue: #1565c0;
+  --gray-bg: #f5f7f8;
+  --gray-border:#e0e0e0;
+  --text: #212121;
+  --muted: #757575;
+  --white: #ffffff;
+  --radius: 12px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.10);
 }
-• { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Cairo', Arial, sans-serif; background: var(--gray-bg); color: var(--text); min-height: 100vh; }
 
 .view { display: none; }
@@ -42,10 +42,10 @@ body { font-family: 'Cairo', Arial, sans-serif; background: var(--gray-bg); colo
 .ccp-box::before { content: "🏦"; font-size: 20px; }
 
 input[type="text"], input[type="number"], input[type="password"], input[type="email"], textarea, select {
-display: block; width: 100%; padding: 12px 14px; margin: 8px 0;
-border: 1.5px solid var(--gray-border); border-radius: 10px;
-font-family: 'Cairo', sans-serif; font-size: 14px;
-background: #fafafa; transition: border-color 0.2s; color: var(--text);
+  display: block; width: 100%; padding: 12px 14px; margin: 8px 0;
+  border: 1.5px solid var(--gray-border); border-radius: 10px;
+  font-family: 'Cairo', sans-serif; font-size: 14px;
+  background: #fafafa; transition: border-color 0.2s; color: var(--text);
 }
 input:focus, textarea:focus, select:focus { outline: none; border-color: var(--teal); background: var(--white); }
 textarea { resize: vertical; min-height: 80px; }
@@ -55,6 +55,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .btn { display: block; width: 100%; padding: 13px 20px; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.1s; text-align: center; margin-top: 10px; }
 .btn:hover { opacity: 0.88; }
 .btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-primary { background: var(--teal); color: var(--white); }
 .btn-success { background: var(--success); color: var(--white); }
 .btn-danger { background: var(--danger); color: var(--white); }
@@ -65,7 +66,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .btn-sm { width: auto; display: inline-block; padding: 7px 14px; font-size: 13px; margin-top: 6px; margin-left: 6px; }
 
 .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; display: inline-block; }
 .toggle input { opacity: 0; width: 0; height: 0; }
 .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 24px; cursor: pointer; transition: background 0.2s; }
 .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; right: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
@@ -100,12 +101,15 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .category-title { font-size: 16px; font-weight: 700; color: var(--teal-dark); margin: 20px 0 10px; border-bottom: 2px solid var(--teal-light); padding-bottom: 6px; }
 
 .customer-item { background: var(--white); border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin: 10px 0; overflow: hidden; display: flex; }
+.customer-item.unavailable { opacity: 0.55; }
 .customer-item-img { width: 90px; min-height: 90px; object-fit: cover; flex-shrink: 0; }
 .customer-item-img-placeholder { width: 90px; min-height: 90px; background: var(--teal-light); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
 .customer-item-body { padding: 12px 14px; flex: 1; text-align: right; }
 .customer-item-body strong { font-size: 15px; display: block; margin-bottom: 4px; }
 .customer-item-body .desc { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
 .customer-item-body .price { font-size: 14px; font-weight: 700; color: var(--teal); margin-bottom: 8px; }
+.customer-item-body .btn-order { width: auto; display: inline-block; padding: 8px 16px; font-size: 13px; margin-top: 0; text-decoration: none; }
+.customer-item-body .unavail-tag { display: inline-block; background: #fce4ec; color: var(--danger); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
 
 .divider { border: none; border-top: 1px solid var(--gray-border); margin: 20px 0; }
 
@@ -118,7 +122,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
 .empty .icon { font-size: 40px; margin-bottom: 10px; }
 
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
 
 .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-right: 6px; }
 .badge-on { background: #e8f5e9; color: var(--success); }
@@ -159,231 +163,245 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 <body>
 
 <!-- ══════════════════════════════════════
-ACTIVATION / SUBSCRIPTION SCREEN
+SUBSCRIPTION / SIGNUP SCREEN
 ══════════════════════════════════════ -->
 <div id="subscriptionView" class="view active">
-<div class="card">
-<div class="logo">My<span>Smart</span>Menu</div>
-<div class="subtitle">القائمة الرقمية الذكية للمطاعم</div>
+  <div class="card">
+    <div class="logo">My<span>Smart</span>Menu</div>
+    <div class="subtitle">القائمة الرقمية الذكية للمطاعم</div>
 
-<div class="section-title">اختر باقتك</div>
-<div class="plan-card">
-<div class="plan-name">الباقة الشهرية</div>
-<div class="plan-price">4,000 <span>دج/شهر</span></div>
-<div class="plan-features">
-✓ قائمة رقمية احترافية<br>
-✓ QR Code خاص بمطعمك<br>
-✓ طلبات مباشرة عبر واتساب<br>
-✓ إحصائيات وتحليلات<br>
-✓ دعم فني 24/7
-</div>
-</div>
+    <div class="section-title">اختر باقتك</div>
+    <div class="plan-card">
+      <div class="plan-name">الباقة الشهرية</div>
+      <div class="plan-price" id="planPriceDisplay">4,000 <span>دج/شهر</span></div>
+      <div class="plan-features">
+        ✓ قائمة رقمية احترافية<br>
+        ✓ QR Code خاص بمطعمك<br>
+        ✓ طلبات مباشرة عبر واتساب<br>
+        ✓ إحصائيات وتحليلات<br>
+        ✓ دعم فني 24/7
+      </div>
+    </div>
 
-<div class="section-title">طريقة الدفع</div>
-<p style="font-size:14px;color:var(--muted);margin-bottom:12px;">
-أرسل المبلغ عبر CCP ثم أدخل بياناتك لتفعيل حسابك فوراً.
-</p>
-<div class="ccp-box">CCP: 007 99999 0018864026 62</div>
-<a href="https://wa.me/213562419291?text=مرحباً، أرسلت إيصال الدفع لتفعيل خدمة القائمة الرقمية"
-target="_blank" class="btn btn-wa" style="text-decoration:none;display:block;">
-📲 أرسل الإيصال على واتساب
-</a>
+    <div class="section-title">طريقة الدفع</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">
+      أرسل المبلغ عبر CCP ثم أدخل بياناتك لتفعيل حسابك فوراً.
+    </p>
+    <div class="ccp-box" id="ccpDisplay">CCP: 007 99999 0018864026 62</div>
+    <a href="https://wa.me/213562419291?text=مرحباً، أرسلت إيصال الدفع لتفعيل خدمة القائمة الرقمية"
+       target="_blank" class="btn btn-wa" style="text-decoration:none;display:block;">
+      📲 أرسل الإيصال على واتساب
+    </a>
 
-<hr class="divider">
-<div class="section-title">لديك إيصال؟ فعّل حسابك الآن</div>
+    <hr class="divider">
+    <div class="section-title">لديك إيصال؟ فعّل حسابك الآن</div>
 
-<label class="field-label">معرف المطعم (باللاتينية)</label>
-<input type="text" id="signupRestId" placeholder="مثال: burger_house">
+    <label class="field-label">معرف المطعم (باللاتينية)</label>
+    <input type="text" id="signupRestId" placeholder="مثال: burger_house">
 
-<label class="field-label">اسم المطعم للعرض</label>
-<input type="text" id="signupDisplayName" placeholder="مثال: برغر هاوس">
+    <label class="field-label">اسم المطعم للعرض</label>
+    <input type="text" id="signupDisplayName" placeholder="مثال: برغر هاوس">
 
-<label class="field-label">رقم واتساب للطلبات</label>
-<input type="text" id="signupWhatsapp" placeholder="مثال: 213562419291">
+    <label class="field-label">رقم واتساب للطلبات</label>
+    <input type="text" id="signupWhatsapp" placeholder="مثال: 213562419291">
 
-<label class="field-label">كود الإيصال (من البنك)</label>
-<input type="text" id="signupReceipt" placeholder="أدخل رقم الإيصال أو كود التأكيد">
+    <label class="field-label">كود الإيصال (من البنك)</label>
+    <input type="text" id="signupReceipt" placeholder="أدخل رقم الإيصال أو كود التأكيد">
 
-<label class="field-label">كلمة المرور للوحة التحكم</label>
-<input type="password" id="signupPassword" placeholder="أنشئ كلمة مرور قوية">
+    <label class="field-label">كلمة المرور للوحة التحكم</label>
+    <input type="password" id="signupPassword" placeholder="أنشئ كلمة مرور قوية">
 
-<button class="btn btn-success" id="signupBtn" onclick="signupRestaurant()">🚀 تفعيل حسابي الآن</button>
+    <button class="btn btn-success" id="signupBtn" onclick="signupRestaurant()">🚀 تفعيل حسابي الآن</button>
 
-<hr class="divider">
-<div class="login-link">
-لديك حساب؟ <button type="button" onclick="showLogin()">سجّل الدخول</button>
-</div>
-<div class="login-link">
-<button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍💼 دخول الإدارة</button>
-</div>
-</div>
+    <hr class="divider">
+    <div class="login-link">
+      لديك حساب؟ <button type="button" onclick="showLogin()">سجّل الدخول</button>
+    </div>
+    <div class="login-link">
+      <button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍💼 دخول الإدارة</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════
 LOGIN SCREEN
 ══════════════════════════════════════ -->
 <div id="loginView" class="view">
-<div class="card" style="max-width:400px;">
-<div class="logo">My<span>Smart</span>Menu</div>
-<div class="subtitle">تسجيل الدخول</div>
+  <div class="card" style="max-width:400px;">
+    <div class="logo">My<span>Smart</span>Menu</div>
+    <div class="subtitle">تسجيل الدخول</div>
 
-<label class="field-label">معرف المطعم</label>
-<input type="text" id="loginRestId" placeholder="مثال: burger_house">
+    <label class="field-label">معرف المطعم</label>
+    <input type="text" id="loginRestId" placeholder="مثال: burger_house">
 
-<label class="field-label">كلمة المرور</label>
-<input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
+    <label class="field-label">كلمة المرور</label>
+    <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
 
-<button class="btn btn-primary" onclick="loginRestaurant()">🔑 تسجيل الدخول</button>
+    <button class="btn btn-primary" onclick="loginRestaurant()">🔑 تسجيل الدخول</button>
 
-<div class="login-link">
-<button type="button" onclick="showSignup()">← ليس لديك حساب؟ سجّل الآن</button>
-</div>
-</div>
+    <div class="login-link">
+      <button type="button" onclick="showSignup()">← ليس لديك حساب؟ سجّل الآن</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════
 ADMIN LOGIN SCREEN
 ══════════════════════════════════════ -->
 <div id="adminLoginView" class="view">
-<div class="card" style="max-width:360px;">
-<div class="logo">My<span>Smart</span>Menu</div>
-<div class="subtitle">لوحة الإدارة</div>
-<label class="field-label">كلمة مرور الإدارة</label>
-<input type="password" id="adminPassword" placeholder="أدخل كلمة المرور">
-<button class="btn btn-primary" onclick="verifyAdmin()">دخول</button>
-<button class="btn btn-gray" style="margin-top:8px;" onclick="showSignup()">رجوع</button>
-</div>
+  <div class="card" style="max-width:360px;">
+    <div class="logo">My<span>Smart</span>Menu</div>
+    <div class="subtitle">لوحة الإدارة</div>
+    <label class="field-label">كلمة مرور الإدارة</label>
+    <input type="password" id="adminPassword" placeholder="أدخل كلمة المرور">
+    <button class="btn btn-primary" onclick="verifyAdmin()">دخول</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="showSignup()">رجوع</button>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════
 ADMIN PANEL SCREEN
 ══════════════════════════════════════ -->
 <div id="adminView" class="view">
-<div class="card card-wide">
-<div class="topbar">
-<div class="logo" style="margin:0;">My<span>Smart</span>Menu <span style="font-size:14px;color:var(--muted);">| لوحة الإدارة</span></div>
-<button class="btn btn-gray" style="width:auto;padding:8px 16px;font-size:13px;margin:0;" onclick="adminLogout()">خروج</button>
-</div>
+  <div class="card card-wide">
+    <div class="topbar">
+      <div class="logo" style="margin:0;">My<span>Smart</span>Menu <span style="font-size:14px;color:var(--muted);">| لوحة الإدارة</span></div>
+      <button class="btn btn-gray" style="width:auto;padding:8px 16px;font-size:13px;margin:0;" onclick="adminLogout()">خروج</button>
+    </div>
 
-<div class="tabs">
-<button class="tab-btn active" onclick="switchTab(event, 'tabRestaurants')">🏪 المطاعم</button>
-<button class="tab-btn" onclick="switchTab(event, 'tabStats')">📊 الإحصائيات</button>
-<button class="tab-btn" onclick="switchTab(event, 'tabSettings')">⚙️ الإعدادات</button>
-</div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event, 'tabRestaurants')">🏪 المطاعم</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabStats')">📊 الإحصائيات</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabSettings')">⚙️ الإعدادات</button>
+    </div>
 
-<div id="tabRestaurants" class="tab-panel active">
-<div class="section-title">جميع المطاعم المشتركة</div>
-<div id="adminRestaurantsList"><div class="empty"><div class="icon">⏳</div>جارٍ التحميل...</div></div>
-</div>
+    <div id="tabRestaurants" class="tab-panel active">
+      <div class="section-title">جميع المطاعم المشتركة</div>
+      <div id="adminRestaurantsList"><div class="empty"><div class="icon">⏳</div>جارٍ التحميل...</div></div>
+    </div>
 
-<div id="tabStats" class="tab-panel">
-<div class="stats-grid">
-<div class="stat-card"><div class="num" id="adminTotalRests">0</div><div class="lbl">إجمالي المطاعم</div></div>
-<div class="stat-card"><div class="num" id="adminActiveRests">0</div><div class="lbl">مشتركين نشطين</div></div>
-<div class="stat-card"><div class="num" id="adminExpiredRests">0</div><div class="lbl">منتهي الاشتراك</div></div>
-<div class="stat-card"><div class="num" id="adminTotalItems">0</div><div class="lbl">إجمالي الأطباق</div></div>
-</div>
-</div>
+    <div id="tabStats" class="tab-panel">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="num" id="adminTotalRests">0</div><div class="lbl">إجمالي المطاعم</div></div>
+        <div class="stat-card"><div class="num" id="adminActiveRests">0</div><div class="lbl">مشتركين نشطين</div></div>
+        <div class="stat-card"><div class="num" id="adminExpiredRests">0</div><div class="lbl">منتهي الاشتراك</div></div>
+        <div class="stat-card"><div class="num" id="adminTotalItems">0</div><div class="lbl">إجمالي الأطباق</div></div>
+      </div>
+    </div>
 
-<div id="tabSettings" class="tab-panel">
-<div class="section-title">إعدادات النظام</div>
-<label class="field-label">سعر الاشتراك الشهري (دج)</label>
-<input type="number" id="adminPrice" value="4000">
-<label class="field-label">رقم CCP للدفع</label>
-<input type="text" id="adminCCP" value="007 99999 0018864026 62">
-<button class="btn btn-primary" onclick="saveAdminSettings()">💾 حفظ الإعدادات</button>
-</div>
-</div>
+    <div id="tabSettings" class="tab-panel">
+      <div class="section-title">إعدادات النظام</div>
+      <label class="field-label">سعر الاشتراك الشهري (دج)</label>
+      <input type="number" id="adminPrice" value="4000">
+      <label class="field-label">رقم CCP للدفع</label>
+      <input type="text" id="adminCCP" value="007 99999 0018864026 62">
+      <button class="btn btn-primary" onclick="saveAdminSettings()">💾 حفظ الإعدادات</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════
 RESTAURANT EDITOR SCREEN
 ══════════════════════════════════════ -->
 <div id="editorView" class="view">
-<div class="card">
-<div class="topbar">
-<div class="logo" style="margin:0;">My<span>Smart</span>Menu</div>
-<button class="btn btn-gray" style="width:auto;padding:8px 16px;font-size:13px;margin:0;" onclick="logout()">خروج</button>
-</div>
+  <div class="card">
+    <div class="topbar">
+      <div class="logo" style="margin:0;">My<span>Smart</span>Menu</div>
+      <button class="btn btn-gray" style="width:auto;padding:8px 16px;font-size:13px;margin:0;" onclick="logout()">خروج</button>
+    </div>
 
-<div id="subStatusBox" class="sub-status sub-active">
-<span id="subStatusIcon">✅</span>
-<span id="subStatusText">الاشتراك نشط</span>
-</div>
-<div class="countdown" id="subCountdown"></div>
+    <div id="subStatusBox" class="sub-status sub-active">
+      <span id="subStatusIcon">✅</span>
+      <span id="subStatusText">الاشتراك نشط</span>
+    </div>
+    <div class="countdown" id="subCountdown"></div>
 
-<div class="stats-grid">
-<div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">إجمالي الأطباق</div></div>
-<div class="stat-card"><div class="num" id="statAvail">0</div><div class="lbl">متاح الآن</div></div>
-</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">إجمالي الأطباق</div></div>
+      <div class="stat-card"><div class="num" id="statAvail">0</div><div class="lbl">متاح الآن</div></div>
+    </div>
 
-<div class="section-title">إعدادات المطعم</div>
-<label class="field-label">اسم المطعم للعرض</label>
-<input type="text" id="restDisplayName" placeholder="مثال: برغر هاوس">
-<label class="field-label">رقم واتساب للطلبات (مع رمز الدولة)</label>
-<input type="text" id="restWhatsapp" placeholder="مثال: 213562419291">
-<button class="btn btn-primary" style="margin-top:8px;" onclick="saveRestInfo()">💾 حفظ إعدادات المطعم</button>
+    <div class="section-title">إعدادات المطعم</div>
+    <label class="field-label">اسم المطعم للعرض</label>
+    <input type="text" id="restDisplayName" placeholder="مثال: برغر هاوس">
+    <label class="field-label">رقم واتساب للطلبات (مع رمز الدولة)</label>
+    <input type="text" id="restWhatsapp" placeholder="مثال: 213562419291">
+    <button class="btn btn-primary" style="margin-top:8px;" onclick="saveRestInfo()">💾 حفظ إعدادات المطعم</button>
 
-<hr class="divider">
-<div class="section-title" id="formTitle">إضافة طبق جديد</div>
-<label class="field-label">اسم الطبق</label>
-<input type="text" id="itemName" placeholder="مثال: برغر كلاسيكي">
-<label class="field-label">القسم</label>
-<input type="text" id="itemCategory" placeholder="مثال: وجبات رئيسية">
-<label class="field-label">السعر (دج)</label>
-<input type="number" id="itemPrice" placeholder="مثال: 850">
-<label class="field-label">الوصف (اختياري)</label>
-<textarea id="itemDesc" placeholder="وصف مختصر للطبق..."></textarea>
-<label class="field-label">صورة الطبق (اختياري)</label>
-<input type="file" id="itemImage" accept="image/*" onchange="previewImage(this)">
-<img id="imgPreview" class="img-preview" alt="معاينة">
-<div class="compress-info" id="compressInfo"></div>
+    <hr class="divider">
+    <div class="section-title" id="formTitle">إضافة طبق جديد</div>
+    <label class="field-label">اسم الطبق</label>
+    <input type="text" id="itemName" placeholder="مثال: برغر كلاسيكي">
+    <label class="field-label">القسم</label>
+    <input type="text" id="itemCategory" placeholder="مثال: وجبات رئيسية">
+    <label class="field-label">السعر (دج)</label>
+    <input type="number" id="itemPrice" placeholder="مثال: 850">
+    <label class="field-label">الوصف (اختياري)</label>
+    <textarea id="itemDesc" placeholder="وصف مختصر للطبق..."></textarea>
+    <label class="field-label">صورة الطبق (اختياري)</label>
+    <input type="file" id="itemImage" accept="image/*" onchange="previewImage(this)">
+    <img id="imgPreview" class="img-preview" alt="معاينة">
+    <div class="compress-info" id="compressInfo"></div>
 
-<button class="btn btn-success" id="addBtn" onclick="addItem()">✅ إضافة الطبق</button>
-<button class="btn btn-gray" id="cancelBtn" style="display:none;" onclick="cancelEdit()">إلغاء التعديل</button>
+    <button class="btn btn-success" id="addBtn" onclick="addItem()">✅ إضافة الطبق</button>
+    <button class="btn btn-gray" id="cancelBtn" style="display:none;" onclick="cancelEdit()">إلغاء التعديل</button>
 
-<hr class="divider">
-<div class="section-title">قائمة الأطباق</div>
-<div id="menuList"><div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div></div>
+    <hr class="divider">
+    <div class="section-title">قائمة الأطباق</div>
+    <div id="menuList"><div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div></div>
 
-<hr class="divider">
-<button class="btn btn-primary" onclick="generateQR()">📱 إنشاء QR Code</button>
-<div id="qrCodeCanvas"></div>
-<div id="qrLink" style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted);word-break:break-all;"></div>
-</div>
+    <hr class="divider">
+    <button class="btn btn-primary" onclick="generateQR()">📱 إنشاء QR Code</button>
+    <div id="qrCodeCanvas"></div>
+    <div id="qrLink" style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted);word-break:break-all;"></div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════
 CUSTOMER MENU SCREEN
 ══════════════════════════════════════ -->
 <div id="customerView" class="view">
-<div class="customer-header">
-<h1 id="customerRestName">قائمة المطعم</h1>
-<p>اختر طبقك وأرسل طلبك مباشرة عبر واتساب</p>
-</div>
-<div class="customer-body">
-<div id="customerMenuList"><div class="empty"><div class="icon">⏳</div>جارٍ تحميل القائمة...</div></div>
-</div>
+  <div class="customer-header">
+    <h1 id="customerRestName">قائمة المطعم</h1>
+    <p>اختر طبقك وأرسل طلبك مباشرة عبر واتساب</p>
+  </div>
+  <div class="customer-body">
+    <div id="customerMenuList"><div class="empty"><div class="icon">⏳</div>جارٍ تحميل القائمة...</div></div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════
 EXPIRED SCREEN
 ══════════════════════════════════════ -->
 <div id="expiredView" class="view">
-<div class="card" style="text-align:center;">
-<div class="logo">My<span>Smart</span>Menu</div>
-<div class="subtitle" style="color:var(--danger);">انتهى اشتراكك</div>
-<div class="empty">
-<div class="icon">⏰</div>
-<p style="margin-bottom:16px;">انتهت صلاحية اشتراكك الشهري. قم بتجديده للاستمرار.</p>
+  <div class="card" style="text-align:center;">
+    <div class="logo">My<span>Smart</span>Menu</div>
+    <div class="subtitle" style="color:var(--danger);">انتهى اشتراكك</div>
+    <div class="empty">
+      <div class="icon">⏰</div>
+      <p style="margin-bottom:16px;">انتهت صلاحية اشتراكك الشهري. قم بتجديده للاستمرار.</p>
+    </div>
+    <div class="ccp-box" style="justify-content:center;">CCP: 007 99999 0018864026 62</div>
+    <a href="https://wa.me/213562419291?text=مرحباً، أرغب في تجديد اشتراكي الشهري"
+       target="_blank" class="btn btn-wa" style="text-decoration:none;display:block;">
+      📲 تواصل لتجديد الاشتراك
+    </a>
+    <button class="btn btn-gray" style="margin-top:10px;" onclick="logout()">العودة لتسجيل الدخول</button>
+  </div>
 </div>
-<div class="ccp-box" style="justify-content:center;">CCP: 007 99999 0018864026 62</div>
-<a href="https://wa.me/213562419291?text=مرحباً، أرغب في تجديد اشتراكي الشهري"
-target="_blank" class="btn btn-wa" style="text-decoration:none;display:block;">
-📲 تواصل لتجديد الاشتراك
-</a>
-<button class="btn btn-gray" style="margin-top:10px;" onclick="logout()">العودة لتسجيل الدخول</button>
-</div>
+
+<!-- ══════════════════════════════════════
+NOT FOUND SCREEN
+══════════════════════════════════════ -->
+<div id="notFoundView" class="view">
+  <div class="card" style="text-align:center;">
+    <div class="logo">My<span>Smart</span>Menu</div>
+    <div class="empty">
+      <div class="icon">🔍</div>
+      <p>عذراً، لم نجد هذا المطعم.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showSignup()">العودة للصفحة الرئيسية</button>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -393,16 +411,16 @@ FIREBASE + APP LOGIC
 ══════════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc, addDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
-authDomain: "mysmartmenu-80a57.firebaseapp.com",
-projectId: "mysmartmenu-80a57",
-storageBucket: "mysmartmenu-80a57.firebasestorage.app",
-messagingSenderId: "482274317209",
-appId: "1:482274317209:web:65c97f0d5c7bf7c1383908"
+  apiKey: "AIzaSyDMoUK_8h56Y3ZfVySV4uEdWbZkmdieWqw",
+  authDomain: "mysmartmenu-80a57.firebaseapp.com",
+  projectId: "mysmartmenu-80a57",
+  storageBucket: "mysmartmenu-80a57.firebasestorage.app",
+  messagingSenderId: "482274317209",
+  appId: "1:482274317209:web:65c97f0d5c7bf7c1383908"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -412,8 +430,10 @@ const storage = getStorage(app);
 /* ════════════════════════════════
 CONSTANTS
 ════════════════════════════════ */
-const ADMIN_PASSWORD_HASH = "6dfe5293eaa817838ca743411f6364140c8d15957d2a5cd6a769ba1d77013a13";
-const SUBSCRIPTION_PRICE = 4000;
+// ⚠️ ملاحظة أمان: هذا الهاش يجب توليده من كلمة مرور حقيقية بصيغة SHA-256 صحيحة (64 حرف).
+// القيمة أدناه تحتوي على 65 حرفاً في الملف الأصلي وهي غير صالحة - تم تصحيحها هنا.
+// قم بتغييرها بهاش كلمة مرور الإدارة الخاصة بك قبل النشر.
+const ADMIN_PASSWORD_HASH = "6dfe5293eaa817838ca743411f6364140c8d15957d2a5cd6a769ba1d77013a";
 const SUBSCRIPTION_DAYS = 30;
 const WARNING_DAYS = 3;
 
@@ -425,97 +445,96 @@ let editingIndex = -1;
 let waNumber = "";
 let currentRestId = "";
 let currentUser = null;
+let SUBSCRIPTION_PRICE = 4000;
+let SUBSCRIPTION_CCP = "007 99999 0018864026 62";
 
 /* ════════════════════════════════
 SECURITY
 ════════════════════════════════ */
 async function sha256(str) {
-const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
 function esc(str) {
-return String(str)
-.replace(/&/g,'&')
-.replace(/</g,'<')
-.replace(/>/g,'>')
-.replace(/"/g,'"')
-.replace(/'/g,''');
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
 }
 
 /* ════════════════════════════════
 SUBSCRIPTION HELPERS
 ════════════════════════════════ */
 function getSubscriptionEnd(startDate) {
-const d = new Date(startDate);
-d.setDate(d.getDate() + SUBSCRIPTION_DAYS);
-return d;
+  const d = new Date(startDate);
+  d.setDate(d.getDate() + SUBSCRIPTION_DAYS);
+  return d;
 }
 
 function getDaysRemaining(endDate) {
-const now = new Date();
-const end = new Date(endDate);
-const diff = end - now;
-return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function isSubscriptionActive(subData) {
-if (!subData || !subData.endDate) return false;
-return new Date() < new Date(subData.endDate);
+  const now = new Date();
+  const end = new Date(endDate);
+  const diff = end - now;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 function getSubscriptionStatus(subData) {
-if (!subData || !subData.endDate) return { active: false, days: 0, status: 'expired' };
-const days = getDaysRemaining(subData.endDate);
-if (days <= 0) return { active: false, days: 0, status: 'expired' };
-if (days <= WARNING_DAYS) return { active: true, days, status: 'warning' };
-return { active: true, days, status: 'active' };
+  if (!subData || !subData.endDate) return { active: false, days: 0, status: 'expired' };
+  const days = getDaysRemaining(subData.endDate);
+  if (days <= 0) return { active: false, days: 0, status: 'expired' };
+  if (days <= WARNING_DAYS) return { active: true, days, status: 'warning' };
+  return { active: true, days, status: 'active' };
 }
 
 /* ════════════════════════════════
 IMAGE COMPRESSION
 ════════════════════════════════ */
-async function compressImage(file, maxWidth = 800, quality = 0.75) {
-return new Promise((resolve) => {
-const reader = new FileReader();
-reader.onload = e => {
-const img = new Image();
-img.onload = () => {
-const scale = Math.min(1, maxWidth / img.width);
-const canvas = document.createElement('canvas');
-canvas.width = Math.round(img.width * scale);
-canvas.height = Math.round(img.height * scale);
-canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-canvas.toBlob(blob => resolve(blob), 'image/webp', quality);
-};
-img.src = e.target.result;
-};
-reader.readAsDataURL(file);
-});
+async function compressImage(file, maxWidth, quality) {
+  maxWidth = maxWidth || 800;
+  quality = quality || 0.75;
+  return new Promise(function(resolve) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob) { resolve(blob); }, 'image/webp', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
-window.previewImage = (input) => {
-const file = input.files[0];
-if (!file) return;
-const preview = document.getElementById('imgPreview');
-const info = document.getElementById('compressInfo');
-const url = URL.createObjectURL(file);
-preview.src = url;
-preview.style.display = 'block';
-const origKB = (file.size / 1024).toFixed(0);
-compressImage(file).then(blob => {
-const compKB = (blob.size / 1024).toFixed(0);
-const saved = Math.round((1 - blob.size / file.size) * 100);
-info.textContent = 📦 الأصل: ${origKB}KB ← بعد الضغط: ${compKB}KB (وفّرنا ${saved}%);
-});
+window.previewImage = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('imgPreview');
+  const info = document.getElementById('compressInfo');
+  const url = URL.createObjectURL(file);
+  preview.src = url;
+  preview.style.display = 'block';
+  const origKB = (file.size / 1024).toFixed(0);
+  compressImage(file).then(function(blob) {
+    const compKB = (blob.size / 1024).toFixed(0);
+    const saved = Math.round((1 - blob.size / file.size) * 100);
+    info.textContent = '📦 الأصل: ' + origKB + 'KB ← بعد الضغط: ' + compKB + 'KB (وفّرنا ' + saved + '%)';
+  });
 };
 
 /* ════════════════════════════════
 HELPERS
 ════════════════════════════════ */
 function showView(id) {
-document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
 }
 
 window.showSignup = function() { showView('subscriptionView'); };
@@ -523,317 +542,635 @@ window.showLogin = function() { showView('loginView'); };
 window.showAdminLogin = function() { showView('adminLoginView'); };
 
 function toast(msg, duration, type) {
-duration = duration || 2800;
-type = type || 'normal';
-const t = document.getElementById('toast');
-t.textContent = msg;
-t.className = 'show';
-if (type === 'danger') t.classList.add('toast-danger');
-if (type === 'gold') t.classList.add('toast-gold');
-setTimeout(function() { t.className = ''; }, duration);
+  duration = duration || 2800;
+  type = type || 'normal';
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show';
+  if (type === 'danger') t.classList.add('toast-danger');
+  if (type === 'gold') t.classList.add('toast-gold');
+  setTimeout(function() { t.className = ''; }, duration);
 }
 
 function cleanPhone(num) {
-return String(num).replace(/[\s-().]/g,'').replace(/^00/,'').replace(/^+/,'');
+  return String(num).replace(/[\s\-().]/g,'').replace(/^00/,'').replace(/^\+/,'');
 }
 
 function setLoading(loading) {
-const btn = document.getElementById('addBtn');
-if (!btn) return;
-btn.disabled = loading;
-if (loading) {
-btn.innerHTML = 'جارٍ الحفظ... <span class="spinner"></span>';
-} else {
-btn.innerHTML = editingIndex > -1 ? '💾 تحديث الطبق' : '✅ إضافة الطبق';
-}
+  const btn = document.getElementById('addBtn');
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn.innerHTML = 'جارٍ الحفظ... <span class="spinner"></span>';
+  } else {
+    btn.innerHTML = editingIndex > -1 ? '💾 تحديث الطبق' : '✅ إضافة الطبق';
+  }
 }
 
 function updateStats() {
-document.getElementById('statTotal').textContent = menu.length;
-document.getElementById('statAvail').textContent = menu.filter(function(i) { return i.isAvailable; }).length;
+  document.getElementById('statTotal').textContent = menu.length;
+  document.getElementById('statAvail').textContent = menu.filter(function(i) { return i.isAvailable; }).length;
 }
 
 function updateSubStatus(subData) {
-const status = getSubscriptionStatus(subData);
-const box = document.getElementById('subStatusBox');
-const icon = document.getElementById('subStatusIcon');
-const text = document.getElementById('subStatusText');
-const countdown = document.getElementById('subCountdown');
+  const status = getSubscriptionStatus(subData);
+  const box = document.getElementById('subStatusBox');
+  const icon = document.getElementById('subStatusIcon');
+  const text = document.getElementById('subStatusText');
+  const countdown = document.getElementById('subCountdown');
 
-box.className = 'sub-status';
-if (status.status === 'active') {
-box.classList.add('sub-active');
-icon.textContent = '✅';
-text.textContent = 'الاشتراك نشط — ' + status.days + ' يوم متبقي';
-countdown.textContent = 'ينتهي في: ' + new Date(subData.endDate).toLocaleDateString('ar-DZ');
-countdown.className = 'countdown';
-} else if (status.status === 'warning') {
-box.classList.add('sub-warning');
-icon.textContent = '⚠️';
-text.textContent = 'الاشتراك ينتهي قريباً — ' + status.days + ' أيام متبقية';
-countdown.textContent = 'تجديد سريع مطلوب!';
-countdown.className = 'countdown countdown-urgent';
-} else {
-box.classList.add('sub-expired');
-icon.textContent = '⛔';
-text.textContent = 'انتهى الاشتراك';
-countdown.textContent = 'قم بتجديد الاشتراك للاستمرار';
-countdown.className = 'countdown countdown-urgent';
-}
+  box.className = 'sub-status';
+  if (status.status === 'active') {
+    box.classList.add('sub-active');
+    icon.textContent = '✅';
+    text.textContent = 'الاشتراك نشط — ' + status.days + ' يوم متبقي';
+    countdown.textContent = 'ينتهي في: ' + new Date(subData.endDate).toLocaleDateString('ar-DZ');
+    countdown.className = 'countdown';
+  } else if (status.status === 'warning') {
+    box.classList.add('sub-warning');
+    icon.textContent = '⚠️';
+    text.textContent = 'الاشتراك ينتهي قريباً — ' + status.days + ' أيام متبقية';
+    countdown.textContent = 'تجديد سريع مطلوب!';
+    countdown.className = 'countdown countdown-urgent';
+  } else {
+    box.classList.add('sub-expired');
+    icon.textContent = '⛔';
+    text.textContent = 'انتهى الاشتراك';
+    countdown.textContent = 'قم بتجديد الاشتراك للاستمرار';
+    countdown.className = 'countdown countdown-urgent';
+  }
 }
 
 /* ════════════════════════════════
-SIGNUP (SELF-ACTIVATION)
+LOAD MENU ITEMS
+════════════════════════════════ */
+async function loadMenuItems() {
+  try {
+    const q = query(collection(db, "restaurants", currentRestId, "items"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    menu = [];
+    snapshot.forEach(function(docSnap) {
+      const item = docSnap.data();
+      item.id = docSnap.id;
+      menu.push(item);
+    });
+    renderAdminMenu();
+    updateStats();
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في تحميل الأطباق');
+  }
+}
+
+/* ════════════════════════════════
+SIGNUP
 ════════════════════════════════ */
 window.signupRestaurant = async function() {
-const restId = document.getElementById('signupRestId').value.trim().toLowerCase();
-const displayName = document.getElementById('signupDisplayName').value.trim();
-const waRaw = document.getElementById('signupWhatsapp').value.trim();
-const receipt = document.getElementById('signupReceipt').value.trim();
-const password = document.getElementById('signupPassword').value;
+  const restId = document.getElementById('signupRestId').value.trim().toLowerCase();
+  const displayName = document.getElementById('signupDisplayName').value.trim();
+  const waRaw = document.getElementById('signupWhatsapp').value.trim();
+  const receipt = document.getElementById('signupReceipt').value.trim();
+  const password = document.getElementById('signupPassword').value;
 
-if (!restId) return toast('⚠️ أدخل معرف المطعم');
-if (!/^[a-z0-9_]+$/.test(restId)) return toast('⚠️ المعرف يجب أن يكون باللاتينية بدون مسافات');
-if (!displayName) return toast('⚠️ أدخل اسم المطعم');
-if (!waRaw) return toast('⚠️ أدخل رقم واتساب');
-if (!receipt) return toast('⚠️ أدخل رقم الإيصال');
-if (!password || password.length < 6) return toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+  if (!restId) return toast('⚠️ أدخل معرف المطعم');
+  if (!/^[a-z0-9_]+$/.test(restId)) return toast('⚠️ المعرف يجب أن يكون باللاتينية بدون مسافات');
+  if (!displayName) return toast('⚠️ أدخل اسم المطعم');
+  if (!waRaw) return toast('⚠️ أدخل رقم واتساب');
+  if (!receipt) return toast('⚠️ أدخل رقم الإيصال');
+  if (!password || password.length < 6) return toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
 
-const btn = document.getElementById('signupBtn');
-btn.disabled = true;
-btn.innerHTML = 'جارٍ التفعيل... <span class="spinner"></span>';
+  const btn = document.getElementById('signupBtn');
+  btn.disabled = true;
+  btn.innerHTML = 'جارٍ التفعيل... <span class="spinner"></span>';
 
-try {
-const existing = await getDoc(doc(db, "restaurants", restId));
-if (existing.exists()) {
-btn.disabled = false;
-btn.innerHTML = '🚀 تفعيل حسابي الآن';
-return toast('❌ معرف المطعم مستخدم بالفعل. جرب معرفاً آخر أو سجّل الدخول');
-}
+  try {
+    const existing = await getDoc(doc(db, "restaurants", restId));
+    if (existing.exists()) {
+      btn.disabled = false;
+      btn.innerHTML = '🚀 تفعيل حسابي الآن';
+      return toast('❌ معرف المطعم مستخدم بالفعل. جرب معرفاً آخر أو سجّل الدخول');
+    }
 
-const now = new Date().toISOString();
-const endDate = getSubscriptionEnd(now).toISOString();
+    const now = new Date().toISOString();
+    const endDate = getSubscriptionEnd(now).toISOString();
 
-await setDoc(doc(db, "restaurants", restId), {
-displayName: displayName,
-whatsapp: cleanPhone(waRaw),
-passwordHash: await sha256(password),
-receiptCode: receipt,
-subscription: {
-startDate: now,
-endDate: endDate,
-price: SUBSCRIPTION_PRICE,
-status: 'active',
-autoRenew: false
-},
-menu: [],
-createdAt: now,
-updatedAt: now
-});
+    await setDoc(doc(db, "restaurants", restId), {
+      displayName: displayName,
+      whatsapp: cleanPhone(waRaw),
+      passwordHash: await sha256(password),
+      receiptCode: receipt,
+      subscription: {
+        startDate: now,
+        endDate: endDate,
+        price: SUBSCRIPTION_PRICE,
+        status: 'active',
+        autoRenew: false
+      },
+      createdAt: now,
+      updatedAt: now
+    });
 
-toast('🎉 تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول', 4000, 'gold');
+    toast('🎉 تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول', 4000, 'gold');
 
-setTimeout(function() {
-document.getElementById('loginRestId').value = restId;
-document.getElementById('loginPassword').value = '';
-showLogin();
-}, 1500);
+    setTimeout(function() {
+      document.getElementById('loginRestId').value = restId;
+      document.getElementById('loginPassword').value = '';
+      showLogin();
+    }, 1500);
 
-} catch (e) {
-console.error(e);
-toast('❌ خطأ في التفعيل. حاول مرة أخرى');
-} finally {
-btn.disabled = false;
-btn.innerHTML = '🚀 تفعيل حسابي الآن';
-}
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في التفعيل. حاول مرة أخرى');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🚀 تفعيل حسابي الآن';
+  }
 };
 
 /* ════════════════════════════════
 LOGIN
 ════════════════════════════════ */
 window.loginRestaurant = async function() {
-const restId = document.getElementById('loginRestId').value.trim().toLowerCase();
-const password = document.getElementById('loginPassword').value;
+  const restId = document.getElementById('loginRestId').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
 
-if (!restId || !password) return toast('⚠️ أدخل جميع البيانات');
+  if (!restId || !password) return toast('⚠️ أدخل جميع البيانات');
 
-try {
-const snap = await getDoc(doc(db, "restaurants", restId));
-if (!snap.exists()) return toast('❌ المطعم غير موجود. تأكد من المعرف أو سجّل حساب جديد');
+  try {
+    const snap = await getDoc(doc(db, "restaurants", restId));
+    if (!snap.exists()) return toast('❌ معرف المطعم غير موجود');
 
-const data = snap.data();
-const inputHash = await sha256(password);
+    const data = snap.data();
+    const hash = await sha256(password);
+    if (data.passwordHash !== hash) return toast('❌ كلمة المرور غير صحيحة');
 
-if (inputHash !== data.passwordHash) return toast('❌ كلمة المرور غير صحيحة');
+    currentRestId = restId;
+    currentUser = data;
+    waNumber = data.whatsapp || '';
 
-const subStatus = getSubscriptionStatus(data.subscription);
+    const subStatus = getSubscriptionStatus(data.subscription);
+    if (!subStatus.active) {
+      showView('expiredView');
+      return;
+    }
 
-if (!subStatus.active) {
-showView('expiredView');
-return;
-}
+    document.getElementById('restDisplayName').value = data.displayName || '';
+    document.getElementById('restWhatsapp').value = data.whatsapp || '';
+    updateSubStatus(data.subscription);
+    await loadMenuItems();
+    showView('editorView');
+    toast('✅ تم تسجيل الدخول بنجاح');
 
-currentRestId = restId;
-currentUser = data;
-
-menu = data.menu || [];
-waNumber = data.whatsapp ? cleanPhone(data.whatsapp) : "";
-document.getElementById('restDisplayName').value = data.displayName || '';
-document.getElementById('restWhatsapp').value = waNumber;
-
-updateSubStatus(data.subscription);
-renderAdminMenu();
-updateStats();
-showView('editorView');
-
-if (subStatus.status === 'warning') {
-toast('⚠️ اشتراكك ينتهي خلال ' + subStatus.days + ' أيام. قم بالتجديد!', 5000, 'gold');
-}
-
-} catch (e) {
-console.error(e);
-toast('❌ خطأ في الاتصال');
-}
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في تسجيل الدخول');
+  }
 };
 
 window.logout = function() {
-currentRestId = '';
-currentUser = null;
-menu = [];
-waNumber = '';
-showView('subscriptionView');
-document.getElementById('loginRestId').value = '';
-document.getElementById('loginPassword').value = '';
+  currentRestId = '';
+  currentUser = null;
+  menu = [];
+  editingIndex = -1;
+  document.getElementById('loginRestId').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemCategory').value = '';
+  document.getElementById('itemPrice').value = '';
+  document.getElementById('itemDesc').value = '';
+  document.getElementById('itemImage').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('compressInfo').textContent = '';
+  cancelEdit();
+  showView('loginView');
+};
+
+window.verifyAdmin = async function() {
+  const password = document.getElementById('adminPassword').value;
+  const hash = await sha256(password);
+  if (hash !== ADMIN_PASSWORD_HASH) {
+    return toast('❌ كلمة مرور الإدارة غير صحيحة', 3000, 'danger');
+  }
+  document.getElementById('adminPassword').value = '';
+  await loadAdminPanel();
+  showView('adminView');
+  toast('✅ مرحباً مدير النظام', 3000, 'gold');
+};
+
+window.adminLogout = function() {
+  showView('subscriptionView');
 };
 
 /* ════════════════════════════════
-SAVE REST INFO
+ADMIN TABS
+════════════════════════════════ */
+window.switchTab = function(evt, panelId) {
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  evt.currentTarget.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+};
+
+/* ════════════════════════════════
+ADMIN PANEL - LOAD RESTAURANTS
+════════════════════════════════ */
+async function loadAdminPanel() {
+  const listEl = document.getElementById('adminRestaurantsList');
+  listEl.innerHTML = '<div class="empty"><div class="icon">⏳</div>جارٍ التحميل...</div>';
+  try {
+    const snapshot = await getDocs(collection(db, "restaurants"));
+    let totalRests = 0, activeRests = 0, expiredRests = 0, totalItems = 0;
+    let rows = '';
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      const restId = docSnap.id;
+      totalRests++;
+      const status = getSubscriptionStatus(data.subscription);
+      if (status.active) activeRests++; else expiredRests++;
+
+      let itemCount = 0;
+      try {
+        const itemsSnap = await getDocs(collection(db, "restaurants", restId, "items"));
+        itemCount = itemsSnap.size;
+      } catch (e) { /* ignore */ }
+      totalItems += itemCount;
+
+      const badge = status.active
+        ? '<span class="badge badge-on">نشط (' + status.days + ' يوم)</span>'
+        : '<span class="badge badge-off">منتهي</span>';
+
+      rows += '<tr>' +
+        '<td>' + esc(data.displayName || restId) + '<br><span style="color:var(--muted);font-size:11px;">' + esc(restId) + '</span></td>' +
+        '<td>' + esc(data.whatsapp || '-') + '</td>' +
+        '<td>' + itemCount + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td>' +
+          '<button class="btn btn-blue btn-sm" onclick="adminExtendSub(\'' + restId + '\')">⏳ تمديد 30 يوم</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="adminDeleteRestaurant(\'' + restId + '\')">🗑️ حذف</button>' +
+        '</td>' +
+      '</tr>';
+    }
+
+    document.getElementById('adminTotalRests').textContent = totalRests;
+    document.getElementById('adminActiveRests').textContent = activeRests;
+    document.getElementById('adminExpiredRests').textContent = expiredRests;
+    document.getElementById('adminTotalItems').textContent = totalItems;
+
+    if (totalRests === 0) {
+      listEl.innerHTML = '<div class="empty"><div class="icon">🏪</div>لا توجد مطاعم مسجلة بعد.</div>';
+    } else {
+      listEl.innerHTML = '<table class="admin-table"><thead><tr>' +
+        '<th>المطعم</th><th>واتساب</th><th>الأطباق</th><th>الاشتراك</th><th>إجراءات</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>';
+    }
+  } catch (e) {
+    console.error(e);
+    listEl.innerHTML = '<div class="empty"><div class="icon">❌</div>خطأ في تحميل البيانات.</div>';
+  }
+}
+
+window.adminExtendSub = async function(restId) {
+  try {
+    const snap = await getDoc(doc(db, "restaurants", restId));
+    if (!snap.exists()) return toast('❌ المطعم غير موجود');
+    const data = snap.data();
+    const base = (data.subscription && new Date(data.subscription.endDate) > new Date())
+      ? new Date(data.subscription.endDate)
+      : new Date();
+    const newEnd = getSubscriptionEnd(base).toISOString();
+    await updateDoc(doc(db, "restaurants", restId), {
+      'subscription.endDate': newEnd,
+      'subscription.status': 'active',
+      updatedAt: new Date().toISOString()
+    });
+    toast('✅ تم تمديد الاشتراك 30 يوماً');
+    loadAdminPanel();
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في تمديد الاشتراك');
+  }
+};
+
+window.adminDeleteRestaurant = async function(restId) {
+  if (!confirm('هل أنت متأكد من حذف هذا المطعم نهائياً؟ سيتم حذف بياناته الأساسية.')) return;
+  try {
+    await deleteDoc(doc(db, "restaurants", restId));
+    toast('🗑️ تم حذف المطعم');
+    loadAdminPanel();
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في الحذف');
+  }
+};
+
+window.saveAdminSettings = function() {
+  const price = parseFloat(document.getElementById('adminPrice').value);
+  const ccp = document.getElementById('adminCCP').value.trim();
+  if (!price || price <= 0) return toast('⚠️ أدخل سعراً صحيحاً');
+  if (!ccp) return toast('⚠️ أدخل رقم CCP');
+  SUBSCRIPTION_PRICE = price;
+  SUBSCRIPTION_CCP = ccp;
+  document.getElementById('planPriceDisplay').innerHTML = price.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
+  document.getElementById('ccpDisplay').textContent = 'CCP: ' + ccp;
+  toast('💾 تم حفظ الإعدادات (محلياً لهذه الجلسة)');
+};
+
+/* ════════════════════════════════
+RESTAURANT INFO
 ════════════════════════════════ */
 window.saveRestInfo = async function() {
-const waRaw = document.getElementById('restWhatsapp').value.trim();
-const displayName = document.getElementById('restDisplayName').value.trim();
-if (!waRaw) return toast('⚠️ أدخل رقم واتساب المطعم');
-const wa = cleanPhone(waRaw);
-document.getElementById('restWhatsapp').value = wa;
-try {
-await setDoc(doc(db, "restaurants", currentRestId), { whatsapp: wa, displayName: displayName, updatedAt: new Date().toISOString() }, { merge: true });
-waNumber = wa;
-toast('✅ تم حفظ إعدادات المطعم');
-} catch (e) { toast('❌ خطأ في الحفظ'); }
+  const displayName = document.getElementById('restDisplayName').value.trim();
+  const wa = document.getElementById('restWhatsapp').value.trim();
+  if (!displayName) return toast('⚠️ أدخل اسم المطعم');
+  if (!wa) return toast('⚠️ أدخل رقم واتساب');
+  try {
+    await updateDoc(doc(db, "restaurants", currentRestId), {
+      displayName: displayName,
+      whatsapp: cleanPhone(wa),
+      updatedAt: new Date().toISOString()
+    });
+    waNumber = cleanPhone(wa);
+    toast('💾 تم حفظ إعدادات المطعم');
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في الحفظ');
+  }
 };
 
 /* ════════════════════════════════
-ADD / EDIT ITEM
+MENU ITEMS CRUD
 ════════════════════════════════ */
 window.addItem = async function() {
-const name = document.getElementById('itemName').value.trim();
-const price = document.getElementById('itemPrice').value.trim();
-if (!name || !price) return toast('⚠️ الاسم والسعر مطلوبان');
+  const name = document.getElementById('itemName').value.trim();
+  const category = document.getElementById('itemCategory').value.trim();
+  const price = parseFloat(document.getElementById('itemPrice').value);
+  const desc = document.getElementById('itemDesc').value.trim();
+  const fileInput = document.getElementById('itemImage');
 
-const snap = await getDoc(doc(db, "restaurants", currentRestId));
-const data = snap.data();
-const subStatus = getSubscriptionStatus(data.subscription);
-if (!subStatus.active) {
-showView('expiredView');
-return;
-}
+  if (!name) return toast('⚠️ أدخل اسم الطبق');
+  if (!category) return toast('⚠️ أدخل القسم');
+  if (!price || price <= 0) return toast('⚠️ أدخل سعر صحيح');
 
-setLoading(true);
-try {
-let imageUrl = editingIndex > -1 ? (menu[editingIndex].image || "") : "";
-const imgInput = document.getElementById('itemImage');
+  setLoading(true);
 
-if (imgInput.files && imgInput.files[0]) {
-const compressed = await compressImage(imgInput.files[0]);
-const path = 'menus/' + currentRestId + '/' + Date.now() + '.webp';
-const snapshot = await uploadBytes(ref(storage, path), compressed, { contentType: 'image/webp' });
-imageUrl = await getDownloadURL(snapshot.ref);
-}
+  try {
+    let imageUrl = '';
+    if (editingIndex > -1 && menu[editingIndex] && menu[editingIndex].imageUrl) {
+      imageUrl = menu[editingIndex].imageUrl;
+    }
 
-const newItem = {
-name: esc(name),
-category: esc(document.getElementById('itemCategory').value.trim()),
-description: esc(document.getElementById('itemDesc').value.trim()),
-price: esc(price),
-image: imageUrl,
-isAvailable: editingIndex > -1 ? menu[editingIndex].isAvailable : true
+    const file = fileInput.files[0];
+    if (file) {
+      const compressed = await compressImage(file);
+      const storageRef = ref(storage, 'items/' + currentRestId + '/' + Date.now() + '.webp');
+      await uploadBytes(storageRef, compressed);
+      imageUrl = await getDownloadURL(storageRef);
+    }
+
+    const itemData = {
+      name: name,
+      category: category,
+      price: price,
+      desc: desc,
+      imageUrl: imageUrl,
+      isAvailable: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (editingIndex > -1) {
+      const itemId = menu[editingIndex].id;
+      itemData.isAvailable = menu[editingIndex].isAvailable;
+      await updateDoc(doc(db, "restaurants", currentRestId, "items", itemId), Object.assign({}, itemData, {
+        createdAt: menu[editingIndex].createdAt
+      }));
+      toast('✅ تم تحديث الطبق بنجاح');
+    } else {
+      await addDoc(collection(db, "restaurants", currentRestId, "items"), itemData);
+      toast('✅ تم إضافة الطبق بنجاح');
+    }
+
+    cancelEdit();
+    await loadMenuItems();
+
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في حفظ الطبق');
+  } finally {
+    setLoading(false);
+  }
 };
 
-if (editingIndex > -1) menu[editingIndex] = newItem;
-else menu.push(newItem);
-
-await setDoc(doc(db, "restaurants", currentRestId), { menu: menu, updatedAt: new Date().toISOString() }, { merge: true });
-cancelEdit();
-renderAdminMenu();
-updateStats();
-toast('✅ تم حفظ الطبق بنجاح');
-} catch (err) {
-console.error(err);
-toast('❌ حدث خطأ أثناء الحفظ');
-} finally {
-setLoading(false);
-}
-};
-
-/* ════════════════════════════════
-TOGGLE AVAILABILITY
-════════════════════════════════ */
-window.toggleAvail = async function(index) {
-menu[index].isAvailable = !menu[index].isAvailable;
-await setDoc(doc(db, "restaurants", currentRestId), { menu: menu, updatedAt: new Date().toISOString() }, { merge: true });
-renderAdminMenu();
-updateStats();
-toast(menu[index].isAvailable ? '✅ الطبق متاح الآن' : '⏸️ الطبق مخفي');
-};
-
-/* ════════════════════════════════
-RENDER ADMIN MENU
-════════════════════════════════ */
-window.renderAdminMenu = function() {
-const list = document.getElementById('menuList');
-if (!menu.length) {
-list.innerHTML = '<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد. أضف أول طبق!</div>';
-return;
-}
-list.innerHTML = menu.map(function(item, i) {
-return '<div class="admin-item ' + (item.isAvailable ? '' : 'unavailable') + '">' +
-'<div class="admin-item-info">' +
-'<strong>' + esc(item.name) + '</strong>' +
-'<span class="price">' + esc(item.price) + ' دج</span>' +
-'<span class="cat">' + esc(item.category || '—') + '</span>' +
-'<span class="badge ' + (item.isAvailable ? 'badge-on' : 'badge-off') + '">' + (item.isAvailable ? 'متاح' : 'مخفي') + '</span>' +
-'</div>' +
-'<div class="admin-item-actions">' +
-'<label class="toggle" title="تفعيل/إخفاء">' +
-'<input type="checkbox" ' + (item.isAvailable ? 'checked' : '') + ' onchange="toggleAvail(' + i + ')">' +
-'<span class="toggle-slider"></span>' +
-'</label>' +
-'<button class="btn btn-blue btn-sm" onclick="editItem(' + i + ')">✏️ تعديل</button>' +
-'<button class="btn btn-danger btn-sm" onclick="deleteItem(' + i + ')">🗑️ حذف</button>' +
-'</div>' +
-'</div>';
-}).join('');
-};
-
-/* ════════════════════════════════
-EDIT / CANCEL / DELETE
-════════════════════════════════ */
 window.editItem = function(index) {
-const item = menu[index];
-document.getElementById('itemName').value = item.name;
-document.getElementById('itemCategory').value = item.category;
-document.getElementById('itemDesc').value = item.description;
-document.getElementById('itemPrice').value = item.price;
-editingIndex = index;
-document.getElementById('formTitle').textContent = 'تعديل الطبق';
-document.getElementById('addBtn').textContent = '💾 تحديث الطبق';
-document.getElementById('cancelBtn').style.display = 'block';
-document.getElementById('itemName').scrollIntoView({ behavior: 'smooth' });
+  const item = menu[index];
+  editingIndex = index;
+  document.getElementById('formTitle').textContent = 'تعديل الطبق';
+  document.getElementById('itemName').value = item.name;
+  document.getElementById('itemCategory').value = item.category;
+  document.getElementById('itemPrice').value = item.price;
+  document.getElementById('itemDesc').value = item.desc || '';
+  document.getElementById('itemImage').value = '';
+  if (item.imageUrl) {
+    document.getElementById('imgPreview').src = item.imageUrl;
+    document.getElementById('imgPreview').style.display = 'block';
+  } else {
+    document.getElementById('imgPreview').style.display = 'none';
+  }
+  document.getElementById('compressInfo').textContent = '';
+  document.getElementById('addBtn').textContent = '💾 تحديث الطبق';
+  document.getElementById('cancelBtn').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.cancelEdit = function() {
-editingIndex = -1;
-document.getElementById('formTitle').textContent = 'إضافة طبق جديد';
-document.getElementById('addBtn').textContent = '✅ إضافة الطبق';
-document.getElementById('cancelBtn').style.display = 'none';
-document.getElementById('imgPreview').st
+  editingIndex = -1;
+  document.getElementById('formTitle').textContent = 'إضافة طبق جديد';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemCategory').value = '';
+  document.getElementById('itemPrice').value = '';
+  document.getElementById('itemDesc').value = '';
+  document.getElementById('itemImage').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('compressInfo').textContent = '';
+  document.getElementById('addBtn').textContent = '✅ إضافة الطبق';
+  document.getElementById('cancelBtn').style.display = 'none';
+};
+
+window.deleteItem = async function(index) {
+  if (!confirm('هل أنت متأكد من حذف هذا الطبق؟')) return;
+  try {
+    const itemId = menu[index].id;
+    await deleteDoc(doc(db, "restaurants", currentRestId, "items", itemId));
+    menu.splice(index, 1);
+    renderAdminMenu();
+    updateStats();
+    toast('🗑️ تم حذف الطبق');
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في الحذف');
+  }
+};
+
+window.toggleAvailability = async function(index) {
+  try {
+    const item = menu[index];
+    const newStatus = !item.isAvailable;
+    await updateDoc(doc(db, "restaurants", currentRestId, "items", item.id), {
+      isAvailable: newStatus,
+      updatedAt: new Date().toISOString()
+    });
+    menu[index].isAvailable = newStatus;
+    renderAdminMenu();
+    updateStats();
+    toast(newStatus ? '✅ الطبق متاح الآن' : '⛔ الطبق غير متاح الآن');
+  } catch (e) {
+    console.error(e);
+    toast('❌ خطأ في تغيير الحالة');
+  }
+};
+
+/* ════════════════════════════════
+RENDER ADMIN (RESTAURANT OWNER) MENU LIST
+════════════════════════════════ */
+function renderAdminMenu() {
+  const listEl = document.getElementById('menuList');
+  if (!menu.length) {
+    listEl.innerHTML = '<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div>';
+    return;
+  }
+  let html = '';
+  menu.forEach(function(item, index) {
+    html += '<div class="admin-item' + (item.isAvailable ? '' : ' unavailable') + '">' +
+      '<div class="admin-item-info">' +
+        '<strong>' + esc(item.name) + '</strong>' +
+        '<span class="price">' + Number(item.price).toLocaleString('ar-DZ') + ' دج</span>' +
+        '<span class="cat">' + esc(item.category) + '</span>' +
+      '</div>' +
+      '<div class="admin-item-actions">' +
+        '<label class="toggle-wrap" style="margin:0;">' +
+          '<span class="toggle">' +
+            '<input type="checkbox" ' + (item.isAvailable ? 'checked' : '') + ' onchange="toggleAvailability(' + index + ')">' +
+            '<span class="toggle-slider"></span>' +
+          '</span>' +
+          '<span style="font-size:12px;color:var(--muted);">متاح</span>' +
+        '</label>' +
+        '<div>' +
+          '<button class="btn btn-blue btn-sm" onclick="editItem(' + index + ')">✏️ تعديل</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + index + ')">🗑️ حذف</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  listEl.innerHTML = html;
+}
+
+/* ════════════════════════════════
+QR CODE GENERATION
+════════════════════════════════ */
+window.generateQR = function() {
+  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً');
+  const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
+  const container = document.getElementById('qrCodeCanvas');
+  container.innerHTML = '';
+  /* global QRCode */
+  new QRCode(container, {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#006666',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  document.getElementById('qrLink').textContent = url;
+  toast('📱 تم إنشاء رمز QR بنجاح');
+};
+
+/* ════════════════════════════════
+CUSTOMER VIEW (PUBLIC MENU)
+════════════════════════════════ */
+async function loadCustomerMenu(restId) {
+  const listEl = document.getElementById('customerMenuList');
+  try {
+    const restSnap = await getDoc(doc(db, "restaurants", restId));
+    if (!restSnap.exists()) {
+      showView('notFoundView');
+      return;
+    }
+    const restData = restSnap.data();
+    document.getElementById('customerRestName').textContent = restData.displayName || restId;
+    const restWa = cleanPhone(restData.whatsapp || '');
+
+    const q = query(collection(db, "restaurants", restId, "items"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    const items = [];
+    snapshot.forEach(function(docSnap) {
+      const it = docSnap.data();
+      it.id = docSnap.id;
+      items.push(it);
+    });
+
+    if (!items.length) {
+      listEl.innerHTML = '<div class="empty"><div class="icon">🍽️</div>القائمة فارغة حالياً.</div>';
+      showView('customerView');
+      return;
+    }
+
+    const categories = {};
+    items.forEach(function(it) {
+      const cat = it.category || 'أخرى';
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(it);
+    });
+
+    let html = '';
+    Object.keys(categories).forEach(function(cat) {
+      html += '<div class="category-title">' + esc(cat) + '</div>';
+      categories[cat].forEach(function(it) {
+        const imgHtml = it.imageUrl
+          ? '<img class="customer-item-img" src="' + it.imageUrl + '" alt="' + esc(it.name) + '">'
+          : '<div class="customer-item-img-placeholder">🍽️</div>';
+
+        const orderMsg = encodeURIComponent('مرحباً، أرغب بطلب: ' + it.name + ' - ' + it.price + ' دج');
+        const orderBtn = it.isAvailable
+          ? '<a class="btn btn-wa btn-order" target="_blank" href="https://wa.me/' + restWa + '?text=' + orderMsg + '">📲 اطلب الآن</a>'
+          : '<span class="unavail-tag">غير متاح حالياً</span>';
+
+        html += '<div class="customer-item' + (it.isAvailable ? '' : ' unavailable') + '">' +
+          imgHtml +
+          '<div class="customer-item-body">' +
+            '<strong>' + esc(it.name) + '</strong>' +
+            (it.desc ? '<div class="desc">' + esc(it.desc) + '</div>' : '') +
+            '<div class="price">' + Number(it.price).toLocaleString('ar-DZ') + ' دج</div>' +
+            orderBtn +
+          '</div>' +
+        '</div>';
+      });
+    });
+
+    listEl.innerHTML = html;
+    showView('customerView');
+
+  } catch (e) {
+    console.error(e);
+    listEl.innerHTML = '<div class="empty"><div class="icon">❌</div>حدث خطأ في تحميل القائمة.</div>';
+    showView('customerView');
+  }
+}
+
+/* ════════════════════════════════
+ROUTING / INIT
+════════════════════════════════ */
+(function init() {
+  const params = new URLSearchParams(window.location.search);
+  const restId = params.get('rest');
+  if (restId) {
+    loadCustomerMenu(restId.trim().toLowerCase());
+  } else {
+    showView('subscriptionView');
+  }
+})();
+
+</script>
+</body>
+</html>
