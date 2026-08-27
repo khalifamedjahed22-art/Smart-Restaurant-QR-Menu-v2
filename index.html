@@ -924,9 +924,21 @@ window.addItem = async function() {
     const file = fileInput.files[0];
     if (file) {
       const compressed = await compressImage(file);
-      const storageRef = ref(storage, 'items/' + currentRestId + '/' + Date.now() + '.webp');
-      await uploadBytes(storageRef, compressed);
-      imageUrl = await getDownloadURL(storageRef);
+      const formData = new FormData();
+      formData.append("file", compressed, "image.webp");
+      formData.append("upload_preset", "s8dcykxc");
+
+      const response = await fetch("https://api.cloudinary.com/v1_1/qhuatwqf/image/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.secure_url) {
+        imageUrl = data.secure_url;
+      } else {
+        throw new Error("فشل الرفع إلى Cloudinary");
+      }
     }
 
     const itemData = {
@@ -962,6 +974,9 @@ window.addItem = async function() {
     setLoading(false);
   }
 };
+
+
+
 
 window.editItem = function(index) {
   const item = menu[index];
