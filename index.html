@@ -76,10 +76,19 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .img-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-top: 8px; display: none; border: 2px solid var(--teal-light); }
 .compress-info { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--teal-dark); color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.2); transition: transform 0.35s ease; z-index: 9999; white-space: nowrap; }
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--teal-dark); color: white; padding: 10px 14px 10px 18px; border-radius: 14px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.2); transition: transform 0.35s ease; z-index: 9999; display:flex; align-items:center; gap:12px; max-width:min(92vw,520px); }
 #toast.show { transform: translateX(-50%) translateY(0); }
 #toast.toast-danger { background: var(--danger); }
 #toast.toast-gold { background: var(--gold); }
+#toast.toast-success { background: var(--success); }
+#toast.toast-warning { background: #f57f17; }
+#toastClose { border:0; background:rgba(255,255,255,.18); color:#fff; border-radius:50%; width:24px; height:24px; cursor:pointer; font-size:16px; line-height:20px; }
+.offline-banner { display:none; background:#b71c1c; color:#fff; padding:10px 14px; text-align:center; font-size:13px; font-weight:700; }
+.offline-banner.show { display:block; }
+.cart-bar { position:sticky; bottom:12px; z-index:100; display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--teal-dark); color:#fff; padding:12px 14px; border-radius:14px; box-shadow:var(--shadow); margin-top:18px; }
+.cart-bar .btn { margin:0; width:auto; padding:8px 14px; }
+.cart-list { margin:8px 0 16px; padding:0; list-style:none; }
+.cart-list li { display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid var(--gray-border); padding:8px 0; font-size:13px; }
 
 .admin-item { border: 1px solid var(--gray-border); border-radius: 10px; padding: 14px 16px; margin: 10px 0; background: #fafafa; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .admin-item.unavailable { opacity: 0.5; }
@@ -98,6 +107,22 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .customer-header h1 { font-size: 26px; font-weight: 900; }
 .customer-header p { opacity: 0.8; font-size: 13px; margin-top: 4px; }
 .customer-body { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+/* نافذة الطلب التفاعلية */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.52); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 5000; }
+.modal-backdrop.show { display: flex; }
+.order-modal { width: min(100%, 460px); max-height: 92vh; overflow-y: auto; background: var(--white); border-radius: 18px; box-shadow: 0 14px 45px rgba(0,0,0,.25); padding: 22px 20px; animation: modalIn .2s ease-out; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.modal-head h2 { color: var(--teal-dark); font-size: 20px; }
+.modal-close { border: 0; background: #eef3f3; color: var(--muted); width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+.order-summary { background: var(--teal-light); border: 1px solid #b2dfdb; border-radius: 10px; padding: 11px 13px; margin: 12px 0 16px; color: var(--teal-dark); font-size: 14px; font-weight: 700; }
+.order-types { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 16px; }
+.order-type { border: 1.5px solid var(--gray-border); border-radius: 12px; padding: 12px 8px; background: #fafafa; color: var(--muted); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; }
+.order-type.active { border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark); box-shadow: 0 0 0 2px rgba(0,128,128,.08); }
+.order-fields { display: none; }
+.order-fields.active { display: block; }
+
 .category-title { font-size: 16px; font-weight: 700; color: var(--teal-dark); margin: 20px 0 10px; border-bottom: 2px solid var(--teal-light); padding-bottom: 6px; }
 
 .customer-item { background: var(--white); border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin: 10px 0; overflow: hidden; display: flex; }
@@ -161,6 +186,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 </style>
 </head>
 <body>
+<div id="offlineBanner" class="offline-banner">⚠️ لا يوجد اتصال بالإنترنت. تحقق من الشبكة قبل الحفظ أو التفعيل.</div>
 
 <!-- ══════════════════════════════════════
 SUBSCRIPTION / SIGNUP SCREEN
@@ -296,6 +322,8 @@ ADMIN PANEL SCREEN
       <label class="field-label">رقم CCP للدفع</label>
       <input type="text" id="adminCCP" value="007 99999 0018864026 62">
       <button class="btn btn-primary" onclick="saveAdminSettings()">💾 حفظ الإعدادات</button>
+      <p class="countdown">تُحفظ الإعدادات في مستند <code>system/config</code> بقاعدة البيانات.</p>
+      <p class="countdown">تعمل هذه النسخة مباشرة مع إعدادات Firestore وCloudinary الموجودة في النسخة الابتدائية.</p>
     </div>
   </div>
 </div>
@@ -351,7 +379,10 @@ RESTAURANT EDITOR SCREEN
     <div id="menuList"><div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div></div>
 
     <hr class="divider">
-    <button class="btn btn-primary" onclick="generateQR()">📱 إنشاء QR Code</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-primary" style="flex:1;min-width:180px;" onclick="generateQR()">📱 إنشاء QR Code</button>
+      <button class="btn btn-gold" style="flex:1;min-width:180px;" onclick="copyMenuLink()">🔗 نسخ رابط المنيو</button>
+    </div>
     <div id="qrCodeCanvas"></div>
     <div id="qrLink" style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted);word-break:break-all;"></div>
   </div>
@@ -367,6 +398,39 @@ CUSTOMER MENU SCREEN
   </div>
   <div class="customer-body">
     <div id="customerMenuList"><div class="empty"><div class="icon">⏳</div>جارٍ تحميل القائمة...</div></div>
+    <div id="customerCartBar" class="cart-bar" style="display:none;">
+      <span>🛒 السلة: <strong id="cartCount">0</strong> طبق — <strong id="cartTotal">0</strong> دج</span>
+      <button class="btn btn-wa" onclick="checkoutCart()">إتمام الطلب</button>
+    </div>
+  </div>
+</div>
+
+<div id="orderModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+  <div class="order-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2 id="orderModalTitle">تفاصيل الطلب</h2>
+      <button type="button" class="modal-close" onclick="closeOrderModal()" aria-label="إغلاق">×</button>
+    </div>
+    <div id="orderSummary" class="order-summary"></div>
+    <p style="font-size:13px;color:var(--muted);">اختر طريقة الطلب:</p>
+    <div class="order-types">
+      <button type="button" id="dineInType" class="order-type active" onclick="selectOrderType('dineIn')">🍽️<br>أكل في المطعم</button>
+      <button type="button" id="deliveryType" class="order-type" onclick="selectOrderType('delivery')">🛵<br>توصيل للمنزل</button>
+    </div>
+    <div id="dineInFields" class="order-fields active">
+      <label class="field-label" for="orderTableNumber">رقم الطاولة</label>
+      <input type="text" id="orderTableNumber" placeholder="مثال: 12" autocomplete="off">
+      <label class="field-label" for="orderCustomerName">اسم الزبون</label>
+      <input type="text" id="orderCustomerName" placeholder="أدخل اسمك" autocomplete="name">
+    </div>
+    <div id="deliveryFields" class="order-fields">
+      <label class="field-label" for="orderAddress">العنوان التفصيلي</label>
+      <textarea id="orderAddress" placeholder="الحي، الشارع، رقم المنزل..." autocomplete="street-address"></textarea>
+      <label class="field-label" for="orderPhone">رقم الهاتف</label>
+      <input type="tel" id="orderPhone" placeholder="مثال: 0550123456" autocomplete="tel">
+    </div>
+    <button type="button" class="btn btn-wa" onclick="sendOrderViaWhatsApp()">📲 إرسال الطلب عبر واتساب</button>
+    <button type="button" class="btn btn-gray" onclick="closeOrderModal()">إلغاء</button>
   </div>
 </div>
 
@@ -404,7 +468,13 @@ NOT FOUND SCREEN
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast"><span id="toastMessage"></span><button id="toastClose" type="button" onclick="hideToast()" aria-label="إغلاق">×</button></div>
+
+<script>
+  document.getElementById('orderModalBackdrop').addEventListener('click', function(event) {
+    if (event.target === this) closeOrderModal();
+  });
+</script>
 
 <!-- ══════════════════════════════════════
 FIREBASE + APP LOGIC
@@ -436,6 +506,10 @@ CONSTANTS
 const ADMIN_PASSWORD_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 const SUBSCRIPTION_DAYS = 30;
 const WARNING_DAYS = 3;
+// إعدادات Cloudinary الموجودة أصلاً في النسخة الابتدائية؛ لا تحتاج إلى خادم إضافي.
+const CLOUDINARY_CLOUD_NAME = 'qhuatwqf';
+const CLOUDINARY_UPLOAD_PRESET = 's8dcykxc';
+let networkOnline = navigator.onLine;
 
 
 /* ════════════════════════════════
@@ -448,6 +522,103 @@ let currentRestId = "";
 let currentUser = null;
 let SUBSCRIPTION_PRICE = 4000;
 let SUBSCRIPTION_CCP = "007 99999 0018864026 62";
+let activeOrder = { name: '', price: 0, whatsapp: '', type: 'dineIn' };
+let cart = [];
+
+function updateCartUI() {
+  const bar = document.getElementById('customerCartBar');
+  const count = cart.reduce(function(total, item) { return total + item.quantity; }, 0);
+  const total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
+  if (bar) bar.style.display = count ? 'flex' : 'none';
+  if (document.getElementById('cartCount')) document.getElementById('cartCount').textContent = count;
+  if (document.getElementById('cartTotal')) document.getElementById('cartTotal').textContent = total.toLocaleString('ar-DZ');
+}
+
+window.addToCart = function(name, price, whatsapp) {
+  const cleanWa = cleanPhone(whatsapp || '');
+  const existing = cart.find(function(item) { return item.name === String(name) && item.whatsapp === cleanWa; });
+  if (existing) existing.quantity += 1;
+  else cart.push({ name: String(name), price: Number(price) || 0, whatsapp: cleanWa, quantity: 1 });
+  updateCartUI();
+  toast('✅ تمت إضافة الطبق إلى السلة', 2200, 'success');
+};
+
+window.checkoutCart = function() {
+  if (!cart.length) return toast('⚠️ السلة فارغة', 2500, 'warning');
+  const first = cart[0];
+  activeOrder = { name: first.name, price: first.price, whatsapp: first.whatsapp, type: 'dineIn' };
+  const summary = document.getElementById('orderSummary');
+  summary.innerHTML = '<strong>محتويات السلة:</strong><ul class="cart-list">' + cart.map(function(item) {
+    return '<li><span>' + esc(item.name) + ' × ' + item.quantity + '</span><strong>' + (item.price * item.quantity).toLocaleString('ar-DZ') + ' دج</strong></li>';
+  }).join('') + '</ul><div>الإجمالي: ' + cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0).toLocaleString('ar-DZ') + ' دج</div>';
+  resetOrderFields();
+  selectOrderType('dineIn');
+  document.getElementById('orderModalBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() { document.getElementById('orderTableNumber').focus(); }, 50);
+};
+
+function resetOrderFields() {
+  ['orderTableNumber', 'orderCustomerName', 'orderAddress', 'orderPhone'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+window.openOrderModal = function(name, price, whatsapp) {
+  activeOrder = { name: String(name), price: Number(price) || 0, whatsapp: cleanPhone(whatsapp || ''), type: 'dineIn' };
+  document.getElementById('orderSummary').textContent = activeOrder.name + ' — ' + activeOrder.price.toLocaleString('ar-DZ') + ' دج';
+  resetOrderFields();
+  selectOrderType('dineIn');
+  document.getElementById('orderModalBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() { document.getElementById('orderTableNumber').focus(); }, 50);
+};
+
+window.closeOrderModal = function() {
+  document.getElementById('orderModalBackdrop').classList.remove('show');
+  document.body.style.overflow = '';
+};
+
+window.selectOrderType = function(type) {
+  activeOrder.type = type;
+  document.getElementById('dineInType').classList.toggle('active', type === 'dineIn');
+  document.getElementById('deliveryType').classList.toggle('active', type === 'delivery');
+  document.getElementById('dineInFields').classList.toggle('active', type === 'dineIn');
+  document.getElementById('deliveryFields').classList.toggle('active', type === 'delivery');
+};
+
+window.sendOrderViaWhatsApp = function() {
+  if (!cart.length) return toast('⚠️ السلة فارغة', 2500, 'warning');
+  const whatsapp = cleanPhone(cart[0].whatsapp || activeOrder.whatsapp || '');
+  if (!whatsapp) return toast('⚠️ رقم واتساب المطعم غير متوفر', 2800, 'danger');
+  const total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
+  let message = 'مرحباً، أرغب في طلب:\n\n' +
+    cart.map(function(item, index) {
+      return (index + 1) + '. ' + item.name + ' × ' + item.quantity + ' — ' + (item.price * item.quantity).toLocaleString('ar-DZ') + ' دج';
+    }).join('\n') + '\n\n💰 الإجمالي: ' + total.toLocaleString('ar-DZ') + ' دج\n📦 نوع الطلب: ';
+
+  if (activeOrder.type === 'dineIn') {
+    const table = document.getElementById('orderTableNumber').value.trim();
+    const customer = document.getElementById('orderCustomerName').value.trim();
+    if (!table || !customer) return toast('⚠️ أدخل رقم الطاولة واسم الزبون', 2800, 'danger');
+    message += 'أكل في المطعم\n' + '🪑 رقم الطاولة: ' + table + '\n' + '👤 اسم الزبون: ' + customer;
+  } else {
+    const address = document.getElementById('orderAddress').value.trim();
+    const phone = document.getElementById('orderPhone').value.trim();
+    if (!address || !phone) return toast('⚠️ أدخل العنوان التفصيلي ورقم الهاتف', 2800, 'danger');
+    message += 'توصيل للمنزل\n' + '📍 العنوان: ' + address + '\n' + '📞 رقم الاتصال: ' + phone;
+  }
+
+  window.open('https://wa.me/' + whatsapp + '?text=' + encodeURIComponent(message), '_blank', 'noopener');
+  cart = [];
+  updateCartUI();
+  closeOrderModal();
+};
+
+window.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') closeOrderModal();
+});
 
 /* ════════════════════════════════
 SECURITY
@@ -483,6 +654,7 @@ function getDaysRemaining(endDate) {
 }
 
 function getSubscriptionStatus(subData) {
+  if (subData && subData.frozen) return { active: false, days: 0, status: 'frozen' };
   if (!subData || !subData.endDate) return { active: false, days: 0, status: 'expired' };
   const days = getDaysRemaining(subData.endDate);
   if (days <= 0) return { active: false, days: 0, status: 'expired' };
@@ -542,20 +714,43 @@ window.showSignup = function() { showView('subscriptionView'); };
 window.showLogin = function() { showView('loginView'); };
 window.showAdminLogin = function() { showView('adminLoginView'); };
 
+let toastTimer;
+function hideToast() {
+  const t = document.getElementById('toast');
+  if (t) t.className = '';
+}
+window.hideToast = hideToast;
 function toast(msg, duration, type) {
   duration = duration || 2800;
   type = type || 'normal';
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  const message = document.getElementById('toastMessage');
+  if (!t || !message) return;
+  message.textContent = msg;
   t.className = 'show';
   if (type === 'danger') t.classList.add('toast-danger');
   if (type === 'gold') t.classList.add('toast-gold');
-  setTimeout(function() { t.className = ''; }, duration);
+  if (type === 'success') t.classList.add('toast-success');
+  if (type === 'warning') t.classList.add('toast-warning');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, duration);
 }
 
 function cleanPhone(num) {
   return String(num).replace(/[\s\-().]/g,'').replace(/^00/,'').replace(/^\+/,'');
 }
+
+function isNetworkError(error) {
+  return !navigator.onLine || error?.code === 'unavailable' || error?.message?.toLowerCase().includes('network');
+}
+
+function showNetworkState() {
+  const banner = document.getElementById('offlineBanner');
+  if (banner) banner.classList.toggle('show', !navigator.onLine);
+}
+window.addEventListener('online', function() { networkOnline = true; showNetworkState(); toast('✅ عاد الاتصال بالإنترنت', 2200, 'success'); });
+window.addEventListener('offline', function() { networkOnline = false; showNetworkState(); toast('⚠️ انقطع الاتصال بالإنترنت', 5000, 'warning'); });
+showNetworkState();
 
 function setLoading(loading) {
   const btn = document.getElementById('addBtn');
@@ -566,6 +761,37 @@ function setLoading(loading) {
   } else {
     btn.innerHTML = editingIndex > -1 ? '💾 تحديث الطبق' : '✅ إضافة الطبق';
   }
+}
+
+window.copyMenuLink = async function() {
+  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2500, 'warning');
+  const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
+  try {
+    await navigator.clipboard.writeText(url);
+    document.getElementById('qrLink').textContent = url;
+    toast('🔗 تم نسخ رابط المنيو', 2600, 'success');
+  } catch (e) {
+    toast('⚠️ تعذر النسخ تلقائياً، انسخ الرابط الظاهر أسفل الزر', 3500, 'warning');
+    document.getElementById('qrLink').textContent = url;
+  }
+};
+
+async function loadSystemSettings() {
+  try {
+    const snap = await getDoc(doc(db, 'system', 'config'));
+    if (!snap.exists()) return;
+    const cfg = snap.data();
+    if (Number(cfg.subscriptionPrice) > 0) SUBSCRIPTION_PRICE = Number(cfg.subscriptionPrice);
+    if (cfg.ccp) SUBSCRIPTION_CCP = String(cfg.ccp);
+    const priceEl = document.getElementById('planPriceDisplay');
+    const ccpEl = document.getElementById('ccpDisplay');
+    if (priceEl) priceEl.innerHTML = SUBSCRIPTION_PRICE.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
+    if (ccpEl) ccpEl.textContent = 'CCP: ' + SUBSCRIPTION_CCP;
+    const adminPrice = document.getElementById('adminPrice');
+    const adminCcp = document.getElementById('adminCCP');
+    if (adminPrice) adminPrice.value = SUBSCRIPTION_PRICE;
+    if (adminCcp) adminCcp.value = SUBSCRIPTION_CCP;
+  } catch (e) { console.warn('تعذر تحميل إعدادات النظام', e); }
 }
 
 function updateStats() {
@@ -595,8 +821,8 @@ function updateSubStatus(subData) {
     countdown.className = 'countdown countdown-urgent';
   } else {
     box.classList.add('sub-expired');
-    icon.textContent = '⛔';
-    text.textContent = 'انتهى الاشتراك';
+    icon.textContent = status.status === 'frozen' ? '🧊' : '⛔';
+    text.textContent = status.status === 'frozen' ? 'الحساب مجمّد من الإدارة' : 'انتهى الاشتراك';
     countdown.textContent = 'قم بتجديد الاشتراك للاستمرار';
     countdown.className = 'countdown countdown-urgent';
   }
@@ -708,6 +934,7 @@ window.loginRestaurant = async function() {
     currentRestId = restId;
     currentUser = data;
     waNumber = data.whatsapp || '';
+    localStorage.setItem('mysmartmenu_session', JSON.stringify({ restId: restId, passwordHash: data.passwordHash, savedAt: Date.now() }));
 
     const subStatus = getSubscriptionStatus(data.subscription);
     if (!subStatus.active) {
@@ -729,6 +956,7 @@ window.loginRestaurant = async function() {
 };
 
 window.logout = function() {
+  localStorage.removeItem('mysmartmenu_session');
   currentRestId = '';
   currentUser = null;
   menu = [];
@@ -808,6 +1036,8 @@ async function loadAdminPanel() {
         '<td>' + badge + '</td>' +
         '<td>' +
           '<button class="btn btn-blue btn-sm" onclick="adminExtendSub(\'' + restId + '\')">⏳ تمديد 30 يوم</button>' +
+          '<button class="btn btn-gold btn-sm" onclick="adminSetExpiry(\'' + restId + '\')">📅 تاريخ مخصص</button>' +
+          '<button class="btn btn-gray btn-sm" onclick="adminToggleFreeze(\'' + restId + '\', ' + (!!(data.subscription && data.subscription.frozen)) + ')">' + ((data.subscription && data.subscription.frozen) ? '▶️ إلغاء التجميد' : '🧊 تجميد') + '</button>' +
           '<button class="btn btn-danger btn-sm" onclick="adminDeleteRestaurant(\'' + restId + '\')">🗑️ حذف</button>' +
         '</td>' +
       '</tr>';
@@ -853,6 +1083,24 @@ window.adminExtendSub = async function(restId) {
   }
 };
 
+window.adminSetExpiry = async function(restId) {
+  const value = prompt('أدخل تاريخ الانتهاء بصيغة YYYY-MM-DD:');
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return toast('⚠️ صيغة التاريخ غير صحيحة', 3000, 'warning');
+  const endDate = new Date(value + 'T23:59:59.999Z');
+  if (Number.isNaN(endDate.getTime())) return toast('⚠️ التاريخ غير صحيح', 3000, 'warning');
+  try {
+    await updateDoc(doc(db, 'restaurants', restId), { 'subscription.endDate': endDate.toISOString(), 'subscription.status': 'active', 'subscription.frozen': false, updatedAt: new Date().toISOString() });
+    toast('✅ تم تعيين تاريخ الانتهاء', 2800, 'success'); await loadAdminPanel();
+  } catch (e) { toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال' : '❌ تعذر تعديل الاشتراك', 3200, 'danger'); }
+};
+
+window.adminToggleFreeze = async function(restId, currentlyFrozen) {
+  try {
+    await updateDoc(doc(db, 'restaurants', restId), { 'subscription.frozen': !currentlyFrozen, 'subscription.status': currentlyFrozen ? 'active' : 'frozen', updatedAt: new Date().toISOString() });
+    toast(currentlyFrozen ? '▶️ تم إلغاء تجميد الحساب' : '🧊 تم تجميد الحساب', 2800, 'success'); await loadAdminPanel();
+  } catch (e) { toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال' : '❌ تعذر تغيير حالة الحساب', 3200, 'danger'); }
+};
+
 window.adminDeleteRestaurant = async function(restId) {
   if (!confirm('هل أنت متأكد من حذف هذا المطعم نهائياً؟ سيتم حذف بياناته الأساسية.')) return;
   try {
@@ -865,16 +1113,27 @@ window.adminDeleteRestaurant = async function(restId) {
   }
 };
 
-window.saveAdminSettings = function() {
+window.saveAdminSettings = async function() {
   const price = parseFloat(document.getElementById('adminPrice').value);
   const ccp = document.getElementById('adminCCP').value.trim();
   if (!price || price <= 0) return toast('⚠️ أدخل سعراً صحيحاً');
   if (!ccp) return toast('⚠️ أدخل رقم CCP');
-  SUBSCRIPTION_PRICE = price;
-  SUBSCRIPTION_CCP = ccp;
-  document.getElementById('planPriceDisplay').innerHTML = price.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
-  document.getElementById('ccpDisplay').textContent = 'CCP: ' + ccp;
-  toast('💾 تم حفظ الإعدادات (محلياً لهذه الجلسة)');
+  try {
+    await setDoc(doc(db, 'system', 'config'), { subscriptionPrice: price, ccp: ccp, updatedAt: new Date().toISOString() }, { merge: true });
+    SUBSCRIPTION_PRICE = price;
+    SUBSCRIPTION_CCP = ccp;
+    document.getElementById('planPriceDisplay').innerHTML = price.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
+    document.getElementById('ccpDisplay').textContent = 'CCP: ' + ccp;
+    toast('💾 تم حفظ إعدادات النظام في قاعدة البيانات', 3000, 'success');
+    } catch (e) {
+    console.error(e);
+    // توافق مع قواعد النسخة الابتدائية: نحتفظ بالقيم داخل الجلسة إذا لم تسمح القواعد بالكتابة.
+    SUBSCRIPTION_PRICE = price;
+    SUBSCRIPTION_CCP = ccp;
+    document.getElementById('planPriceDisplay').innerHTML = price.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
+    document.getElementById('ccpDisplay').textContent = 'CCP: ' + ccp;
+    toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال. تم الاحتفاظ بالقيم مؤقتاً' : '⚠️ تم تحديث القيم محلياً؛ راجع قواعد Firestore للحفظ الدائم', 4200, 'warning');
+  }
 };
 
 /* ════════════════════════════════
@@ -926,10 +1185,9 @@ window.addItem = async function() {
       const compressed = await compressImage(file);
       const formData = new FormData();
       formData.append("file", compressed, "image.webp");
-      formData.append("upload_preset", "s8dcykxc");
-
-      const response = await fetch("https://api.cloudinary.com/v1_1/qhuatwqf/image/upload", {
-        method: "POST",
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      const response = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+        method: 'POST',
         body: formData
       });
 
@@ -969,7 +1227,7 @@ window.addItem = async function() {
 
   } catch (e) {
     console.error(e);
-    toast('❌ خطأ في حفظ الطبق');
+    toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال. لم يُحفظ الطبق' : '❌ خطأ في حفظ الطبق', 3500, 'danger');
   } finally {
     setLoading(false);
   }
@@ -1144,12 +1402,11 @@ async function loadCustomerMenu(restId) {
       html += '<div class="category-title">' + esc(cat) + '</div>';
       categories[cat].forEach(function(it) {
         const imgHtml = it.imageUrl
-          ? '<img class="customer-item-img" src="' + it.imageUrl + '" alt="' + esc(it.name) + '">'
+          ? '<img class="customer-item-img" src="' + esc(it.imageUrl) + '" alt="' + esc(it.name) + '" onerror="this.onerror=null;this.src=\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22 viewBox=%220 0 90 90%22%3E%3Crect width=%2290%22 height=%2290%22 fill=%22%23e0f2f1%22/%3E%3Ctext x=%2245%22 y=%2253%22 text-anchor=%22middle%22 font-size=%2230%22%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E\';">'
           : '<div class="customer-item-img-placeholder">🍽️</div>';
 
-        const orderMsg = encodeURIComponent('مرحباً، أرغب بطلب: ' + it.name + ' - ' + it.price + ' دج');
         const orderBtn = it.isAvailable
-          ? '<a class="btn btn-wa btn-order" target="_blank" href="https://wa.me/' + restWa + '?text=' + orderMsg + '">📲 اطلب الآن</a>'
+          ? '<button type="button" class="btn btn-wa btn-order" data-order-item data-name="' + esc(it.name) + '" data-price="' + Number(it.price) + '" data-whatsapp="' + esc(restWa) + '">🛒 أضف للسلة</button>'
           : '<span class="unavail-tag">غير متاح حالياً</span>';
 
         html += '<div class="customer-item' + (it.isAvailable ? '' : ' unavailable') + '">' +
@@ -1167,6 +1424,12 @@ async function loadCustomerMenu(restId) {
     listEl.innerHTML = html;
     showView('customerView');
 
+    listEl.querySelectorAll('[data-order-item]').forEach(function(button) {
+      button.addEventListener('click', function() {
+        addToCart(button.dataset.name, button.dataset.price, button.dataset.whatsapp);
+      });
+    });
+
   } catch (e) {
     console.error(e);
     listEl.innerHTML = '<div class="empty"><div class="icon">❌</div>حدث خطأ في تحميل القائمة.</div>';
@@ -1177,14 +1440,33 @@ async function loadCustomerMenu(restId) {
 /* ════════════════════════════════
 ROUTING / INIT
 ════════════════════════════════ */
-(function init() {
+async function restoreSession() {
+  try {
+    const raw = localStorage.getItem('mysmartmenu_session');
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved.restId || !saved.passwordHash || Date.now() - Number(saved.savedAt || 0) > 1000 * 60 * 60 * 24 * 30) {
+      localStorage.removeItem('mysmartmenu_session');
+      return false;
+    }
+    const snap = await getDoc(doc(db, 'restaurants', saved.restId));
+    if (!snap.exists() || snap.data().passwordHash !== saved.passwordHash) return false;
+    const data = snap.data();
+    if (!getSubscriptionStatus(data.subscription).active) { showView('expiredView'); return true; }
+    currentRestId = saved.restId; currentUser = data; waNumber = data.whatsapp || '';
+    document.getElementById('restDisplayName').value = data.displayName || '';
+    document.getElementById('restWhatsapp').value = data.whatsapp || '';
+    updateSubStatus(data.subscription); await loadMenuItems(); showView('editorView');
+    return true;
+  } catch (e) { console.warn('تعذر استعادة الجلسة', e); return false; }
+}
+
+(async function init() {
+  await loadSystemSettings();
   const params = new URLSearchParams(window.location.search);
   const restId = params.get('rest');
-  if (restId) {
-    loadCustomerMenu(restId.trim().toLowerCase());
-  } else {
-    showView('subscriptionView');
-  }
+  if (restId) loadCustomerMenu(restId.trim().toLowerCase());
+  else if (!(await restoreSession())) showView('subscriptionView');
 })();
 
 </script>
