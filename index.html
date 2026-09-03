@@ -109,6 +109,10 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .analytics-card .analytics-number { font-size:22px; font-weight:900; color:#fff; }
 .analytics-note { font-size:11px; color:var(--muted); text-align:center; margin:-8px 0 14px; }
 .analytics-headline { background:#fff8e1; color:#6d4c00; border:1px solid #ffecb3; border-radius:10px; padding:11px 12px; text-align:center; font-size:13px; font-weight:700; line-height:1.8; margin:0 0 12px; }
+.weekly-reminder { display:none; background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7; border-radius:12px; padding:13px; margin:0 0 14px; }
+.weekly-reminder.show { display:block; }
+.weekly-reminder-text { font-size:13px; line-height:1.9; font-weight:700; margin-bottom:10px; }
+.weekly-reminder .btn { margin:0; background:#25d366; border-color:#25d366; }
 .stat-card .num { font-size: 24px; font-weight: 900; color: var(--teal-dark); }
 .stat-card .lbl { font-size: 12px; color: var(--muted); }
 
@@ -380,6 +384,10 @@ RESTAURANT EDITOR SCREEN
       </div>
     </div>
     <div id="analyticsHeadline" class="analytics-headline">يتم تجهيز ملخص أداء منيو مطعمك...</div>
+    <div id="weeklyReminder" class="weekly-reminder">
+      <div id="weeklyReminderText" class="weekly-reminder-text"></div>
+      <button type="button" class="btn btn-wa" onclick="sendWeeklySummary()">📲 إرسال الملخص عبر واتساب</button>
+    </div>
     <div class="analytics-note">يتم تحديث الأرقام تلقائياً عند استعراض المنيو وإرسال الطلبات عبر واتساب.</div>
 
     <div class="section-title">إعدادات المطعم</div>
@@ -575,25 +583,47 @@ function analyticsDateOffset(daysAgo) {
   return date;
 }
 
-async function trackAnalytics(restId, field, amount) {
+function analyticsItemKey(name) {
+  return String(name || 'item').trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/gi, '_').slice(0, 80) || 'item';
+}
+
+async function trackAnalytics(restId, field, amount, metadata) {
   if (!restId || !['views', 'orders'].includes(field)) return;
   try {
     const dayId = analyticsDateKey(new Date());
-    await setDoc(doc(db, 'restaurants', restId, 'analytics', dayId), {
+    const payload = {
       date: dayId,
       [field]: increment(amount || 1),
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    };
+    if (field === 'orders' && metadata && Array.isArray(metadata.items)) {
+      metadata.items.forEach(function(item) {
+        const key = analyticsItemKey(item.name);
+        payload['itemCounts.' + key] = increment(Number(item.quantity || 1));
+        payload['itemLabels.' + key] = String(item.name || 'طبق');
+      });
+    }
+    await setDoc(doc(db, 'restaurants', restId, 'analytics', dayId), payload, { merge: true });
   } catch (error) {
     // لا نوقف تجربة الزبون إذا كانت قواعد Firestore لا تسمح بتسجيل الإحصائيات.
     console.warn('تعذر تسجيل الإحصائية:', error);
   }
 }
 
+function buildTopItem(counts, labels) {
+  let topKey = '';
+  let topCount = 0;
+  Object.keys(counts || {}).forEach(function(key) {
+    const count = Number(counts[key] || 0);
+    if (count > topCount) { topKey = key; topCount = count; }
+  });
+  return { name: (labels && labels[topKey]) || 'لا يوجد طبق محدد بعد', count: topCount };
+}
+
 async function loadAnalytics() {
-  if (!currentRestId) return;
-  const weekly = { views: 0, orders: 0 };
-  const monthly = { views: 0, orders: 0 };
+  if (!currentRestId) return { weekly: { views: 0, orders: 0 }, monthly: { views: 0, orders: 0 }, topItem: buildTopItem({}, {}) };
+  const weekly = { views: 0, orders: 0, itemCounts: {}, itemLabels: {} };
+  const monthly = { views: 0, orders: 0, itemCounts: {}, itemLabels: {} };
   try {
     const refs = [];
     for (let i = 0; i < 30; i += 1) refs.push(getDoc(doc(db, 'restaurants', currentRestId, 'analytics', analyticsDateKey(analyticsDateOffset(i)))));
@@ -601,11 +631,20 @@ async function loadAnalytics() {
     snapshots.forEach(function(snapshot, index) {
       if (!snapshot.exists()) return;
       const data = snapshot.data() || {};
+      const target = index < 7 ? weekly : null;
       monthly.views += Number(data.views || 0);
       monthly.orders += Number(data.orders || 0);
-      if (index < 7) {
-        weekly.views += Number(data.views || 0);
-        weekly.orders += Number(data.orders || 0);
+      Object.keys(data.itemCounts || {}).forEach(function(key) {
+        monthly.itemCounts[key] = (monthly.itemCounts[key] || 0) + Number(data.itemCounts[key] || 0);
+        monthly.itemLabels[key] = data.itemLabels && data.itemLabels[key] ? data.itemLabels[key] : monthly.itemLabels[key];
+      });
+      if (target) {
+        target.views += Number(data.views || 0);
+        target.orders += Number(data.orders || 0);
+        Object.keys(data.itemCounts || {}).forEach(function(key) {
+          target.itemCounts[key] = (target.itemCounts[key] || 0) + Number(data.itemCounts[key] || 0);
+          target.itemLabels[key] = data.itemLabels && data.itemLabels[key] ? data.itemLabels[key] : target.itemLabels[key];
+        });
       }
     });
   } catch (error) {
@@ -623,7 +662,37 @@ async function loadAnalytics() {
     const element = document.getElementById(id);
     if (element) element.textContent = values[id].toLocaleString('ar-DZ');
   });
+  return { weekly: weekly, monthly: monthly, topItem: buildTopItem(monthly.itemCounts, monthly.itemLabels) };
 }
+
+let weeklySummaryMessage = '';
+function buildWeeklySummaryMessage(stats) {
+  const restaurantName = (currentUser && (currentUser.displayName || currentUser.restId)) || 'صاحب المطعم';
+  const topText = stats.topItem && stats.topItem.count ? 'وكان طبق ' + stats.topItem.name + ' الأكثر طلباً (' + stats.topItem.count.toLocaleString('ar-DZ') + ' مرات).' : 'واستمر في إضافة منتجاتك لمعرفة الأكثر طلباً.';
+  return 'مرحباً ' + restaurantName + '! حقق منيو مطعمك هذا الأسبوع ' + stats.weekly.views.toLocaleString('ar-DZ') + ' مشاهدة و' + stats.weekly.orders.toLocaleString('ar-DZ') + ' طلباً، ' + topText;
+}
+
+function maybeShowWeeklyReminder(stats) {
+  const reminder = document.getElementById('weeklyReminder');
+  const reminderText = document.getElementById('weeklyReminderText');
+  if (!reminder || !reminderText) return;
+  weeklySummaryMessage = buildWeeklySummaryMessage(stats);
+  const storageKey = 'mysmartmenu_weekly_summary_' + currentRestId;
+  const lastShown = Number(localStorage.getItem(storageKey) || 0);
+  const shouldShow = !lastShown || (Date.now() - lastShown >= 7 * 24 * 60 * 60 * 1000);
+  if (!shouldShow) return;
+  reminderText.textContent = weeklySummaryMessage;
+  reminder.classList.add('show');
+  localStorage.setItem(storageKey, String(Date.now()));
+}
+
+window.sendWeeklySummary = function() {
+  if (!weeklySummaryMessage) return toast('⚠️ لا توجد إحصائيات أسبوعية جاهزة بعد', 2800, 'warning');
+  const ownerPhone = cleanPhone((currentUser && (currentUser.whatsapp || currentUser.phone)) || waNumber || '');
+  if (!ownerPhone) return toast('⚠️ أضف رقم واتساب في إعدادات المطعم أولاً', 3000, 'warning');
+  window.open('https://wa.me/' + ownerPhone + '?text=' + encodeURIComponent(weeklySummaryMessage), '_blank', 'noopener');
+  toast('📲 تم تجهيز ملخصك الأسبوعي في واتساب', 2800, 'success');
+};
 let adminCategoryIndex = 0;
 let customerCategoryIndex = 0;
 const MENU_CATEGORIES = [
@@ -778,7 +847,7 @@ window.sendOrderViaWhatsApp = function() {
     message += 'توصيل للمنزل\n' + '📍 العنوان: ' + address + '\n' + '📞 رقم الاتصال: ' + phone;
   }
 
-  trackAnalytics(activeCustomerRestId, 'orders', 1);
+  trackAnalytics(activeCustomerRestId, 'orders', 1, { items: cart });
   window.open('https://wa.me/' + whatsapp + '?text=' + encodeURIComponent(message), '_blank', 'noopener');
   cart = [];
   updateCartUI();
@@ -1115,7 +1184,8 @@ window.loginRestaurant = async function() {
     document.getElementById('restWhatsapp').value = data.whatsapp || '';
     updateSubStatus(data.subscription);
     await loadMenuItems();
-    await loadAnalytics();
+    const analytics = await loadAnalytics();
+    maybeShowWeeklyReminder(analytics);
     showView('editorView');
     toast('✅ تم تسجيل الدخول بنجاح');
 
@@ -1655,7 +1725,7 @@ async function restoreSession() {
     currentRestId = saved.restId; currentUser = data; waNumber = data.whatsapp || '';
     document.getElementById('restDisplayName').value = data.displayName || '';
     document.getElementById('restWhatsapp').value = data.whatsapp || '';
-    updateSubStatus(data.subscription); await loadMenuItems(); await loadAnalytics(); showView('editorView');
+    updateSubStatus(data.subscription); await loadMenuItems(); const analytics = await loadAnalytics(); maybeShowWeeklyReminder(analytics); showView('editorView');
     return true;
   } catch (e) { console.warn('تعذر استعادة الجلسة', e); return false; }
 }
