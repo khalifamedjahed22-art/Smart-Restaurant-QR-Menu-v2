@@ -23,6 +23,13 @@
   --white: #ffffff;
   --radius: 12px;
   --shadow: 0 4px 20px rgba(0,0,0,0.10);
+  --menu-bg: #f8f9fa;
+  --menu-surface: #ffffff;
+  --menu-text: #212121;
+  --menu-muted: #757575;
+  --menu-primary: #008080;
+  --menu-primary-dark: #006666;
+  --menu-accent: #c9a84c;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Cairo', Arial, sans-serif; background: var(--gray-bg); color: var(--text); min-height: 100vh; }
@@ -121,7 +128,15 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .stat-card .num { font-size: 24px; font-weight: 900; color: var(--teal-dark); }
 .stat-card .lbl { font-size: 12px; color: var(--muted); }
 
-.customer-header { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color: white; padding: 30px 20px 20px; text-align: center; }
+.customer-header { background: linear-gradient(135deg, var(--menu-primary-dark), var(--menu-primary)); color: white; padding: 30px 20px 20px; text-align: center; }
+#customerView { background: var(--menu-bg); min-height: 100vh; color: var(--menu-text); }
+#customerView .customer-item { background: var(--menu-surface); color: var(--menu-text); }
+#customerView .customer-item .desc { color: var(--menu-muted); }
+#customerView .customer-item .price { color: var(--menu-primary); }
+#customerView .category-title { color: var(--menu-primary-dark); border-color: var(--menu-primary); }
+#customerView .category-tab.active { background: var(--menu-primary); border-color: var(--menu-primary); }
+#customerView .customer-item-img-placeholder { background: color-mix(in srgb, var(--menu-primary) 12%, #fff); }
+#customerView .cart-bar { background: var(--menu-primary-dark); }
 .customer-header h1 { font-size: 26px; font-weight: 900; }
 .customer-header p { opacity: 0.8; font-size: 13px; margin-top: 4px; }
 .customer-body { max-width: 480px; margin: 0 auto; padding: 16px; }
@@ -139,6 +154,27 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .modifier-option:last-child { border-bottom:0; }
 .modifier-option label { display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; }
 .modifier-option input { width:18px; height:18px; accent-color:var(--teal); }
+.theme-card { background:var(--white); border:1px solid var(--gray-border); border-radius:14px; padding:16px; margin:16px 0; box-shadow:0 3px 12px rgba(0,0,0,.06); }
+.theme-card-title { color:var(--teal-dark); font-size:18px; font-weight:900; margin-bottom:4px; }
+.theme-card-subtitle { color:var(--muted); font-size:12px; line-height:1.8; margin-bottom:12px; }
+.theme-layout { display:grid; grid-template-columns:1.15fr .85fr; gap:14px; align-items:center; }
+.theme-swatches { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.theme-swatch { border:1.5px solid var(--gray-border); border-radius:11px; background:#fff; padding:9px 8px; cursor:pointer; display:flex; align-items:center; gap:8px; text-align:right; font-family:'Cairo',sans-serif; font-size:11px; color:var(--text); }
+.theme-swatch.active { border-color:var(--teal); box-shadow:0 0 0 2px rgba(0,128,128,.12); }
+.theme-swatch-dot { width:26px; height:26px; border-radius:50%; flex:0 0 26px; border:2px solid rgba(0,0,0,.12); }
+.theme-preview-label { font-size:11px; color:var(--muted); text-align:center; margin-bottom:5px; }
+.mini-phone { width:142px; height:238px; margin:0 auto; border:7px solid #202a2a; border-radius:22px; overflow:hidden; background:var(--menu-bg); box-shadow:0 6px 18px rgba(0,0,0,.18); color:var(--menu-text); }
+.mini-phone-header { height:48px; background:linear-gradient(135deg,var(--menu-primary-dark),var(--menu-primary)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; }
+.mini-phone-body { padding:8px; }
+.mini-phone-pill { height:16px; border:1px solid color-mix(in srgb, var(--menu-primary) 30%, #ddd); border-radius:9px; margin-bottom:7px; }
+.mini-phone-card { background:var(--menu-surface); border-radius:8px; padding:7px; box-shadow:0 1px 5px rgba(0,0,0,.1); }
+.mini-phone-line { height:7px; border-radius:4px; background:color-mix(in srgb, var(--menu-text) 18%, transparent); margin:4px 0; }
+.mini-phone-line.short { width:58%; }
+.mini-phone-button { height:17px; border-radius:6px; background:var(--menu-primary); margin-top:8px; }
+.theme-suggestion { display:none; margin-top:12px; background:#fff8e1; border:1px solid #ffdc73; color:#6d4c00; border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.8; }
+.theme-suggestion.show { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.theme-suggestion .btn { margin:0; width:auto; flex:0 0 auto; padding:7px 10px; font-size:11px; background:var(--gold); }
+@media (max-width:520px) { .theme-layout { grid-template-columns:1fr; } .mini-phone { width:170px; height:250px; } }
 
 /* نافذة الطلب التفاعلية */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.52); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 5000; }
@@ -408,6 +444,32 @@ RESTAURANT EDITOR SCREEN
       <button type="button" class="btn btn-wa" onclick="sendWeeklySummary()">📲 إرسال الملخص عبر واتساب</button>
     </div>
     <div class="analytics-note">يتم تحديث الأرقام تلقائياً عند استعراض المنيو وإرسال الطلبات عبر واتساب.</div>
+
+    <section class="theme-card" aria-labelledby="themeSectionTitle">
+      <div id="themeSectionTitle" class="theme-card-title">🎨 أجواء المنيو والمناسبات</div>
+      <div class="theme-card-subtitle">اختر الطابع المناسب لهوية مطعمك أو مناسبتك الحالية، وشاهد المعاينة قبل الحفظ.</div>
+      <div class="theme-layout">
+        <div id="themeSwatches" class="theme-swatches"></div>
+        <div>
+          <div class="theme-preview-label">📱 معاينة سريعة للزبون</div>
+          <div id="themePhonePreview" class="mini-phone">
+            <div class="mini-phone-header">MySmartMenu</div>
+            <div class="mini-phone-body">
+              <div class="mini-phone-pill"></div>
+              <div class="mini-phone-card">
+                <div class="mini-phone-line"></div>
+                <div class="mini-phone-line short"></div>
+                <div class="mini-phone-button"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="themeSuggestion" class="theme-suggestion">
+        <span id="themeSuggestionText"></span>
+        <button id="themeSuggestionButton" class="btn" type="button" onclick="applySuggestedTheme()">تطبيق الآن</button>
+      </div>
+    </section>
 
     <div class="section-title">إعدادات المطعم</div>
     <label class="field-label">اسم المطعم للعرض</label>
@@ -708,6 +770,72 @@ window.toggleLanguage = function() {
   localStorage.setItem('mysmartmenu_language', currentLanguage);
   applyLanguage();
   if (customerMenuItems.length) renderCustomerMenu();
+};
+
+const MENU_THEMES = [
+  { id: 'default', labelAr: 'الكتان العاجي', labelFr: 'Lin ivoire', noteAr: 'نظيف ومناسب لكل المطاعم', noteFr: 'Propre et adapté à tous les restaurants', bg: '#F8F9FA', surface: '#FFFFFF', text: '#212121', muted: '#757575', primary: '#008080', primaryDark: '#006666', accent: '#C9A84C' },
+  { id: 'ramadan', labelAr: 'الأخضر الرمضاني', labelFr: 'Vert ramadan', noteAr: 'هادئ ومناسب للمواسم الروحانية', noteFr: 'Calme et idéal pour les périodes spirituelles', bg: '#EAF3EE', surface: '#FFFFFF', text: '#17352A', muted: '#587064', primary: '#1B4D3E', primaryDark: '#12372C', accent: '#D4AF37' },
+  { id: 'national', labelAr: 'العنابي الثوري', labelFr: 'Bordeaux festif', noteAr: 'فخم للمناسبات والأعياد الوطنية', noteFr: 'Élégant pour les fêtes nationales', bg: '#FAF2F4', surface: '#FFFFFF', text: '#32151D', muted: '#77545D', primary: '#800020', primaryDark: '#590016', accent: '#C9A84C' },
+  { id: 'coffee', labelAr: 'البني الدافئ', labelFr: 'Brun café', noteAr: 'مثالي للمقاهي والحلويات والشاورما', noteFr: 'Idéal pour cafés, desserts et snacks', bg: '#F7F1ED', surface: '#FFFFFF', text: '#3E2723', muted: '#806B63', primary: '#6D4032', primaryDark: '#3E2723', accent: '#C88A5A' },
+  { id: 'royal', labelAr: 'الأسود الملكي', labelFr: 'Noir royal', noteAr: 'طابع عصري للمطاعم الفاخرة', noteFr: 'Style moderne pour restaurants premium', bg: '#121212', surface: '#202020', text: '#F5F5F5', muted: '#BDBDBD', primary: '#D4AF37', primaryDark: '#A88720', accent: '#F0D77A' }
+];
+let selectedThemeId = 'default';
+
+function getTheme(themeId) { return MENU_THEMES.find(function(theme) { return theme.id === themeId; }) || MENU_THEMES[0]; }
+function applyTheme(themeId) {
+  const theme = getTheme(themeId);
+  selectedThemeId = theme.id;
+  const root = document.documentElement;
+  ['bg','surface','text','muted','primary','primaryDark','accent'].forEach(function(key) { root.style.setProperty('--menu-' + key.replace('primaryDark', 'primary-dark'), theme[key]); });
+  const preview = document.getElementById('themePhonePreview');
+  if (preview) preview.setAttribute('data-theme', theme.id);
+  return theme;
+}
+
+function renderThemeControls(themeId) {
+  const host = document.getElementById('themeSwatches');
+  if (!host) return;
+  selectedThemeId = getTheme(themeId).id;
+  host.innerHTML = MENU_THEMES.map(function(theme) {
+    const label = currentLanguage === 'fr' ? theme.labelFr : theme.labelAr;
+    const note = currentLanguage === 'fr' ? theme.noteFr : theme.noteAr;
+    return '<button type="button" class="theme-swatch ' + (theme.id === selectedThemeId ? 'active' : '') + '" onclick="selectTheme(\'' + theme.id + '\')" title="' + esc(note) + '"><span class="theme-swatch-dot" style="background:' + theme.bg + ';box-shadow:inset 0 0 0 7px ' + theme.primary + '"></span><span>' + esc(label) + '<small style="display:block;color:var(--muted);font-size:9px;">' + esc(theme.noteAr) + '</small></span></button>';
+  }).join('');
+  applyTheme(selectedThemeId);
+  renderThemeSuggestion();
+}
+
+function renderThemeSuggestion() {
+  const box = document.getElementById('themeSuggestion');
+  const text = document.getElementById('themeSuggestionText');
+  const button = document.getElementById('themeSuggestionButton');
+  if (!box || !text || !button) return;
+  const now = new Date();
+  const month = now.getMonth();
+  const day = now.getDate();
+  let suggestion = null;
+  if ((month === 9 && day >= 15) || month === 10) suggestion = { theme: 'national', ar: 'اقتربت أجواء 1 نوفمبر! هل تحب تحويل المنيو إلى الطابع العنابي؟', fr: 'Le 1er novembre approche ! Voulez-vous appliquer le thème bordeaux ?' };
+  else if (month === 1 || month === 2 || month === 3) suggestion = { theme: 'ramadan', ar: 'أجواء الموسم الروحاني مناسبة للأخضر الرمضاني. هل تريد تطبيقه؟', fr: 'La saison spirituelle se prête au vert ramadan. Voulez-vous l’appliquer ?' };
+  else if (month === 11 || month === 0) suggestion = { theme: 'coffee', ar: 'أجواء الشتاء مناسبة للطابع البني الدافئ. هل تريد تجربته؟', fr: 'L’ambiance hivernale est idéale pour le brun café. Voulez-vous l’essayer ?' };
+  if (!suggestion || selectedThemeId === suggestion.theme) { box.classList.remove('show'); return; }
+  text.textContent = currentLanguage === 'fr' ? suggestion.fr : suggestion.ar;
+  button.textContent = currentLanguage === 'fr' ? 'Appliquer' : 'تطبيق الآن';
+  box.dataset.suggestedTheme = suggestion.theme;
+  box.classList.add('show');
+}
+
+window.applySuggestedTheme = function() { const box = document.getElementById('themeSuggestion'); if (box && box.dataset.suggestedTheme) selectTheme(box.dataset.suggestedTheme); };
+window.selectTheme = async function(themeId) {
+  const theme = applyTheme(themeId);
+  renderThemeControls(theme.id);
+  if (!currentRestId) return;
+  try {
+    await setDoc(doc(db, 'restaurants', currentRestId), { themeId: theme.id, themeUpdatedAt: new Date().toISOString() }, { merge: true });
+    toast('🎨 تم تطبيق وحفظ أجواء المنيو', 2800, 'success');
+  } catch (error) {
+    console.error(error);
+    toast(isNetworkError(error) ? '⚠️ لا يوجد اتصال؛ تمت المعاينة محلياً' : '⚠️ تمت المعاينة لكن تعذر الحفظ', 3400, 'warning');
+  }
 };
 
 let menu = [];
@@ -1390,6 +1518,8 @@ window.loginRestaurant = async function() {
 
     document.getElementById('restDisplayName').value = data.displayName || '';
     document.getElementById('restWhatsapp').value = data.whatsapp || '';
+    applyLanguage();
+    renderThemeControls(data.themeId || 'default');
     updateSubStatus(data.subscription);
     await loadMenuItems();
     const analytics = await loadAnalytics();
@@ -2070,6 +2200,7 @@ async function loadCustomerMenu(restId) {
       return;
     }
     const restData = restSnap.data();
+    applyTheme(restData.themeId || 'default');
     document.getElementById('customerRestName').textContent = restData.displayName || restId;
     const restWa = cleanPhone(restData.whatsapp || '');
     activeCustomerRestId = restId;
@@ -2125,6 +2256,8 @@ async function restoreSession() {
     currentRestId = saved.restId; currentUser = data; waNumber = data.whatsapp || '';
     document.getElementById('restDisplayName').value = data.displayName || '';
     document.getElementById('restWhatsapp').value = data.whatsapp || '';
+    applyLanguage();
+    renderThemeControls(data.themeId || 'default');
     updateSubStatus(data.subscription); await loadMenuItems(); const analytics = await loadAnalytics(); maybeShowWeeklyReminder(analytics); showView('editorView');
     return true;
   } catch (e) { console.warn('تعذر استعادة الجلسة', e); return false; }
