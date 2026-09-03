@@ -6,6 +6,7 @@
 <title>MySmartMenu - القائمة الذكية</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --teal: #008080;
@@ -428,7 +429,9 @@ RESTAURANT EDITOR SCREEN
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn btn-primary" style="flex:1;min-width:180px;" onclick="generateQR()">📱 إنشاء QR Code</button>
       <button class="btn btn-gold" style="flex:1;min-width:180px;" onclick="copyMenuLink()">🔗 نسخ رابط المنيو</button>
+      <button class="btn btn-blue" style="flex:1;min-width:180px;" onclick="downloadPrintablePDF()">📄 تحميل قالب الطباعة PDF</button>
     </div>
+    <p class="countdown" style="margin-top:8px;">قالب A4 عالي الدقة يتضمن QR الخاص بمطعمك وشعار MySmartMenu، جاهز للإرسال إلى المطبعة.</p>
     <div id="qrCodeCanvas"></div>
     <div id="qrLink" style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted);word-break:break-all;"></div>
   </div>
@@ -1621,6 +1624,114 @@ window.generateQR = function() {
   });
   document.getElementById('qrLink').textContent = url;
   toast('📱 تم إنشاء رمز QR بنجاح');
+};
+
+window.downloadPrintablePDF = async function() {
+  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2800, 'warning');
+  if (!window.jspdf || !window.jspdf.jsPDF) return toast('❌ مكتبة PDF لم تُحمّل، تحقق من اتصال الإنترنت', 3500, 'danger');
+  if (typeof QRCode === 'undefined') return toast('❌ مكتبة QR لم تُحمّل، تحقق من اتصال الإنترنت', 3500, 'danger');
+
+  const button = document.querySelector('button[onclick="downloadPrintablePDF()"]');
+  if (button) { button.disabled = true; button.textContent = '⏳ جارٍ تجهيز ملف PDF...'; }
+
+  const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
+  const qrHost = document.createElement('div');
+  qrHost.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:1200px;height:1200px;background:#fff;';
+  document.body.appendChild(qrHost);
+
+  try {
+    new QRCode(qrHost, {
+      text: url,
+      width: 1200,
+      height: 1200,
+      colorDark: '#006666',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(function(resolve) { setTimeout(resolve, 180); });
+
+    const qrCanvas = qrHost.querySelector('canvas');
+    const qrImage = qrHost.querySelector('img');
+    let qrDataUrl = '';
+    if (qrCanvas) qrDataUrl = qrCanvas.toDataURL('image/png');
+    else if (qrImage && qrImage.src) qrDataUrl = qrImage.src;
+    if (!qrDataUrl) throw new Error('QR generation failed');
+
+    const poster = document.createElement('canvas');
+    poster.width = 2480;
+    poster.height = 3508;
+    const ctx = poster.getContext('2d');
+    ctx.fillStyle = '#f7fbfb';
+    ctx.fillRect(0, 0, poster.width, poster.height);
+
+    // إطار خارجي أنيق مناسب للطباعة على ورق A4.
+    ctx.strokeStyle = '#006666';
+    ctx.lineWidth = 28;
+    ctx.strokeRect(70, 70, poster.width - 140, poster.height - 140);
+    ctx.strokeStyle = '#c9a84c';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(105, 105, poster.width - 210, poster.height - 210);
+
+    ctx.textAlign = 'center';
+    ctx.direction = 'ltr';
+    ctx.font = '900 150px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#006666';
+    ctx.fillText('MySmart', poster.width / 2 - 105, 430);
+    ctx.fillStyle = '#c9a84c';
+    ctx.fillText('Menu', poster.width / 2 + 330, 430);
+
+    const restaurantName = (document.getElementById('restDisplayName').value || currentUser && currentUser.displayName || currentRestId || 'مطعمي').trim();
+    ctx.direction = 'rtl';
+    ctx.font = '900 150px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#006666';
+    ctx.fillText(restaurantName, poster.width / 2, 760);
+    ctx.font = '600 78px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#4b6262';
+    ctx.fillText('امسح الرمز للوصول إلى قائمتنا الرقمية', poster.width / 2, 930);
+
+    const qrSize = 1450;
+    const qrX = (poster.width - qrSize) / 2;
+    const qrY = 1110;
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,102,102,.18)';
+    ctx.shadowBlur = 35;
+    ctx.fillRect(qrX - 70, qrY - 70, qrSize + 140, qrSize + 140);
+    ctx.shadowColor = 'transparent';
+    const qrBitmap = new Image();
+    await new Promise(function(resolve, reject) {
+      qrBitmap.onload = resolve;
+      qrBitmap.onerror = reject;
+      qrBitmap.src = qrDataUrl;
+    });
+    ctx.drawImage(qrBitmap, qrX, qrY, qrSize, qrSize);
+
+    ctx.direction = 'rtl';
+    ctx.font = '900 92px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#008080';
+    ctx.fillText('اطلب الآن بسهولة', poster.width / 2, 2850);
+    ctx.font = '600 60px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#526666';
+    ctx.fillText('قائمة رقمية • طلبات مباشرة عبر واتساب', poster.width / 2, 2980);
+
+    ctx.direction = 'ltr';
+    ctx.font = '32px Arial, sans-serif';
+    ctx.fillStyle = '#6b7777';
+    ctx.fillText(url, poster.width / 2, 3260);
+
+    const PDF = window.jspdf.jsPDF;
+    const pdf = new PDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    pdf.addImage(poster.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+    const safeName = restaurantName.replace(/[^a-zA-Z0-9\u0600-\u06ff_-]+/g, '-').replace(/^-+|-+$/g, '') || 'restaurant';
+    pdf.save('MySmartMenu-' + safeName + '-print-template.pdf');
+    toast('✅ تم تحميل قالب الطباعة PDF بجودة عالية', 3200, 'success');
+  } catch (error) {
+    console.error(error);
+    toast('❌ تعذر إنشاء ملف PDF، حاول مرة أخرى', 3500, 'danger');
+  } finally {
+    qrHost.remove();
+    if (button) { button.disabled = false; button.textContent = '📄 تحميل قالب الطباعة PDF'; }
+  }
 };
 
 /* ════════════════════════════════
