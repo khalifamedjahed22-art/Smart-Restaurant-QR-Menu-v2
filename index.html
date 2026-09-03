@@ -114,6 +114,10 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .weekly-reminder.show { display:block; }
 .weekly-reminder-text { font-size:13px; line-height:1.9; font-weight:700; margin-bottom:10px; }
 .weekly-reminder .btn { margin:0; background:#25d366; border-color:#25d366; }
+.pdf-spinner { display:none; width:18px; height:18px; margin-left:8px; vertical-align:-4px; border:3px solid rgba(255,255,255,.45); border-top-color:#fff; border-radius:50%; animation:pdfSpin .75s linear infinite; }
+.pdf-button.is-loading .pdf-spinner { display:inline-block; }
+.pdf-button.is-loading { cursor:wait; }
+@keyframes pdfSpin { to { transform:rotate(360deg); } }
 .stat-card .num { font-size: 24px; font-weight: 900; color: var(--teal-dark); }
 .stat-card .lbl { font-size: 12px; color: var(--muted); }
 
@@ -429,7 +433,7 @@ RESTAURANT EDITOR SCREEN
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn btn-primary" style="flex:1;min-width:180px;" onclick="generateQR()">📱 إنشاء QR Code</button>
       <button class="btn btn-gold" style="flex:1;min-width:180px;" onclick="copyMenuLink()">🔗 نسخ رابط المنيو</button>
-      <button class="btn btn-blue" style="flex:1;min-width:180px;" onclick="downloadPrintablePDF()">📄 تحميل قالب الطباعة PDF</button>
+      <button id="downloadPdfButton" class="btn btn-blue pdf-button" style="flex:1;min-width:180px;" onclick="downloadPrintablePDF()" aria-live="polite"><span class="pdf-button-label">📄 تحميل قالب الطباعة PDF</span><span class="pdf-spinner" aria-hidden="true"></span></button>
     </div>
     <p class="countdown" style="margin-top:8px;">قالب A4 عالي الدقة يتضمن QR الخاص بمطعمك وشعار MySmartMenu، جاهز للإرسال إلى المطبعة.</p>
     <div id="qrCodeCanvas"></div>
@@ -1626,13 +1630,22 @@ window.generateQR = function() {
   toast('📱 تم إنشاء رمز QR بنجاح');
 };
 
+let pdfGenerationRunning = false;
 window.downloadPrintablePDF = async function() {
+  if (pdfGenerationRunning) return;
   if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2800, 'warning');
   if (!window.jspdf || !window.jspdf.jsPDF) return toast('❌ مكتبة PDF لم تُحمّل، تحقق من اتصال الإنترنت', 3500, 'danger');
   if (typeof QRCode === 'undefined') return toast('❌ مكتبة QR لم تُحمّل، تحقق من اتصال الإنترنت', 3500, 'danger');
 
-  const button = document.querySelector('button[onclick="downloadPrintablePDF()"]');
-  if (button) { button.disabled = true; button.textContent = '⏳ جارٍ تجهيز ملف PDF...'; }
+  pdfGenerationRunning = true;
+  const button = document.getElementById('downloadPdfButton');
+  const buttonLabel = button ? button.querySelector('.pdf-button-label') : null;
+  if (button) {
+    button.disabled = true;
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+  }
+  if (buttonLabel) buttonLabel.textContent = '⏳ جارٍ تجهيز ملف PDF...';
 
   const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
   const qrHost = document.createElement('div');
@@ -1730,7 +1743,13 @@ window.downloadPrintablePDF = async function() {
     toast('❌ تعذر إنشاء ملف PDF، حاول مرة أخرى', 3500, 'danger');
   } finally {
     qrHost.remove();
-    if (button) { button.disabled = false; button.textContent = '📄 تحميل قالب الطباعة PDF'; }
+    if (button) {
+      button.disabled = false;
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
+    }
+    if (buttonLabel) buttonLabel.textContent = '📄 تحميل قالب الطباعة PDF';
+    pdfGenerationRunning = false;
   }
 };
 
