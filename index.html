@@ -445,7 +445,7 @@ RESTAURANT EDITOR SCREEN
     </div>
     <div class="analytics-note">يتم تحديث الأرقام تلقائياً عند استعراض المنيو وإرسال الطلبات عبر واتساب.</div>
 
-    <section class="theme-card" aria-labelledby="themeSectionTitle">
+    <section id="themeSection" class="theme-card" aria-labelledby="themeSectionTitle">
       <div id="themeSectionTitle" class="theme-card-title">🎨 أجواء المنيو والمناسبات</div>
       <div class="theme-card-subtitle">اختر الطابع المناسب لهوية مطعمك أو مناسبتك الحالية، وشاهد المعاينة قبل الحفظ.</div>
       <div class="theme-layout">
@@ -513,6 +513,7 @@ RESTAURANT EDITOR SCREEN
       <button class="btn btn-primary" style="flex:1;min-width:180px;" onclick="generateQR()">📱 إنشاء QR Code</button>
       <button class="btn btn-gold" style="flex:1;min-width:180px;" onclick="copyMenuLink()">🔗 نسخ رابط المنيو</button>
       <button id="downloadPdfButton" class="btn btn-blue pdf-button" style="flex:1;min-width:180px;" onclick="downloadPrintablePDF()" aria-live="polite"><span class="pdf-button-label">📄 تحميل قالب الطباعة PDF</span><span class="pdf-spinner" aria-hidden="true"></span></button>
+      <button class="btn btn-gold" style="flex:1;min-width:180px;" onclick="document.getElementById('themeSection').scrollIntoView({behavior:'smooth',block:'start'})">🎨 أجواء المنيو</button>
     </div>
     <p class="countdown" style="margin-top:8px;">قالب A4 عالي الدقة يتضمن QR الخاص بمطعمك وشعار MySmartMenu، جاهز للإرسال إلى المطبعة.</p>
     <div id="qrCodeCanvas"></div>
