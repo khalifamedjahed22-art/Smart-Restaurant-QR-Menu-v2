@@ -125,6 +125,20 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .customer-header h1 { font-size: 26px; font-weight: 900; }
 .customer-header p { opacity: 0.8; font-size: 13px; margin-top: 4px; }
 .customer-body { max-width: 480px; margin: 0 auto; padding: 16px; }
+.customer-header-actions { display:flex; justify-content:flex-start; max-width:480px; margin:0 auto 10px; }
+.language-toggle { border:1px solid rgba(255,255,255,.65); background:rgba(255,255,255,.12); color:#fff; border-radius:18px; padding:7px 13px; font-family:'Cairo',sans-serif; font-size:12px; font-weight:700; cursor:pointer; }
+.customer-search-wrap { position:relative; margin:0 0 14px; }
+.customer-search-wrap input { margin:0; padding-left:42px; }
+.clear-search { position:absolute; left:8px; top:8px; width:30px; height:30px; border:0; border-radius:50%; background:#eef3f3; color:var(--muted); font-size:20px; line-height:25px; cursor:pointer; display:none; }
+.clear-search.show { display:block; }
+.cart-actions { display:flex; align-items:center; gap:8px; }
+.cart-actions .btn { white-space:nowrap; }
+.btn-call { background:#1565c0; color:#fff; text-decoration:none; }
+.modifier-list { border:1px solid var(--gray-border); border-radius:10px; padding:8px 12px; margin:12px 0; background:#fafafa; }
+.modifier-option { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--gray-border); font-size:13px; }
+.modifier-option:last-child { border-bottom:0; }
+.modifier-option label { display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; }
+.modifier-option input { width:18px; height:18px; accent-color:var(--teal); }
 
 /* نافذة الطلب التفاعلية */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.52); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 5000; }
@@ -416,6 +430,9 @@ RESTAURANT EDITOR SCREEN
     <input type="number" id="itemPrice" placeholder="مثال: 850">
     <label class="field-label">الوصف (اختياري)</label>
     <textarea id="itemDesc" placeholder="وصف مختصر للطبق..."></textarea>
+    <label class="field-label">الإضافات والخيارات (اختياري)</label>
+    <textarea id="itemExtras" placeholder="اكتب كل خيار في سطر: جبن إضافي: 100&#10;صلصة حارة: 50&#10;حجم كبير: 200"></textarea>
+    <p class="countdown">مثال: جبن إضافي: 100 — ستظهر هذه الخيارات للزبون قبل إضافة الطبق للسلة.</p>
     <label class="field-label">صورة الطبق (اختياري)</label>
     <input type="file" id="itemImage" accept="image/*" onchange="previewImage(this)">
     <img id="imgPreview" class="img-preview" alt="معاينة">
@@ -446,44 +463,69 @@ CUSTOMER MENU SCREEN
 ══════════════════════════════════════ -->
 <div id="customerView" class="view">
   <div class="customer-header">
+    <div class="customer-header-actions">
+      <button id="languageToggle" class="language-toggle" type="button" onclick="toggleLanguage()">Français</button>
+    </div>
     <h1 id="customerRestName">قائمة المطعم</h1>
-    <p>اختر طبقك وأرسل طلبك مباشرة عبر واتساب</p>
+    <p id="customerSubtitle" data-i18n="customerSubtitle">اختر طبقك وأرسل طلبك مباشرة عبر واتساب</p>
   </div>
   <div class="customer-body">
+    <div class="customer-search-wrap">
+      <input id="customerSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="🔎 ابحث عن طبق أو مشروب..." autocomplete="off">
+      <button id="clearCustomerSearch" class="clear-search" type="button" onclick="clearCustomerSearch()" aria-label="مسح البحث">×</button>
+    </div>
     <div id="customerMenuList"><div class="empty"><div class="icon">⏳</div>جارٍ تحميل القائمة...</div></div>
     <div id="customerCartBar" class="cart-bar" style="display:none;">
-      <span>🛒 السلة: <strong id="cartCount">0</strong> طبق — <strong id="cartTotal">0</strong> دج</span>
-      <button class="btn btn-wa" onclick="checkoutCart()">إتمام الطلب</button>
+      <span id="cartSummaryText"><span data-i18n="cartLabel">🛒 السلة:</span> <strong id="cartCount">0</strong> <span data-i18n="itemsLabel">طبق</span> — <strong id="cartTotal">0</strong> دج</span>
+      <div class="cart-actions">
+        <a id="customerCallButton" class="btn btn-call" href="#" style="display:none;" data-i18n="callButton">📞 اتصال هاتفياً</a>
+        <button class="btn btn-wa" onclick="checkoutCart()" data-i18n="checkoutButton">إتمام الطلب</button>
+      </div>
     </div>
+  </div>
+</div>
+
+<div id="itemOptionsBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="itemOptionsTitle">
+  <div class="order-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2 id="itemOptionsTitle" data-i18n="optionsTitle">تخصيص الطبق</h2>
+      <button type="button" class="modal-close" onclick="closeItemOptions()" aria-label="إغلاق">×</button>
+    </div>
+    <div id="itemOptionsSummary" class="order-summary"></div>
+    <div id="itemOptionsList" class="modifier-list"></div>
+    <label class="field-label" data-i18n="quantityLabel">الكمية</label>
+    <input id="itemOptionsQuantity" type="number" min="1" max="20" value="1">
+    <button type="button" class="btn btn-wa" onclick="confirmItemOptions()" data-i18n="addCustomizedButton">🛒 إضافة إلى السلة</button>
+    <button type="button" class="btn btn-gray" onclick="closeItemOptions()" data-i18n="cancelButton">إلغاء</button>
   </div>
 </div>
 
 <div id="orderModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
   <div class="order-modal" onclick="event.stopPropagation()">
     <div class="modal-head">
-      <h2 id="orderModalTitle">تفاصيل الطلب</h2>
+      <h2 id="orderModalTitle" data-i18n="orderDetailsTitle">تفاصيل الطلب</h2>
       <button type="button" class="modal-close" onclick="closeOrderModal()" aria-label="إغلاق">×</button>
     </div>
     <div id="orderSummary" class="order-summary"></div>
-    <p style="font-size:13px;color:var(--muted);">اختر طريقة الطلب:</p>
+    <p style="font-size:13px;color:var(--muted);" data-i18n="orderTypePrompt">اختر طريقة الطلب:</p>
     <div class="order-types">
-      <button type="button" id="dineInType" class="order-type active" onclick="selectOrderType('dineIn')">🍽️<br>أكل في المطعم</button>
-      <button type="button" id="deliveryType" class="order-type" onclick="selectOrderType('delivery')">🛵<br>توصيل للمنزل</button>
+      <button type="button" id="dineInType" class="order-type active" onclick="selectOrderType('dineIn')">🍽️<br><span data-i18n="dineIn">أكل في المطعم</span></button>
+      <button type="button" id="deliveryType" class="order-type" onclick="selectOrderType('delivery')">🛵<br><span data-i18n="delivery">توصيل للمنزل</span></button>
     </div>
     <div id="dineInFields" class="order-fields active">
-      <label class="field-label" for="orderTableNumber">رقم الطاولة</label>
-      <input type="text" id="orderTableNumber" placeholder="مثال: 12" autocomplete="off">
-      <label class="field-label" for="orderCustomerName">اسم الزبون</label>
-      <input type="text" id="orderCustomerName" placeholder="أدخل اسمك" autocomplete="name">
+      <label class="field-label" for="orderTableNumber" data-i18n="tableNumberLabel">رقم الطاولة</label>
+      <input type="text" id="orderTableNumber" data-i18n-placeholder="tableNumberPlaceholder" placeholder="مثال: 12" autocomplete="off">
+      <label class="field-label" for="orderCustomerName" data-i18n="customerNameLabel">اسم الزبون</label>
+      <input type="text" id="orderCustomerName" data-i18n-placeholder="customerNamePlaceholder" placeholder="أدخل اسمك" autocomplete="name">
     </div>
     <div id="deliveryFields" class="order-fields">
-      <label class="field-label" for="orderAddress">العنوان التفصيلي</label>
-      <textarea id="orderAddress" placeholder="الحي، الشارع، رقم المنزل..." autocomplete="street-address"></textarea>
-      <label class="field-label" for="orderPhone">رقم الهاتف</label>
-      <input type="tel" id="orderPhone" placeholder="مثال: 0550123456" autocomplete="tel">
+      <label class="field-label" for="orderAddress" data-i18n="addressLabel">العنوان التفصيلي</label>
+      <textarea id="orderAddress" data-i18n-placeholder="addressPlaceholder" placeholder="الحي، الشارع، رقم المنزل..." autocomplete="street-address"></textarea>
+      <label class="field-label" for="orderPhone" data-i18n="phoneLabel">رقم الهاتف</label>
+      <input type="tel" id="orderPhone" data-i18n-placeholder="phonePlaceholder" placeholder="مثال: 0550123456" autocomplete="tel">
     </div>
-    <button type="button" class="btn btn-wa" onclick="sendOrderViaWhatsApp()">📲 إرسال الطلب عبر واتساب</button>
-    <button type="button" class="btn btn-gray" onclick="closeOrderModal()">إلغاء</button>
+    <button type="button" class="btn btn-wa" onclick="sendOrderViaWhatsApp()" data-i18n="sendOrderButton">📲 إرسال الطلب عبر واتساب</button>
+    <button type="button" class="btn btn-gray" onclick="closeOrderModal()" data-i18n="cancelButton">إلغاء</button>
   </div>
 </div>
 
@@ -568,6 +610,106 @@ let networkOnline = navigator.onLine;
 /* ════════════════════════════════
 STATE
 ════════════════════════════════ */
+const I18N = {
+  ar: {
+    languageButton: 'Français',
+    customerSubtitle: 'اختر طبقك وأرسل طلبك مباشرة عبر واتساب',
+    searchPlaceholder: '🔎 ابحث عن طبق أو مشروب...',
+    clearSearch: 'مسح البحث',
+    cartLabel: '🛒 السلة:',
+    itemsLabel: 'طبق',
+    checkoutButton: 'إتمام الطلب',
+    callButton: '📞 اتصال هاتفياً',
+    optionsTitle: 'تخصيص الطبق',
+    quantityLabel: 'الكمية',
+    addCustomizedButton: '🛒 إضافة إلى السلة',
+    cancelButton: 'إلغاء',
+    orderDetailsTitle: 'تفاصيل الطلب',
+    orderTypePrompt: 'اختر طريقة الطلب:',
+    dineIn: 'أكل في المطعم',
+    delivery: 'توصيل للمنزل',
+    tableNumberLabel: 'رقم الطاولة',
+    tableNumberPlaceholder: 'مثال: 12',
+    customerNameLabel: 'اسم الزبون',
+    customerNamePlaceholder: 'أدخل اسمك',
+    addressLabel: 'العنوان التفصيلي',
+    addressPlaceholder: 'الحي، الشارع، رقم المنزل...',
+    phoneLabel: 'رقم الهاتف',
+    phonePlaceholder: 'مثال: 0550123456',
+    sendOrderButton: '📲 إرسال الطلب عبر واتساب',
+    noProducts: 'لا توجد منتجات في هذا القسم.',
+    noSearchResults: 'لم نجد منتجاً مطابقاً لبحثك.',
+    noExtras: 'لا توجد خيارات إضافية لهذا الطبق.',
+    added: '✅ تمت إضافة الطبق إلى السلة',
+    addToCartButton: 'أضف للسلة',
+    customizeButton: 'تخصيص',
+    unavailable: 'غير متاح حالياً',
+    currency: 'دج'
+  },
+  fr: {
+    languageButton: 'العربية',
+    customerSubtitle: 'Choisissez votre plat et commandez directement par WhatsApp',
+    searchPlaceholder: '🔎 Rechercher un plat ou une boisson...',
+    clearSearch: 'Effacer la recherche',
+    cartLabel: '🛒 Panier :',
+    itemsLabel: 'article(s)',
+    checkoutButton: 'Passer la commande',
+    callButton: '📞 Appeler',
+    optionsTitle: 'Personnaliser le plat',
+    quantityLabel: 'Quantité',
+    addCustomizedButton: '🛒 Ajouter au panier',
+    cancelButton: 'Annuler',
+    orderDetailsTitle: 'Détails de la commande',
+    orderTypePrompt: 'Choisissez le type de commande :',
+    dineIn: 'Sur place',
+    delivery: 'Livraison à domicile',
+    tableNumberLabel: 'Numéro de table',
+    tableNumberPlaceholder: 'Exemple : 12',
+    customerNameLabel: 'Nom du client',
+    customerNamePlaceholder: 'Entrez votre nom',
+    addressLabel: 'Adresse détaillée',
+    addressPlaceholder: 'Quartier, rue, numéro de maison...',
+    phoneLabel: 'Numéro de téléphone',
+    phonePlaceholder: 'Exemple : 0550123456',
+    sendOrderButton: '📲 Envoyer par WhatsApp',
+    noProducts: 'Aucun produit dans cette catégorie.',
+    noSearchResults: 'Aucun produit ne correspond à votre recherche.',
+    noExtras: 'Aucune option supplémentaire pour ce plat.',
+    added: '✅ Article ajouté au panier',
+    addToCartButton: 'Ajouter',
+    customizeButton: 'Personnaliser',
+    unavailable: 'Indisponible',
+    currency: 'DA'
+  }
+};
+let currentLanguage = localStorage.getItem('mysmartmenu_language') || 'ar';
+let customerMenuItems = [];
+let customerRestWhatsapp = '';
+let customerSearchTerm = '';
+let customerItemsById = {};
+let selectedItemForOptions = null;
+
+function t(key) { return (I18N[currentLanguage] && I18N[currentLanguage][key]) || I18N.ar[key] || key; }
+
+function applyLanguage() {
+  currentLanguage = currentLanguage === 'fr' ? 'fr' : 'ar';
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = currentLanguage === 'fr' ? 'ltr' : 'rtl';
+  document.querySelectorAll('[data-i18n]').forEach(function(element) { element.textContent = t(element.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(element) { element.placeholder = t(element.dataset.i18nPlaceholder); });
+  const buttons = [document.getElementById('languageToggle'), document.getElementById('languageToggleOwner')];
+  buttons.forEach(function(button) { if (button) button.textContent = t('languageButton'); });
+  const clear = document.getElementById('clearCustomerSearch');
+  if (clear) clear.setAttribute('aria-label', t('clearSearch'));
+}
+
+window.toggleLanguage = function() {
+  currentLanguage = currentLanguage === 'ar' ? 'fr' : 'ar';
+  localStorage.setItem('mysmartmenu_language', currentLanguage);
+  applyLanguage();
+  if (customerMenuItems.length) renderCustomerMenu();
+};
+
 let menu = [];
 let editingIndex = -1;
 let waNumber = "";
@@ -703,10 +845,12 @@ window.sendWeeklySummary = function() {
 let adminCategoryIndex = 0;
 let customerCategoryIndex = 0;
 const MENU_CATEGORIES = [
-  { key: 'أطباق', label: '🍽️ الأطباق' },
-  { key: 'تحلية', label: '🍰 التحلية' },
-  { key: 'مشروبات', label: '🥤 المشروبات' }
+  { key: 'أطباق', labelAr: '🍽️ الأطباق', labelFr: '🍽️ Plats' },
+  { key: 'تحلية', labelAr: '🍰 التحلية', labelFr: '🍰 Desserts' },
+  { key: 'مشروبات', labelAr: '🥤 المشروبات', labelFr: '🥤 Boissons' }
 ];
+
+function categoryLabel(category) { return currentLanguage === 'fr' ? category.labelFr : category.labelAr; }
 
 function normalizeCategory(value) {
   const text = String(value || '').trim().toLowerCase();
@@ -717,12 +861,13 @@ function normalizeCategory(value) {
 
 function categoryTabsHTML(activeIndex, prefix) {
   return '<div class="category-tabs ' + prefix + '-category-tabs" role="tablist">' + MENU_CATEGORIES.map(function(category, index) {
-    return '<button type="button" class="category-tab ' + (index === activeIndex ? 'active' : '') + '" data-category-tab="' + prefix + '-' + index + '" onclick="' + (prefix === 'admin' ? 'setAdminCategory' : 'setCustomerCategory') + '(' + index + ')" role="tab">' + category.label + '</button>';
+    return '<button type="button" class="category-tab ' + (index === activeIndex ? 'active' : '') + '" data-category-tab="' + prefix + '-' + index + '" onclick="' + (prefix === 'admin' ? 'setAdminCategory' : 'setCustomerCategory') + '(' + index + ')" role="tab">' + categoryLabel(category) + '</button>';
   }).join('') + '</div>';
 }
 
 function bindSwipe(element, onSwipe) {
-  if (!element) return;
+  if (!element || element.dataset.swipeBound === 'true') return;
+  element.dataset.swipeBound = 'true';
   let startX = null;
   element.addEventListener('touchstart', function(event) {
     if (event.touches && event.touches.length === 1) startX = event.touches[0].clientX;
@@ -752,28 +897,42 @@ window.setCustomerCategory = function(index) {
 function updateCartUI() {
   const bar = document.getElementById('customerCartBar');
   const count = cart.reduce(function(total, item) { return total + item.quantity; }, 0);
-  const total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
+  const total = cart.reduce(function(sum, item) { return sum + getItemUnitPrice(item) * item.quantity; }, 0);
   if (bar) bar.style.display = count ? 'flex' : 'none';
   if (document.getElementById('cartCount')) document.getElementById('cartCount').textContent = count;
   if (document.getElementById('cartTotal')) document.getElementById('cartTotal').textContent = total.toLocaleString('ar-DZ');
 }
 
-window.addToCart = function(name, price, whatsapp) {
+function getItemUnitPrice(item) {
+  return Number(item.price || 0) + parseItemExtras(item.extras).reduce(function(sum, extra) { return sum + Number(extra.price || 0); }, 0);
+}
+
+function getItemExtrasText(item) {
+  const extras = parseItemExtras(item.extras);
+  return extras.length ? ' (' + extras.map(function(extra) { return extra.name + (extra.price ? ' +' + Number(extra.price).toLocaleString('ar-DZ') + ' ' + t('currency') : ''); }).join('، ') + ')' : '';
+}
+
+window.addToCart = function(name, price, whatsapp, extras, quantity) {
   const cleanWa = cleanPhone(whatsapp || '');
-  const existing = cart.find(function(item) { return item.name === String(name) && item.whatsapp === cleanWa; });
-  if (existing) existing.quantity += 1;
-  else cart.push({ name: String(name), price: Number(price) || 0, whatsapp: cleanWa, quantity: 1 });
+  const normalizedExtras = parseItemExtras(extras || []);
+  const extrasKey = JSON.stringify(normalizedExtras);
+  const addQuantity = Math.max(1, Math.min(20, Number(quantity) || 1));
+  const existing = cart.find(function(item) {
+    return item.name === String(name) && item.whatsapp === cleanWa && JSON.stringify(parseItemExtras(item.extras)) === extrasKey;
+  });
+  if (existing) existing.quantity += addQuantity;
+  else cart.push({ name: String(name), price: Number(price) || 0, extras: normalizedExtras, whatsapp: cleanWa, quantity: addQuantity });
   updateCartUI();
-  toast('✅ تمت إضافة الطبق إلى السلة', 2200, 'success');
+  toast(t('added'), 2200, 'success');
 };
 
 function renderOrderSummary() {
   const summary = document.getElementById('orderSummary');
   if (!summary) return;
-  const total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-  summary.innerHTML = '<strong>محتويات السلة:</strong><ul class="cart-list">' + cart.map(function(item, index) {
-    return '<li><span class="cart-item-info">' + esc(item.name) + ' × ' + item.quantity + '<br><strong>' + (item.price * item.quantity).toLocaleString('ar-DZ') + ' دج</strong></span><button type="button" class="cart-remove" onclick="removeFromCart(' + index + ')">🗑️ حذف</button></li>';
-  }).join('') + '</ul><div>الإجمالي: ' + total.toLocaleString('ar-DZ') + ' دج</div>';
+  const total = cart.reduce(function(sum, item) { return sum + getItemUnitPrice(item) * item.quantity; }, 0);
+  summary.innerHTML = '<strong>' + (currentLanguage === 'fr' ? 'Contenu du panier :' : 'محتويات السلة:') + '</strong><ul class="cart-list">' + cart.map(function(item, index) {
+    return '<li><span class="cart-item-info">' + esc(item.name) + esc(getItemExtrasText(item)) + ' × ' + item.quantity + '<br><strong>' + (getItemUnitPrice(item) * item.quantity).toLocaleString('ar-DZ') + ' ' + t('currency') + '</strong></span><button type="button" class="cart-remove" onclick="removeFromCart(' + index + ')">🗑️ ' + (currentLanguage === 'fr' ? 'Supprimer' : 'حذف') + '</button></li>';
+  }).join('') + '</ul><div>' + (currentLanguage === 'fr' ? 'Total :' : 'الإجمالي:') + ' ' + total.toLocaleString('ar-DZ') + ' ' + t('currency') + '</div>';
 }
 
 window.removeFromCart = function(index) {
@@ -824,6 +983,41 @@ window.closeOrderModal = function() {
   document.body.style.overflow = '';
 };
 
+window.openItemOptions = function(item) {
+  selectedItemForOptions = item;
+  const extras = parseItemExtras(item.extras);
+  const summary = document.getElementById('itemOptionsSummary');
+  const list = document.getElementById('itemOptionsList');
+  const quantity = document.getElementById('itemOptionsQuantity');
+  if (!summary || !list || !quantity) return;
+  summary.textContent = item.name + ' — ' + Number(item.price || 0).toLocaleString('ar-DZ') + ' ' + t('currency');
+  list.innerHTML = extras.length ? extras.map(function(extra, index) {
+    return '<div class="modifier-option"><label><input type="checkbox" data-modifier-index="' + index + '"> <span>' + esc(extra.name) + '</span></label><strong>' + (extra.price ? '+' + Number(extra.price).toLocaleString('ar-DZ') + ' ' + t('currency') : '') + '</strong></div>';
+  }).join('') : '<div style="padding:10px;text-align:center;color:var(--muted);">' + t('noExtras') + '</div>';
+  quantity.value = '1';
+  document.getElementById('itemOptionsBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeItemOptions = function() {
+  const backdrop = document.getElementById('itemOptionsBackdrop');
+  if (backdrop) backdrop.classList.remove('show');
+  selectedItemForOptions = null;
+  document.body.style.overflow = '';
+};
+
+window.confirmItemOptions = function() {
+  if (!selectedItemForOptions) return;
+  const extras = parseItemExtras(selectedItemForOptions.extras);
+  const selectedExtras = extras.filter(function(extra, index) {
+    const checkbox = document.querySelector('#itemOptionsList [data-modifier-index="' + index + '"]');
+    return checkbox && checkbox.checked;
+  });
+  const quantity = Math.max(1, Math.min(20, Number(document.getElementById('itemOptionsQuantity').value) || 1));
+  addToCart(selectedItemForOptions.name, selectedItemForOptions.price, customerRestWhatsapp, selectedExtras, quantity);
+  closeItemOptions();
+};
+
 window.selectOrderType = function(type) {
   activeOrder.type = type;
   document.getElementById('dineInType').classList.toggle('active', type === 'dineIn');
@@ -836,11 +1030,11 @@ window.sendOrderViaWhatsApp = function() {
   if (!cart.length) return toast('⚠️ السلة فارغة', 2500, 'warning');
   const whatsapp = cleanPhone(cart[0].whatsapp || activeOrder.whatsapp || '');
   if (!whatsapp) return toast('⚠️ رقم واتساب المطعم غير متوفر', 2800, 'danger');
-  const total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-  let message = 'مرحباً، أرغب في طلب:\n\n' +
+  const total = cart.reduce(function(sum, item) { return sum + getItemUnitPrice(item) * item.quantity; }, 0);
+  let message = (currentLanguage === 'fr' ? 'Bonjour, je souhaite commander :\n\n' : 'مرحباً، أرغب في طلب:\n\n') +
     cart.map(function(item, index) {
-      return (index + 1) + '. ' + item.name + ' × ' + item.quantity + ' — ' + (item.price * item.quantity).toLocaleString('ar-DZ') + ' دج';
-    }).join('\n') + '\n\n💰 الإجمالي: ' + total.toLocaleString('ar-DZ') + ' دج\n📦 نوع الطلب: ';
+      return (index + 1) + '. ' + item.name + getItemExtrasText(item) + ' × ' + item.quantity + ' — ' + (getItemUnitPrice(item) * item.quantity).toLocaleString('ar-DZ') + ' ' + t('currency');
+    }).join('\n') + '\n\n💰 ' + (currentLanguage === 'fr' ? 'Total :' : 'الإجمالي:') + ' ' + total.toLocaleString('ar-DZ') + ' ' + t('currency') + '\n📦 ' + (currentLanguage === 'fr' ? 'Type de commande :' : 'نوع الطلب: ');
 
   if (activeOrder.type === 'dineIn') {
     const table = document.getElementById('orderTableNumber').value.trim();
@@ -862,7 +1056,14 @@ window.sendOrderViaWhatsApp = function() {
 };
 
 window.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') closeOrderModal();
+  if (event.key === 'Escape') {
+    closeOrderModal();
+    closeItemOptions();
+  }
+});
+document.addEventListener('click', function(event) {
+  if (event.target && event.target.id === 'itemOptionsBackdrop') closeItemOptions();
+  if (event.target && event.target.id === 'orderModalBackdrop') closeOrderModal();
 });
 
 /* ════════════════════════════════
@@ -1408,11 +1609,19 @@ window.saveRestInfo = async function() {
 /* ════════════════════════════════
 MENU ITEMS CRUD
 ════════════════════════════════ */
+function parseExtrasText(text) {
+  return String(text || '').split(/\n|،/).map(function(line) {
+    const parts = line.split(':');
+    return { name: String(parts[0] || '').trim(), price: Number(String(parts.slice(1).join(':') || '0').replace(',', '.').trim()) || 0 };
+  }).filter(function(extra) { return extra.name; });
+}
+
 window.addItem = async function() {
   const name = document.getElementById('itemName').value.trim();
   const category = document.getElementById('itemCategory').value.trim();
   const price = parseFloat(document.getElementById('itemPrice').value);
   const desc = document.getElementById('itemDesc').value.trim();
+  const extras = parseExtrasText(document.getElementById('itemExtras').value);
   const fileInput = document.getElementById('itemImage');
 
   if (!name) return toast('⚠️ أدخل اسم الطبق');
@@ -1451,6 +1660,7 @@ window.addItem = async function() {
       category: category,
       price: price,
       desc: desc,
+      extras: extras,
       imageUrl: imageUrl,
       isAvailable: true,
       createdAt: new Date().toISOString(),
@@ -1491,6 +1701,7 @@ window.editItem = function(index) {
   document.getElementById('itemCategory').value = item.category;
   document.getElementById('itemPrice').value = item.price;
   document.getElementById('itemDesc').value = item.desc || '';
+  document.getElementById('itemExtras').value = parseItemExtras(item.extras).map(function(extra) { return extra.name + (extra.price ? ': ' + extra.price : ''); }).join('\n');
   document.getElementById('itemImage').value = '';
   if (item.imageUrl) {
     document.getElementById('imgPreview').src = item.imageUrl;
@@ -1511,6 +1722,7 @@ window.cancelEdit = function() {
   document.getElementById('itemCategory').value = '';
   document.getElementById('itemPrice').value = '';
   document.getElementById('itemDesc').value = '';
+  document.getElementById('itemExtras').value = '';
   document.getElementById('itemImage').value = '';
   document.getElementById('imgPreview').style.display = 'none';
   document.getElementById('compressInfo').textContent = '';
@@ -1756,6 +1968,99 @@ window.downloadPrintablePDF = async function() {
 /* ════════════════════════════════
 CUSTOMER VIEW (PUBLIC MENU)
 ════════════════════════════════ */
+function parseItemExtras(rawExtras) {
+  if (!Array.isArray(rawExtras)) return [];
+  return rawExtras.map(function(extra) {
+    if (typeof extra === 'string') {
+      const parts = extra.split(':');
+      return { name: String(parts[0] || '').trim(), price: Number(parts.slice(1).join(':').trim()) || 0 };
+    }
+    return { name: String(extra.name || '').trim(), price: Number(extra.price || 0) };
+  }).filter(function(extra) { return extra.name; });
+}
+
+function itemMatchesSearch(item) {
+  const term = customerSearchTerm.trim().toLocaleLowerCase();
+  if (!term) return true;
+  return [item.name, item.desc, item.category].some(function(value) { return String(value || '').toLocaleLowerCase().includes(term); });
+}
+
+function updateCustomerCallButton() {
+  const callButton = document.getElementById('customerCallButton');
+  if (!callButton) return;
+  if (customerRestWhatsapp) {
+    callButton.href = 'tel:+' + customerRestWhatsapp;
+    callButton.style.display = 'inline-block';
+  } else {
+    callButton.style.display = 'none';
+  }
+  callButton.textContent = t('callButton');
+}
+
+window.clearCustomerSearch = function() {
+  customerSearchTerm = '';
+  const input = document.getElementById('customerSearch');
+  if (input) input.value = '';
+  const clear = document.getElementById('clearCustomerSearch');
+  if (clear) clear.classList.remove('show');
+  if (customerMenuItems.length) renderCustomerMenu();
+};
+
+function renderCustomerMenu() {
+  const listEl = document.getElementById('customerMenuList');
+  if (!listEl || !customerMenuItems.length) return;
+  customerItemsById = {};
+  let html = categoryTabsHTML(customerCategoryIndex, 'customer');
+  MENU_CATEGORIES.forEach(function(category, categoryIndex) {
+    const categoryItems = customerMenuItems.filter(function(it) {
+      return normalizeCategory(it.category) === category.key && itemMatchesSearch(it);
+    });
+    html += '<div class="category-panel ' + (categoryIndex === customerCategoryIndex ? 'active' : '') + '" data-category-index="' + categoryIndex + '">';
+    if (!categoryItems.length) {
+      html += '<div class="empty" style="padding:30px 12px;"><div class="icon">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>' + (customerSearchTerm ? t('noSearchResults') : t('noProducts')) + '</div>';
+    } else {
+      categoryItems.forEach(function(it) {
+        customerItemsById[it.id] = it;
+        const extras = parseItemExtras(it.extras);
+        const imageAlt = esc(it.name);
+        const imgHtml = it.imageUrl
+          ? '<img class="customer-item-img" loading="lazy" src="' + esc(it.imageUrl) + '" alt="' + imageAlt + '" onerror="this.onerror=null;this.src=\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22 viewBox=%220 0 90 90%22%3E%3Crect width=%2290%22 height=%2290%22 fill=%22%23e0f2f1%22/%3E%3Ctext x=%2245%22 y=%2253%22 text-anchor=%22middle%22 font-size=%2230%22%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E\';">'
+          : '<div class="customer-item-img-placeholder">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>';
+        const orderBtn = it.isAvailable
+          ? '<button type="button" class="btn btn-wa btn-order" data-order-item data-item-id="' + esc(it.id) + '">' + (extras.length ? '⚙️ ' + t('customizeButton') : '🛒 ' + t('addToCartButton')) + '</button>'
+          : '<span class="unavail-tag">' + t('unavailable') + '</span>';
+        html += '<div class="customer-item' + (it.isAvailable ? '' : ' unavailable') + '">' + imgHtml + '<div class="customer-item-body"><strong>' + esc(it.name) + '</strong>' + (it.desc ? '<div class="desc">' + esc(it.desc) + '</div>' : '') + '<div class="price">' + Number(it.price).toLocaleString('ar-DZ') + ' ' + t('currency') + '</div>' + orderBtn + '</div></div>';
+      });
+    }
+    html += '</div>';
+  });
+  listEl.innerHTML = html;
+  const searchInput = document.getElementById('customerSearch');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = 'true';
+    searchInput.addEventListener('input', function() {
+      customerSearchTerm = searchInput.value;
+      const clear = document.getElementById('clearCustomerSearch');
+      if (clear) clear.classList.toggle('show', !!customerSearchTerm);
+      renderCustomerMenu();
+    });
+  }
+  listEl.querySelectorAll('[data-order-item]').forEach(function(button) {
+    button.addEventListener('click', function() {
+      const item = customerItemsById[button.dataset.itemId];
+      if (!item) return;
+      const extras = parseItemExtras(item.extras);
+      if (extras.length) openItemOptions(item);
+      else addToCart(item.name, item.price, customerRestWhatsapp, [], 1);
+    });
+  });
+  updateCustomerCallButton();
+  bindSwipe(listEl, function(direction) {
+    const next = customerCategoryIndex + direction;
+    if (next >= 0 && next < MENU_CATEGORIES.length) window.setCustomerCategory(next);
+  });
+}
+
 async function loadCustomerMenu(restId) {
   const listEl = document.getElementById('customerMenuList');
   try {
@@ -1780,54 +2085,19 @@ async function loadCustomerMenu(restId) {
     });
 
     if (!items.length) {
-      listEl.innerHTML = '<div class="empty"><div class="icon">🍽️</div>القائمة فارغة حالياً.</div>';
+      listEl.innerHTML = '<div class="empty"><div class="icon">🍽️</div>' + (currentLanguage === 'fr' ? 'Le menu est actuellement vide.' : 'القائمة فارغة حالياً.') + '</div>';
       showView('customerView');
       return;
     }
 
+    customerMenuItems = items;
+    customerRestWhatsapp = restWa;
     customerCategoryIndex = 0;
-    let html = categoryTabsHTML(customerCategoryIndex, 'customer');
-    MENU_CATEGORIES.forEach(function(category, categoryIndex) {
-      const categoryItems = items.filter(function(it) { return normalizeCategory(it.category) === category.key; });
-      html += '<div class="category-panel ' + (categoryIndex === customerCategoryIndex ? 'active' : '') + '" data-category-index="' + categoryIndex + '">';
-      if (!categoryItems.length) {
-        html += '<div class="empty" style="padding:30px 12px;"><div class="icon">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>لا توجد منتجات في هذا القسم.</div>';
-      } else {
-        categoryItems.forEach(function(it) {
-          const imgHtml = it.imageUrl
-            ? '<img class="customer-item-img" loading="lazy" src="' + esc(it.imageUrl) + '" alt="' + esc(it.name) + '" onerror="this.onerror=null;this.src=\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22 viewBox=%220 0 90 90%22%3E%3Crect width=%2290%22 height=%2290%22 fill=%22%23e0f2f1%22/%3E%3Ctext x=%2245%22 y=%2253%22 text-anchor=%22middle%22 font-size=%2230%22%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E\';">'
-            : '<div class="customer-item-img-placeholder">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>';
-
-          const orderBtn = it.isAvailable
-            ? '<button type="button" class="btn btn-wa btn-order" data-order-item data-name="' + esc(it.name) + '" data-price="' + Number(it.price) + '" data-whatsapp="' + esc(restWa) + '">🛒 أضف للسلة</button>'
-            : '<span class="unavail-tag">غير متاح حالياً</span>';
-
-          html += '<div class="customer-item' + (it.isAvailable ? '' : ' unavailable') + '">' +
-            imgHtml +
-            '<div class="customer-item-body">' +
-              '<strong>' + esc(it.name) + '</strong>' +
-              (it.desc ? '<div class="desc">' + esc(it.desc) + '</div>' : '') +
-              '<div class="price">' + Number(it.price).toLocaleString('ar-DZ') + ' دج</div>' +
-              orderBtn +
-            '</div>' +
-          '</div>';
-        });
-      }
-      html += '</div>';
-    });
-
-    listEl.innerHTML = html;
+    customerSearchTerm = '';
+    customerItemsById = {};
+    applyLanguage();
+    renderCustomerMenu();
     showView('customerView');
-
-    listEl.querySelectorAll('[data-order-item]').forEach(function(button) {
-      button.addEventListener('click', function() {
-        addToCart(button.dataset.name, button.dataset.price, button.dataset.whatsapp);
-      });
-    });
-    bindSwipe(listEl, function(direction) {
-      const next = customerCategoryIndex + direction;
-      if (next >= 0 && next < MENU_CATEGORIES.length) window.setCustomerCategory(next);
-    });
 
   } catch (e) {
     console.error(e);
