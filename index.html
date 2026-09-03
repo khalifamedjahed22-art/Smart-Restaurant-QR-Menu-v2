@@ -105,6 +105,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .admin-item-info { flex: 1; text-align: right; }
 .admin-item-info strong { display: block; font-size: 15px; color: var(--text); }
 .admin-item-info .price { color: var(--teal); font-weight: 700; font-size: 14px; }
+.admin-item-info .cat { color: var(--muted); font-size: 12px; }
 .admin-item-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
@@ -132,6 +133,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 #customerView .customer-item { background: var(--menu-surface); color: var(--menu-text); }
 #customerView .customer-item .desc { color: var(--menu-muted); }
 #customerView .customer-item .price { color: var(--menu-primary); }
+#customerView .category-title { color: var(--menu-primary-dark); border-color: var(--menu-primary); }
 #customerView .category-tab.active { background: var(--menu-primary); border-color: var(--menu-primary); }
 #customerView .customer-item-img-placeholder { background: color-mix(in srgb, var(--menu-primary) 12%, #fff); }
 #customerView .cart-bar { background: var(--menu-primary-dark); }
@@ -189,6 +191,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .order-fields { display: none; }
 .order-fields.active { display: block; }
 
+.category-title { font-size: 16px; font-weight: 700; color: var(--teal-dark); margin: 20px 0 10px; border-bottom: 2px solid var(--teal-light); padding-bottom: 6px; }
 .category-tabs { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding:4px 2px 10px; margin:4px 0 10px; border-bottom:1px solid var(--teal-light); touch-action:pan-x; }
 .category-tabs::-webkit-scrollbar { display:none; }
 .category-tab { flex:0 0 auto; border:1.5px solid var(--gray-border); border-radius:22px; background:#fff; color:var(--muted); padding:9px 16px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
@@ -225,6 +228,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-right: 6px; }
 .badge-on { background: #e8f5e9; color: var(--success); }
 .badge-off { background: #fce4ec; color: var(--danger); }
+.badge-gold { background: #fff8e1; color: #f57f17; }
 
 .sub-status { border-radius: 10px; padding: 12px 16px; margin: 12px 0; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
 .sub-active { background: #e8f5e9; color: var(--success); border: 1px solid #c8e6c9; }
@@ -260,7 +264,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 <body>
 <div id="offlineBanner" class="offline-banner">⚠️ لا يوجد اتصال بالإنترنت. تحقق من الشبكة قبل الحفظ أو التفعيل.</div>
 
-<!-- SUBSCRIPTION / SIGNUP SCREEN -->
+<!-- ══════════════════════════════════════
+SUBSCRIPTION / SIGNUP SCREEN
+══════════════════════════════════════ -->
 <div id="subscriptionView" class="view active">
   <div class="card">
     <div class="logo">My<span>Smart</span>Menu</div>
@@ -319,7 +325,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   </div>
 </div>
 
-<!-- LOGIN SCREEN -->
+<!-- ══════════════════════════════════════
+LOGIN SCREEN
+══════════════════════════════════════ -->
 <div id="loginView" class="view">
   <div class="card" style="max-width:400px;">
     <div class="logo">My<span>Smart</span>Menu</div>
@@ -339,7 +347,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   </div>
 </div>
 
-<!-- ADMIN LOGIN SCREEN -->
+<!-- ══════════════════════════════════════
+ADMIN LOGIN SCREEN
+══════════════════════════════════════ -->
 <div id="adminLoginView" class="view">
   <div class="card" style="max-width:360px;">
     <div class="logo">My<span>Smart</span>Menu</div>
@@ -351,7 +361,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   </div>
 </div>
 
-<!-- ADMIN PANEL SCREEN -->
+<!-- ══════════════════════════════════════
+ADMIN PANEL SCREEN
+══════════════════════════════════════ -->
 <div id="adminView" class="view">
   <div class="card card-wide">
     <div class="topbar">
@@ -387,11 +399,14 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
       <input type="text" id="adminCCP" value="007 99999 0018864026 62">
       <button class="btn btn-primary" onclick="saveAdminSettings()">💾 حفظ الإعدادات</button>
       <p class="countdown">تُحفظ الإعدادات في مستند <code>system/config</code> بقاعدة البيانات.</p>
+      <p class="countdown">تعمل هذه النسخة مباشرة مع إعدادات Firestore وCloudinary الموجودة في النسخة الابتدائية.</p>
     </div>
   </div>
 </div>
 
-<!-- RESTAURANT EDITOR SCREEN -->
+<!-- ══════════════════════════════════════
+RESTAURANT EDITOR SCREEN
+══════════════════════════════════════ -->
 <div id="editorView" class="view">
   <div class="card">
     <div class="topbar">
@@ -506,7 +521,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   </div>
 </div>
 
-<!-- CUSTOMER MENU SCREEN -->
+<!-- ══════════════════════════════════════
+CUSTOMER MENU SCREEN
+══════════════════════════════════════ -->
 <div id="customerView" class="view">
   <div class="customer-header">
     <div class="customer-header-actions">
@@ -575,7 +592,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   </div>
 </div>
 
-<!-- EXPIRED SCREEN -->
+<!-- ══════════════════════════════════════
+EXPIRED SCREEN
+══════════════════════════════════════ -->
 <div id="expiredView" class="view">
   <div class="card" style="text-align:center;">
     <div class="logo">My<span>Smart</span>Menu</div>
@@ -593,7 +612,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   </div>
 </div>
 
-<!-- NOT FOUND SCREEN -->
+<!-- ══════════════════════════════════════
+NOT FOUND SCREEN
+══════════════════════════════════════ -->
 <div id="notFoundView" class="view">
   <div class="card" style="text-align:center;">
     <div class="logo">My<span>Smart</span>Menu</div>
@@ -613,10 +634,12 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
   });
 </script>
 
-<!-- FIREBASE + APP LOGIC -->
+<!-- ══════════════════════════════════════
+FIREBASE + APP LOGIC
+══════════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc, addDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc, addDoc, updateDoc, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
@@ -632,15 +655,24 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* CONSTANTS */
+/* ════════════════════════════════
+CONSTANTS
+════════════════════════════════ */
+// ⚠️ ملاحظة أمان: هذا الهاش يجب توليده من كلمة مرور حقيقية بصيغة SHA-256 صحيحة (64 حرف).
+// القيمة أدناه تحتوي على 65 حرفاً في الملف الأصلي وهي غير صالحة - تم تصحيحها هنا.
+// قم بتغييرها بهاش كلمة مرور الإدارة الخاصة بك قبل النشر.
 const ADMIN_PASSWORD_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 const SUBSCRIPTION_DAYS = 30;
 const WARNING_DAYS = 3;
+// إعدادات Cloudinary الموجودة أصلاً في النسخة الابتدائية؛ لا تحتاج إلى خادم إضافي.
 const CLOUDINARY_CLOUD_NAME = 'qhuatwqf';
 const CLOUDINARY_UPLOAD_PRESET = 's8dcykxc';
 let networkOnline = navigator.onLine;
 
-/* STATE */
+
+/* ════════════════════════════════
+STATE
+════════════════════════════════ */
 const I18N = {
   ar: {
     languageButton: 'Français',
@@ -728,7 +760,7 @@ function applyLanguage() {
   document.documentElement.dir = currentLanguage === 'fr' ? 'ltr' : 'rtl';
   document.querySelectorAll('[data-i18n]').forEach(function(element) { element.textContent = t(element.dataset.i18n); });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(function(element) { element.placeholder = t(element.dataset.i18nPlaceholder); });
-  const buttons = [document.getElementById('languageToggle')];
+  const buttons = [document.getElementById('languageToggle'), document.getElementById('languageToggleOwner')];
   buttons.forEach(function(button) { if (button) button.textContent = t('languageButton'); });
   const clear = document.getElementById('clearCustomerSearch');
   if (clear) clear.setAttribute('aria-label', t('clearSearch'));
@@ -851,6 +883,7 @@ async function trackAnalytics(restId, field, amount, metadata) {
     }
     await setDoc(doc(db, 'restaurants', restId, 'analytics', dayId), payload, { merge: true });
   } catch (error) {
+    // لا نوقف تجربة الزبون إذا كانت قواعد Firestore لا تسمح بتسجيل الإحصائيات.
     console.warn('تعذر تسجيل الإحصائية:', error);
   }
 }
@@ -938,7 +971,6 @@ window.sendWeeklySummary = function() {
   window.open('https://wa.me/' + ownerPhone + '?text=' + encodeURIComponent(weeklySummaryMessage), '_blank', 'noopener');
   toast('📲 تم تجهيز ملخصك الأسبوعي في واتساب', 2800, 'success');
 };
-
 let adminCategoryIndex = 0;
 let customerCategoryIndex = 0;
 const MENU_CATEGORIES = [
@@ -1163,14 +1195,16 @@ document.addEventListener('click', function(event) {
   if (event.target && event.target.id === 'orderModalBackdrop') closeOrderModal();
 });
 
-/* SECURITY */
+/* ════════════════════════════════
+SECURITY
+════════════════════════════════ */
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
 function esc(str) {
-  return String(str || '')
+  return String(str)
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
@@ -1178,7 +1212,9 @@ function esc(str) {
     .replace(/'/g,'&#039;');
 }
 
-/* SUBSCRIPTION HELPERS */
+/* ════════════════════════════════
+SUBSCRIPTION HELPERS
+════════════════════════════════ */
 function getSubscriptionEnd(startDate) {
   const d = new Date(startDate);
   d.setDate(d.getDate() + SUBSCRIPTION_DAYS);
@@ -1201,7 +1237,9 @@ function getSubscriptionStatus(subData) {
   return { active: true, days, status: 'active' };
 }
 
-/* IMAGE COMPRESSION & UPLOAD */
+/* ════════════════════════════════
+IMAGE COMPRESSION
+════════════════════════════════ */
 async function compressImage(file, maxWidth, quality) {
   maxWidth = maxWidth || 800;
   quality = quality || 0.75;
@@ -1223,36 +1261,6 @@ async function compressImage(file, maxWidth, quality) {
   });
 }
 
-async function uploadImage(file) {
-  if (!file) return '';
-  try {
-    const compressedBlob = await compressImage(file);
-    const formData = new FormData();
-    formData.append('file', compressedBlob);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-      method: 'POST',
-      body: formData
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return data.secure_url;
-    }
-  } catch (e) {
-    console.warn('تعذر الرفع عبر Cloudinary، التبديل إلى Firebase Storage...', e);
-  }
-  
-  try {
-    const compressedBlob = await compressImage(file);
-    const storageRef = ref(storage, `restaurants/${currentRestId}/${Date.now()}_${file.name}`);
-    await uploadBytes(storageRef, compressedBlob);
-    return await getDownloadURL(storageRef);
-  } catch (e) {
-    console.error('فشل رفع الصورة كلياً:', e);
-    throw e;
-  }
-}
-
 window.previewImage = function(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1269,7 +1277,9 @@ window.previewImage = function(input) {
   });
 };
 
-/* HELPERS */
+/* ════════════════════════════════
+HELPERS
+════════════════════════════════ */
 function showView(id) {
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
@@ -1393,7 +1403,9 @@ function updateSubStatus(subData) {
   }
 }
 
-/* LOAD MENU ITEMS */
+/* ════════════════════════════════
+LOAD MENU ITEMS
+════════════════════════════════ */
 async function loadMenuItems() {
   try {
     const q = query(collection(db, "restaurants", currentRestId, "items"), orderBy("createdAt", "desc"));
@@ -1412,7 +1424,9 @@ async function loadMenuItems() {
   }
 }
 
-/* SIGNUP */
+/* ════════════════════════════════
+SIGNUP
+════════════════════════════════ */
 window.signupRestaurant = async function() {
   const restId = document.getElementById('signupRestId').value.trim().toLowerCase();
   const displayName = document.getElementById('signupDisplayName').value.trim();
@@ -1475,7 +1489,9 @@ window.signupRestaurant = async function() {
   }
 };
 
-/* LOGIN */
+/* ════════════════════════════════
+LOGIN
+════════════════════════════════ */
 window.loginRestaurant = async function() {
   const restId = document.getElementById('loginRestId').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
@@ -1526,6 +1542,13 @@ window.logout = function() {
   editingIndex = -1;
   document.getElementById('loginRestId').value = '';
   document.getElementById('loginPassword').value = '';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemCategory').value = '';
+  document.getElementById('itemPrice').value = '';
+  document.getElementById('itemDesc').value = '';
+  document.getElementById('itemImage').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('compressInfo').textContent = '';
   cancelEdit();
   showView('loginView');
 };
@@ -1546,7 +1569,9 @@ window.adminLogout = function() {
   showView('subscriptionView');
 };
 
-/* ADMIN TABS */
+/* ════════════════════════════════
+ADMIN TABS
+════════════════════════════════ */
 window.switchTab = function(evt, panelId) {
   document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -1554,7 +1579,9 @@ window.switchTab = function(evt, panelId) {
   document.getElementById(panelId).classList.add('active');
 };
 
-/* ADMIN PANEL */
+/* ════════════════════════════════
+ADMIN PANEL - LOAD RESTAURANTS
+════════════════════════════════ */
 async function loadAdminPanel() {
   const listEl = document.getElementById('adminRestaurantsList');
   listEl.innerHTML = '<div class="empty"><div class="icon">⏳</div>جارٍ التحميل...</div>';
@@ -1642,14 +1669,14 @@ window.adminSetExpiry = async function(restId) {
   if (Number.isNaN(endDate.getTime())) return toast('⚠️ التاريخ غير صحيح', 3000, 'warning');
   try {
     await updateDoc(doc(db, 'restaurants', restId), { 'subscription.endDate': endDate.toISOString(), 'subscription.status': 'active', 'subscription.frozen': false, updatedAt: new Date().toISOString() });
-    toast('✅ تم تعيين تاريخ الانتهاء', 2800, 'success'); loadAdminPanel();
+    toast('✅ تم تعيين تاريخ الانتهاء', 2800, 'success'); await loadAdminPanel();
   } catch (e) { toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال' : '❌ تعذر تعديل الاشتراك', 3200, 'danger'); }
 };
 
 window.adminToggleFreeze = async function(restId, currentlyFrozen) {
   try {
     await updateDoc(doc(db, 'restaurants', restId), { 'subscription.frozen': !currentlyFrozen, 'subscription.status': currentlyFrozen ? 'active' : 'frozen', updatedAt: new Date().toISOString() });
-    toast(currentlyFrozen ? '▶️ تم إلغاء تجميد الحساب' : '🧊 تم تجميد الحساب', 2800, 'success'); loadAdminPanel();
+    toast(currentlyFrozen ? '▶️ تم إلغاء تجميد الحساب' : '🧊 تم تجميد الحساب', 2800, 'success'); await loadAdminPanel();
   } catch (e) { toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال' : '❌ تعذر تغيير حالة الحساب', 3200, 'danger'); }
 };
 
@@ -1677,8 +1704,9 @@ window.saveAdminSettings = async function() {
     document.getElementById('planPriceDisplay').innerHTML = price.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
     document.getElementById('ccpDisplay').textContent = 'CCP: ' + ccp;
     toast('💾 تم حفظ إعدادات النظام في قاعدة البيانات', 3000, 'success');
-  } catch (e) {
+    } catch (e) {
     console.error(e);
+    // توافق مع قواعد النسخة الابتدائية: نحتفظ بالقيم داخل الجلسة إذا لم تسمح القواعد بالكتابة.
     SUBSCRIPTION_PRICE = price;
     SUBSCRIPTION_CCP = ccp;
     document.getElementById('planPriceDisplay').innerHTML = price.toLocaleString('ar-DZ') + ' <span>دج/شهر</span>';
@@ -1687,7 +1715,9 @@ window.saveAdminSettings = async function() {
   }
 };
 
-/* RESTAURANT INFO */
+/* ════════════════════════════════
+RESTAURANT INFO
+════════════════════════════════ */
 window.saveRestInfo = async function() {
   const displayName = document.getElementById('restDisplayName').value.trim();
   const wa = document.getElementById('restWhatsapp').value.trim();
@@ -1707,113 +1737,120 @@ window.saveRestInfo = async function() {
   }
 };
 
-/* MENU ITEMS CRUD & PARSING */
+/* ════════════════════════════════
+MENU ITEMS CRUD
+════════════════════════════════ */
 function parseExtrasText(text) {
-  if (!text) return [];
-  if (Array.isArray(text)) return text;
-  if (typeof text !== 'string') return [];
-  return text.split('\n').map(line => {
-    const parts = line.split(/[:：]/);
-    if (!parts[0] || !parts[0].trim()) return null;
-    const name = parts[0].trim();
-    const price = parts[1] ? parseFloat(parts[1].trim()) || 0 : 0;
-    return { name, price };
-  }).filter(Boolean);
-}
-
-function parseItemExtras(extras) {
-  if (!extras) return [];
-  if (Array.isArray(extras)) return extras;
-  return parseExtrasText(extras);
+  return String(text || '').split(/\n|،/).map(function(line) {
+    const parts = line.split(':');
+    return { name: String(parts[0] || '').trim(), price: Number(String(parts.slice(1).join(':') || '0').replace(',', '.').trim()) || 0 };
+  }).filter(function(extra) { return extra.name; });
 }
 
 window.addItem = async function() {
   const name = document.getElementById('itemName').value.trim();
-  const category = normalizeCategory(document.getElementById('itemCategory').value);
+  const category = document.getElementById('itemCategory').value.trim();
   const price = parseFloat(document.getElementById('itemPrice').value);
   const desc = document.getElementById('itemDesc').value.trim();
-  const extrasText = document.getElementById('itemExtras').value.trim();
+  const extras = parseExtrasText(document.getElementById('itemExtras').value);
   const fileInput = document.getElementById('itemImage');
 
   if (!name) return toast('⚠️ أدخل اسم الطبق');
-  if (isNaN(price) || price <= 0) return toast('⚠️ أدخل سعراً صحيحاً');
+  if (!category) return toast('⚠️ أدخل القسم');
+  if (!price || price <= 0) return toast('⚠️ أدخل سعر صحيح');
 
   setLoading(true);
 
   try {
-    let imageUrl = editingIndex > -1 ? menu[editingIndex].imageUrl || '' : '';
-    if (fileInput.files && fileInput.files[0]) {
-      imageUrl = await uploadImage(fileInput.files[0]);
+    let imageUrl = '';
+    if (editingIndex > -1 && menu[editingIndex] && menu[editingIndex].imageUrl) {
+      imageUrl = menu[editingIndex].imageUrl;
+    }
+
+    const file = fileInput.files[0];
+    if (file) {
+      const compressed = await compressImage(file);
+      const formData = new FormData();
+      formData.append("file", compressed, "image.webp");
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      const response = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.secure_url) {
+        imageUrl = data.secure_url;
+      } else {
+        throw new Error("فشل الرفع إلى Cloudinary");
+      }
     }
 
     const itemData = {
-      name,
-      category,
-      price,
-      desc,
-      extras: parseExtrasText(extrasText),
-      imageUrl,
-      isAvailable: editingIndex > -1 ? menu[editingIndex].isAvailable : true,
+      name: name,
+      category: category,
+      price: price,
+      desc: desc,
+      extras: extras,
+      imageUrl: imageUrl,
+      isAvailable: true,
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     if (editingIndex > -1) {
       const itemId = menu[editingIndex].id;
-      await updateDoc(doc(db, "restaurants", currentRestId, "items", itemId), itemData);
-      toast('💾 تم تحديث الطبق بنجاح', 2500, 'success');
+      itemData.isAvailable = menu[editingIndex].isAvailable;
+      await updateDoc(doc(db, "restaurants", currentRestId, "items", itemId), Object.assign({}, itemData, {
+        createdAt: menu[editingIndex].createdAt
+      }));
+      toast('✅ تم تحديث الطبق بنجاح');
     } else {
-      itemData.createdAt = new Date().toISOString();
       await addDoc(collection(db, "restaurants", currentRestId, "items"), itemData);
-      toast('✅ تمت إضافة الطبق بنجاح', 2500, 'success');
+      toast('✅ تم إضافة الطبق بنجاح');
     }
 
     cancelEdit();
     await loadMenuItems();
+
   } catch (e) {
     console.error(e);
-    toast('❌ حدث خطأ أثناء حفظ الطبق');
+    toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال. لم يُحفظ الطبق' : '❌ خطأ في حفظ الطبق', 3500, 'danger');
   } finally {
     setLoading(false);
   }
 };
 
+
+
+
 window.editItem = function(index) {
-  if (index < 0 || index >= menu.length) return;
   const item = menu[index];
   editingIndex = index;
-
   document.getElementById('formTitle').textContent = 'تعديل الطبق';
-  document.getElementById('itemName').value = item.name || '';
-  document.getElementById('itemCategory').value = item.category || 'أطباق';
-  document.getElementById('itemPrice').value = item.price || '';
+  document.getElementById('itemName').value = item.name;
+  document.getElementById('itemCategory').value = item.category;
+  document.getElementById('itemPrice').value = item.price;
   document.getElementById('itemDesc').value = item.desc || '';
-  
-  const extras = item.extras;
-  if (Array.isArray(extras)) {
-    document.getElementById('itemExtras').value = extras.map(e => `${e.name}: ${e.price}`).join('\n');
-  } else {
-    document.getElementById('itemExtras').value = extras || '';
-  }
-
-  const preview = document.getElementById('imgPreview');
+  document.getElementById('itemExtras').value = parseItemExtras(item.extras).map(function(extra) { return extra.name + (extra.price ? ': ' + extra.price : ''); }).join('\n');
+  document.getElementById('itemImage').value = '';
   if (item.imageUrl) {
-    preview.src = item.imageUrl;
-    preview.style.display = 'block';
+    document.getElementById('imgPreview').src = item.imageUrl;
+    document.getElementById('imgPreview').style.display = 'block';
   } else {
-    preview.style.display = 'none';
+    document.getElementById('imgPreview').style.display = 'none';
   }
-
+  document.getElementById('compressInfo').textContent = '';
   document.getElementById('addBtn').textContent = '💾 تحديث الطبق';
-  document.getElementById('cancelBtn').style.display = 'inline-block';
-  
-  window.scrollTo({ top: document.getElementById('formTitle').offsetTop - 20, behavior: 'smooth' });
+  document.getElementById('cancelBtn').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.cancelEdit = function() {
   editingIndex = -1;
   document.getElementById('formTitle').textContent = 'إضافة طبق جديد';
   document.getElementById('itemName').value = '';
-  document.getElementById('itemCategory').value = 'أطباق';
+  document.getElementById('itemCategory').value = '';
   document.getElementById('itemPrice').value = '';
   document.getElementById('itemDesc').value = '';
   document.getElementById('itemExtras').value = '';
@@ -1825,406 +1862,416 @@ window.cancelEdit = function() {
 };
 
 window.deleteItem = async function(index) {
-  if (index < 0 || index >= menu.length) return;
   if (!confirm('هل أنت متأكد من حذف هذا الطبق؟')) return;
-
-  const item = menu[index];
   try {
-    await deleteDoc(doc(db, "restaurants", currentRestId, "items", item.id));
-    toast('🗑️ تم حذف الطبق بنجاح');
-    await loadMenuItems();
+    const itemId = menu[index].id;
+    await deleteDoc(doc(db, "restaurants", currentRestId, "items", itemId));
+    menu.splice(index, 1);
+    renderAdminMenu();
+    updateStats();
+    toast('🗑️ تم حذف الطبق');
   } catch (e) {
     console.error(e);
-    toast('❌ حدث خطأ أثناء الحذف');
+    toast('❌ خطأ في الحذف');
   }
 };
 
 window.toggleAvailability = async function(index) {
-  if (index < 0 || index >= menu.length) return;
-  const item = menu[index];
-  const newStatus = !item.isAvailable;
-
   try {
+    const item = menu[index];
+    const newStatus = !item.isAvailable;
     await updateDoc(doc(db, "restaurants", currentRestId, "items", item.id), {
       isAvailable: newStatus,
       updatedAt: new Date().toISOString()
     });
-    item.isAvailable = newStatus;
+    menu[index].isAvailable = newStatus;
     renderAdminMenu();
     updateStats();
-    toast(newStatus ? '✅ الطبق متاح الآن للزبائن' : '🚫 تم إخفاء الطبق (غير متاح)', 2500, newStatus ? 'success' : 'warning');
+    toast(newStatus ? '✅ الطبق متاح الآن' : '⛔ الطبق غير متاح الآن');
   } catch (e) {
     console.error(e);
-    toast('❌ حدث خطأ أثناء تغيير الحالة');
+    toast('❌ خطأ في تغيير الحالة');
   }
 };
 
+/* ════════════════════════════════
+RENDER ADMIN (RESTAURANT OWNER) MENU LIST
+════════════════════════════════ */
 window.setAdminCategory = function(index) {
   adminCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, Number(index) || 0));
-  setVisibleCategory(document.getElementById('menuList'), adminCategoryIndex);
+  renderAdminMenu();
 };
 
 function renderAdminMenu() {
-  const container = document.getElementById('menuList');
-  if (!container) return;
-
-  if (menu.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد. أضف أطباقك من النموذج أعلاه.</div>';
+  const listEl = document.getElementById('menuList');
+  if (!listEl) return;
+  if (!menu.length) {
+    listEl.innerHTML = '<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div>';
     return;
   }
-
   let html = categoryTabsHTML(adminCategoryIndex, 'admin');
-
-  MENU_CATEGORIES.forEach((catObj, catIdx) => {
-    const catItems = menu.filter(item => normalizeCategory(item.category) === catObj.key);
-    html += `<div class="category-panel ${catIdx === adminCategoryIndex ? 'active' : ''}" data-category-index="${catIdx}">`;
-    
-    if (catItems.length === 0) {
-      html += `<div class="empty" style="padding:20px;"><div class="icon">🔍</div>لا توجد أطباق في قسم ${catObj.labelAr}</div>`;
+  MENU_CATEGORIES.forEach(function(category, categoryIndex) {
+    const categoryItems = menu.map(function(item, originalIndex) { return { item: item, originalIndex: originalIndex }; }).filter(function(entry) {
+      return normalizeCategory(entry.item.category) === category.key;
+    });
+    html += '<div class="category-panel ' + (categoryIndex === adminCategoryIndex ? 'active' : '') + '" data-category-index="' + categoryIndex + '">';
+    if (!categoryItems.length) {
+      html += '<div class="empty" style="padding:24px 12px;"><div class="icon">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>لا توجد منتجات في هذا القسم.</div>';
     } else {
-      catItems.forEach(item => {
-        const itemIdx = menu.findIndex(m => m.id === item.id);
-        const extrasCount = parseItemExtras(item.extras).length;
-        html += `
-          <div class="admin-item ${!item.isAvailable ? 'unavailable' : ''}">
-            <div class="admin-item-info">
-              <strong>${esc(item.name)}</strong>
-              <span class="price">${Number(item.price).toLocaleString('ar-DZ')} دج</span>
-              ${item.desc ? `<div style="font-size:12px;color:var(--muted);">${esc(item.desc)}</div>` : ''}
-              ${extrasCount > 0 ? `<div style="font-size:11px;color:var(--teal); margin-top:2px;">✨ ${extrasCount} إضافات/خيارات</div>` : ''}
-            </div>
-            <div class="admin-item-actions">
-              <button class="btn ${item.isAvailable ? 'btn-success' : 'btn-gray'} btn-sm" onclick="toggleAvailability(${itemIdx})">
-                ${item.isAvailable ? '✅ متاح' : '🚫 غير متاح'}
-              </button>
-              <button class="btn btn-blue btn-sm" onclick="editItem(${itemIdx})">✏️ تعديل</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteItem(${itemIdx})">🗑️ حذف</button>
-            </div>
-          </div>
-        `;
+      categoryItems.forEach(function(entry) {
+        const item = entry.item;
+        const index = entry.originalIndex;
+        html += '<div class="admin-item' + (item.isAvailable ? '' : ' unavailable') + '">' +
+          '<div class="admin-item-info">' +
+            '<strong>' + esc(item.name) + '</strong>' +
+            '<span class="price">' + Number(item.price).toLocaleString('ar-DZ') + ' دج</span>' +
+            '<span class="cat">' + esc(normalizeCategory(item.category)) + '</span>' +
+          '</div>' +
+          '<div class="admin-item-actions">' +
+            '<label class="toggle-wrap" style="margin:0;">' +
+              '<span class="toggle">' +
+                '<input type="checkbox" ' + (item.isAvailable ? 'checked' : '') + ' onchange="toggleAvailability(' + index + ')">' +
+                '<span class="toggle-slider"></span>' +
+              '</span>' +
+              '<span style="font-size:12px;color:var(--muted);">متاح</span>' +
+            '</label>' +
+            '<div>' +
+              '<button class="btn btn-blue btn-sm" onclick="editItem(' + index + ')">✏️ تعديل</button>' +
+              '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + index + ')">🗑️ حذف</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       });
     }
-    html += `</div>`;
+    html += '</div>';
   });
-
-  container.innerHTML = html;
-  bindSwipe(container, (dir) => {
-    let newIdx = adminCategoryIndex + dir;
-    if (newIdx >= 0 && newIdx < MENU_CATEGORIES.length) {
-      setAdminCategory(newIdx);
-    }
+  listEl.innerHTML = html;
+  bindSwipe(listEl, function(direction) {
+    const next = adminCategoryIndex + direction;
+    if (next >= 0 && next < MENU_CATEGORIES.length) setAdminCategory(next);
   });
 }
 
-/* QR & PRINTABLE PDF */
+/* ════════════════════════════════
+QR CODE GENERATION
+════════════════════════════════ */
 window.generateQR = function() {
   if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً');
-  const canvasBox = document.getElementById('qrCodeCanvas');
-  const qrLinkBox = document.getElementById('qrLink');
-  canvasBox.innerHTML = '';
-  
   const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
-  
-  new QRCode(canvasBox, {
+  const container = document.getElementById('qrCodeCanvas');
+  container.innerHTML = '';
+  /* global QRCode */
+  new QRCode(container, {
     text: url,
-    width: 180,
-    height: 180,
-    colorDark : "#006666",
-    colorLight : "#ffffff",
-    correctLevel : QRCode.CorrectLevel.H
+    width: 200,
+    height: 200,
+    colorDark: '#006666',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
   });
-  
-  qrLinkBox.textContent = url;
-  toast('📱 تم توليد QR Code بنجاح', 2500, 'success');
+  document.getElementById('qrLink').textContent = url;
+  toast('📱 تم إنشاء رمز QR بنجاح');
 };
 
+let pdfGenerationRunning = false;
 window.downloadPrintablePDF = async function() {
-  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً');
-  const btn = document.getElementById('downloadPdfButton');
-  btn.classList.add('is-loading');
+  if (pdfGenerationRunning) return;
+  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2800, 'warning');
+  if (!window.jspdf || !window.jspdf.jsPDF) return toast('❌ مكتبة PDF لم تُحمّل، تحقق من اتصال الإنترنت', 3500, 'danger');
+  if (typeof QRCode === 'undefined') return toast('❌ مكتبة QR لم تُحمّل، تحقق من اتصال الإنترنت', 3500, 'danger');
+
+  pdfGenerationRunning = true;
+  const button = document.getElementById('downloadPdfButton');
+  const buttonLabel = button ? button.querySelector('.pdf-button-label') : null;
+  if (button) {
+    button.disabled = true;
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+  }
+  if (buttonLabel) buttonLabel.textContent = '⏳ جارٍ تجهيز ملف PDF...';
+
+  const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
+  const qrHost = document.createElement('div');
+  qrHost.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:1200px;height:1200px;background:#fff;';
+  document.body.appendChild(qrHost);
 
   try {
-    const { jsPDF } = window.jspdf;
-    const docPdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    const restName = (currentUser && currentUser.displayName) ? currentUser.displayName : currentRestId;
-    const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
-
-    const tempDiv = document.createElement('div');
-    tempDiv.style.display = 'none';
-    document.body.appendChild(tempDiv);
-    
-    new QRCode(tempDiv, {
+    new QRCode(qrHost, {
       text: url,
-      width: 250,
-      height: 250,
-      colorDark: "#006666",
-      colorLight: "#ffffff",
+      width: 1200,
+      height: 1200,
+      colorDark: '#006666',
+      colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.H
     });
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(function(resolve) { setTimeout(resolve, 180); });
 
-    await new Promise(r => setTimeout(r, 300));
-    const qrImg = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
-    let imgData = '';
-    if (qrImg.tagName === 'CANVAS') {
-      imgData = qrImg.toDataURL('image/png');
-    } else {
-      imgData = qrImg.src;
-    }
-    document.body.removeChild(tempDiv);
+    const qrCanvas = qrHost.querySelector('canvas');
+    const qrImage = qrHost.querySelector('img');
+    let qrDataUrl = '';
+    if (qrCanvas) qrDataUrl = qrCanvas.toDataURL('image/png');
+    else if (qrImage && qrImage.src) qrDataUrl = qrImage.src;
+    if (!qrDataUrl) throw new Error('QR generation failed');
 
-    docPdf.setFillColor(0, 102, 102);
-    docPdf.rect(0, 0, 210, 45, 'F');
+    const poster = document.createElement('canvas');
+    poster.width = 2480;
+    poster.height = 3508;
+    const ctx = poster.getContext('2d');
+    ctx.fillStyle = '#f7fbfb';
+    ctx.fillRect(0, 0, poster.width, poster.height);
 
-    docPdf.setTextColor(255, 255, 255);
-    docPdf.setFontSize(26);
-    docPdf.text('MySmartMenu', 105, 20, { align: 'center' });
-    
-    docPdf.setFontSize(16);
-    docPdf.text(restName, 105, 32, { align: 'center' });
+    // إطار خارجي أنيق مناسب للطباعة على ورق A4.
+    ctx.strokeStyle = '#006666';
+    ctx.lineWidth = 28;
+    ctx.strokeRect(70, 70, poster.width - 140, poster.height - 140);
+    ctx.strokeStyle = '#c9a84c';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(105, 105, poster.width - 210, poster.height - 210);
 
-    docPdf.setTextColor(33, 33, 33);
-    docPdf.setFontSize(18);
-    docPdf.text('امسح الكود واستعرض قائمة الطعام', 105, 70, { align: 'center' });
-    docPdf.setFontSize(12);
-    docPdf.setTextColor(117, 117, 117);
-    docPdf.text('Scan the QR code to view our digital menu', 105, 78, { align: 'center' });
+    ctx.textAlign = 'center';
+    ctx.direction = 'ltr';
+    ctx.font = '900 150px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#006666';
+    ctx.fillText('MySmart', poster.width / 2 - 105, 430);
+    ctx.fillStyle = '#c9a84c';
+    ctx.fillText('Menu', poster.width / 2 + 330, 430);
 
-    if (imgData) {
-      docPdf.addImage(imgData, 'PNG', 55, 95, 100, 100);
-    }
+    const restaurantName = (document.getElementById('restDisplayName').value || currentUser && currentUser.displayName || currentRestId || 'مطعمي').trim();
+    ctx.direction = 'rtl';
+    ctx.font = '900 150px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#006666';
+    ctx.fillText(restaurantName, poster.width / 2, 760);
+    ctx.font = '600 78px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#4b6262';
+    ctx.fillText('امسح الرمز للوصول إلى قائمتنا الرقمية', poster.width / 2, 930);
 
-    docPdf.setDrawColor(201, 168, 76);
-    docPdf.setLineWidth(1.5);
-    docPdf.rect(15, 15, 180, 267);
+    const qrSize = 1450;
+    const qrX = (poster.width - qrSize) / 2;
+    const qrY = 1110;
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,102,102,.18)';
+    ctx.shadowBlur = 35;
+    ctx.fillRect(qrX - 70, qrY - 70, qrSize + 140, qrSize + 140);
+    ctx.shadowColor = 'transparent';
+    const qrBitmap = new Image();
+    await new Promise(function(resolve, reject) {
+      qrBitmap.onload = resolve;
+      qrBitmap.onerror = reject;
+      qrBitmap.src = qrDataUrl;
+    });
+    ctx.drawImage(qrBitmap, qrX, qrY, qrSize, qrSize);
 
-    docPdf.setFillColor(245, 247, 248);
-    docPdf.rect(0, 270, 210, 27, 'F');
-    docPdf.setFontSize(10);
-    docPdf.setTextColor(0, 102, 102);
-    docPdf.text('Powered by MySmartMenu', 105, 282, { align: 'center' });
+    ctx.direction = 'rtl';
+    ctx.font = '900 92px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#008080';
+    ctx.fillText('اطلب الآن بسهولة', poster.width / 2, 2850);
+    ctx.font = '600 60px Cairo, Arial, sans-serif';
+    ctx.fillStyle = '#526666';
+    ctx.fillText('قائمة رقمية • طلبات مباشرة عبر واتساب', poster.width / 2, 2980);
 
-    docPdf.save(`Menu_QR_${currentRestId}.pdf`);
-    toast('📄 تم تحميل ملف PDF للطباعة بنجاح', 3000, 'success');
-  } catch (e) {
-    console.error(e);
-    toast('❌ حدث خطأ أثناء إنشاء ملف PDF');
+    ctx.direction = 'ltr';
+    ctx.font = '32px Arial, sans-serif';
+    ctx.fillStyle = '#6b7777';
+    ctx.fillText(url, poster.width / 2, 3260);
+
+    const PDF = window.jspdf.jsPDF;
+    const pdf = new PDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    pdf.addImage(poster.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+    const safeName = restaurantName.replace(/[^a-zA-Z0-9\u0600-\u06ff_-]+/g, '-').replace(/^-+|-+$/g, '') || 'restaurant';
+    pdf.save('MySmartMenu-' + safeName + '-print-template.pdf');
+    toast('✅ تم تحميل قالب الطباعة PDF بجودة عالية', 3200, 'success');
+  } catch (error) {
+    console.error(error);
+    toast('❌ تعذر إنشاء ملف PDF، حاول مرة أخرى', 3500, 'danger');
   } finally {
-    btn.classList.remove('is-loading');
+    qrHost.remove();
+    if (button) {
+      button.disabled = false;
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
+    }
+    if (buttonLabel) buttonLabel.textContent = '📄 تحميل قالب الطباعة PDF';
+    pdfGenerationRunning = false;
   }
 };
 
-/* CUSTOMER VIEW & SEARCH */
-async function loadCustomerView(restId) {
-  activeCustomerRestId = restId;
-  showView('customerView');
-  applyLanguage();
-
-  try {
-    const snap = await getDoc(doc(db, "restaurants", restId));
-    if (!snap.exists()) {
-      showView('notFoundView');
-      return;
+/* ════════════════════════════════
+CUSTOMER VIEW (PUBLIC MENU)
+════════════════════════════════ */
+function parseItemExtras(rawExtras) {
+  if (!Array.isArray(rawExtras)) return [];
+  return rawExtras.map(function(extra) {
+    if (typeof extra === 'string') {
+      const parts = extra.split(':');
+      return { name: String(parts[0] || '').trim(), price: Number(parts.slice(1).join(':').trim()) || 0 };
     }
-
-    const data = snap.data();
-    const subStatus = getSubscriptionStatus(data.subscription);
-    if (!subStatus.active) {
-      showView('expiredView');
-      return;
-    }
-
-    customerRestWhatsapp = cleanPhone(data.whatsapp || '');
-    if (data.themeId) applyTheme(data.themeId);
-
-    document.getElementById('customerRestName').textContent = data.displayName || restId;
-
-    const callBtn = document.getElementById('customerCallButton');
-    if (callBtn) {
-      if (customerRestWhatsapp) {
-        callBtn.href = 'tel:+' + customerRestWhatsapp;
-        callBtn.style.display = 'inline-block';
-      } else {
-        callBtn.style.display = 'none';
-      }
-    }
-
-    trackAnalytics(restId, 'views', 1);
-
-    const q = query(collection(db, "restaurants", restId, "items"), orderBy("createdAt", "desc"));
-    const itemsSnap = await getDocs(q);
-    
-    customerMenuItems = [];
-    customerItemsById = {};
-    itemsSnap.forEach(docSnap => {
-      const item = docSnap.data();
-      item.id = docSnap.id;
-      customerMenuItems.push(item);
-      customerItemsById[item.id] = item;
-    });
-
-    renderCustomerMenu();
-
-  } catch (e) {
-    console.error(e);
-    showView('notFoundView');
-  }
+    return { name: String(extra.name || '').trim(), price: Number(extra.price || 0) };
+  }).filter(function(extra) { return extra.name; });
 }
 
-function renderCustomerMenu() {
-  const container = document.getElementById('customerMenuList');
-  if (!container) return;
-
-  let filtered = customerMenuItems;
-  if (customerSearchTerm) {
-    const term = customerSearchTerm.toLowerCase();
-    filtered = customerMenuItems.filter(i => 
-      (i.name && i.name.toLowerCase().includes(term)) || 
-      (i.desc && i.desc.toLowerCase().includes(term))
-    );
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="icon">🔍</div>${customerSearchTerm ? t('noSearchResults') : t('noProducts')}</div>`;
-    return;
-  }
-
-  if (customerSearchTerm) {
-    let html = '<div class="category-panel active">';
-    filtered.forEach(item => {
-      html += renderCustomerItemCard(item);
-    });
-    html += '</div>';
-    container.innerHTML = html;
-    return;
-  }
-
-  let html = categoryTabsHTML(customerCategoryIndex, 'customer');
-
-  MENU_CATEGORIES.forEach((catObj, catIdx) => {
-    const catItems = filtered.filter(item => normalizeCategory(item.category) === catObj.key);
-    html += `<div class="category-panel ${catIdx === customerCategoryIndex ? 'active' : ''}" data-category-index="${catIdx}">`;
-    
-    if (catItems.length === 0) {
-      html += `<div class="empty" style="padding:20px;"><div class="icon">🍽️</div>${t('noProducts')}</div>`;
-    } else {
-      catItems.forEach(item => {
-        html += renderCustomerItemCard(item);
-      });
-    }
-    html += `</div>`;
-  });
-
-  container.innerHTML = html;
-  bindSwipe(container, (dir) => {
-    let newIdx = customerCategoryIndex + dir;
-    if (newIdx >= 0 && newIdx < MENU_CATEGORIES.length) {
-      setCustomerCategory(newIdx);
-    }
-  });
+function itemMatchesSearch(item) {
+  const term = customerSearchTerm.trim().toLocaleLowerCase();
+  if (!term) return true;
+  return [item.name, item.desc, item.category].some(function(value) { return String(value || '').toLocaleLowerCase().includes(term); });
 }
 
-function renderCustomerItemCard(item) {
-  const extras = parseItemExtras(item.extras);
-  const hasOptions = extras.length > 0;
-  const priceFormatted = Number(item.price).toLocaleString('ar-DZ') + ' ' + t('currency');
-
-  let imgHtml = '';
-  if (item.imageUrl) {
-    imgHtml = `<img src="${esc(item.imageUrl)}" class="customer-item-img" alt="${esc(item.name)}" loading="lazy">`;
+function updateCustomerCallButton() {
+  const callButton = document.getElementById('customerCallButton');
+  if (!callButton) return;
+  if (customerRestWhatsapp) {
+    callButton.href = 'tel:+' + customerRestWhatsapp;
+    callButton.style.display = 'inline-block';
   } else {
-    imgHtml = `<div class="customer-item-img-placeholder">🍽️</div>`;
+    callButton.style.display = 'none';
   }
-
-  let actionBtn = '';
-  if (!item.isAvailable) {
-    actionBtn = `<span class="unavail-tag">${t('unavailable')}</span>`;
-  } else if (hasOptions) {
-    actionBtn = `<button type="button" class="btn btn-wa btn-order" onclick="openItemOptions(customerItemsById['${item.id}'])">✨ ${t('customizeButton')}</button>`;
-  } else {
-    actionBtn = `<button type="button" class="btn btn-wa btn-order" onclick="addToCart('${esc(item.name)}', ${item.price}, '${customerRestWhatsapp}', [], 1)">🛒 ${t('addToCartButton')}</button>`;
-  }
-
-  return `
-    <div class="customer-item ${!item.isAvailable ? 'unavailable' : ''}">
-      ${imgHtml}
-      <div class="customer-item-body">
-        <strong>${esc(item.name)}</strong>
-        ${item.desc ? `<div class="desc">${esc(item.desc)}</div>` : ''}
-        <div class="price">${priceFormatted}</div>
-        ${actionBtn}
-      </div>
-    </div>
-  `;
+  callButton.textContent = t('callButton');
 }
 
 window.clearCustomerSearch = function() {
-  const searchInput = document.getElementById('customerSearch');
-  const clearBtn = document.getElementById('clearCustomerSearch');
-  if (searchInput) searchInput.value = '';
-  if (clearBtn) clearBtn.classList.remove('show');
   customerSearchTerm = '';
-  renderCustomerMenu();
+  const input = document.getElementById('customerSearch');
+  if (input) input.value = '';
+  const clear = document.getElementById('clearCustomerSearch');
+  if (clear) clear.classList.remove('show');
+  if (customerMenuItems.length) renderCustomerMenu();
 };
 
-const searchInput = document.getElementById('customerSearch');
-if (searchInput) {
-  searchInput.addEventListener('input', function(e) {
-    customerSearchTerm = e.target.value.trim();
-    const clearBtn = document.getElementById('clearCustomerSearch');
-    if (clearBtn) clearBtn.classList.toggle('show', customerSearchTerm.length > 0);
-    renderCustomerMenu();
+function renderCustomerMenu() {
+  const listEl = document.getElementById('customerMenuList');
+  if (!listEl || !customerMenuItems.length) return;
+  customerItemsById = {};
+  let html = categoryTabsHTML(customerCategoryIndex, 'customer');
+  MENU_CATEGORIES.forEach(function(category, categoryIndex) {
+    const categoryItems = customerMenuItems.filter(function(it) {
+      return normalizeCategory(it.category) === category.key && itemMatchesSearch(it);
+    });
+    html += '<div class="category-panel ' + (categoryIndex === customerCategoryIndex ? 'active' : '') + '" data-category-index="' + categoryIndex + '">';
+    if (!categoryItems.length) {
+      html += '<div class="empty" style="padding:30px 12px;"><div class="icon">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>' + (customerSearchTerm ? t('noSearchResults') : t('noProducts')) + '</div>';
+    } else {
+      categoryItems.forEach(function(it) {
+        customerItemsById[it.id] = it;
+        const extras = parseItemExtras(it.extras);
+        const imageAlt = esc(it.name);
+        const imgHtml = it.imageUrl
+          ? '<img class="customer-item-img" loading="lazy" src="' + esc(it.imageUrl) + '" alt="' + imageAlt + '" onerror="this.onerror=null;this.src=\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22 viewBox=%220 0 90 90%22%3E%3Crect width=%2290%22 height=%2290%22 fill=%22%23e0f2f1%22/%3E%3Ctext x=%2245%22 y=%2253%22 text-anchor=%22middle%22 font-size=%2230%22%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E\';">'
+          : '<div class="customer-item-img-placeholder">' + (categoryIndex === 0 ? '🍽️' : categoryIndex === 1 ? '🍰' : '🥤') + '</div>';
+        const orderBtn = it.isAvailable
+          ? '<button type="button" class="btn btn-wa btn-order" data-order-item data-item-id="' + esc(it.id) + '">' + (extras.length ? '⚙️ ' + t('customizeButton') : '🛒 ' + t('addToCartButton')) + '</button>'
+          : '<span class="unavail-tag">' + t('unavailable') + '</span>';
+        html += '<div class="customer-item' + (it.isAvailable ? '' : ' unavailable') + '">' + imgHtml + '<div class="customer-item-body"><strong>' + esc(it.name) + '</strong>' + (it.desc ? '<div class="desc">' + esc(it.desc) + '</div>' : '') + '<div class="price">' + Number(it.price).toLocaleString('ar-DZ') + ' ' + t('currency') + '</div>' + orderBtn + '</div></div>';
+      });
+    }
+    html += '</div>';
+  });
+  listEl.innerHTML = html;
+  const searchInput = document.getElementById('customerSearch');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = 'true';
+    searchInput.addEventListener('input', function() {
+      customerSearchTerm = searchInput.value;
+      const clear = document.getElementById('clearCustomerSearch');
+      if (clear) clear.classList.toggle('show', !!customerSearchTerm);
+      renderCustomerMenu();
+    });
+  }
+  listEl.querySelectorAll('[data-order-item]').forEach(function(button) {
+    button.addEventListener('click', function() {
+      const item = customerItemsById[button.dataset.itemId];
+      if (!item) return;
+      const extras = parseItemExtras(item.extras);
+      if (extras.length) openItemOptions(item);
+      else addToCart(item.name, item.price, customerRestWhatsapp, [], 1);
+    });
+  });
+  updateCustomerCallButton();
+  bindSwipe(listEl, function(direction) {
+    const next = customerCategoryIndex + direction;
+    if (next >= 0 && next < MENU_CATEGORIES.length) window.setCustomerCategory(next);
   });
 }
 
-/* INITIALIZATION */
-async function initApp() {
-  await loadSystemSettings();
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const restParam = urlParams.get('rest');
-
-  if (restParam) {
-    await loadCustomerView(restParam.toLowerCase());
-    return;
-  }
-
-  const sessionData = localStorage.getItem('mysmartmenu_session');
-  if (sessionData) {
-    try {
-      const { restId, passwordHash } = JSON.parse(sessionData);
-      const snap = await getDoc(doc(db, "restaurants", restId));
-      if (snap.exists() && snap.data().passwordHash === passwordHash) {
-        currentRestId = restId;
-        currentUser = snap.data();
-        waNumber = currentUser.whatsapp || '';
-
-        const subStatus = getSubscriptionStatus(currentUser.subscription);
-        if (!subStatus.active) {
-          showView('expiredView');
-          return;
-        }
-
-        document.getElementById('restDisplayName').value = currentUser.displayName || '';
-        document.getElementById('restWhatsapp').value = currentUser.whatsapp || '';
-        applyLanguage();
-        renderThemeControls(currentUser.themeId || 'default');
-        updateSubStatus(currentUser.subscription);
-        await loadMenuItems();
-        const analytics = await loadAnalytics();
-        maybeShowWeeklyReminder(analytics);
-        showView('editorView');
-        return;
-      }
-    } catch (e) {
-      console.warn('Session restoration failed:', e);
-      localStorage.removeItem('mysmartmenu_session');
+async function loadCustomerMenu(restId) {
+  const listEl = document.getElementById('customerMenuList');
+  try {
+    const restSnap = await getDoc(doc(db, "restaurants", restId));
+    if (!restSnap.exists()) {
+      showView('notFoundView');
+      return;
     }
-  }
+    const restData = restSnap.data();
+    applyTheme(restData.themeId || 'default');
+    document.getElementById('customerRestName').textContent = restData.displayName || restId;
+    const restWa = cleanPhone(restData.whatsapp || '');
+    activeCustomerRestId = restId;
+    trackAnalytics(restId, 'views', 1);
 
-  showView('subscriptionView');
+    const q = query(collection(db, "restaurants", restId, "items"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    const items = [];
+    snapshot.forEach(function(docSnap) {
+      const it = docSnap.data();
+      it.id = docSnap.id;
+      items.push(it);
+    });
+
+    if (!items.length) {
+      listEl.innerHTML = '<div class="empty"><div class="icon">🍽️</div>' + (currentLanguage === 'fr' ? 'Le menu est actuellement vide.' : 'القائمة فارغة حالياً.') + '</div>';
+      showView('customerView');
+      return;
+    }
+
+    customerMenuItems = items;
+    customerRestWhatsapp = restWa;
+    customerCategoryIndex = 0;
+    customerSearchTerm = '';
+    customerItemsById = {};
+    applyLanguage();
+    renderCustomerMenu();
+    showView('customerView');
+
+  } catch (e) {
+    console.error(e);
+    listEl.innerHTML = '<div class="empty"><div class="icon">❌</div>حدث خطأ في تحميل القائمة.</div>';
+    showView('customerView');
+  }
 }
 
-initApp();
+/* ════════════════════════════════
+ROUTING / INIT
+════════════════════════════════ */
+async function restoreSession() {
+  try {
+    const raw = localStorage.getItem('mysmartmenu_session');
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved.restId || !saved.passwordHash || Date.now() - Number(saved.savedAt || 0) > 1000 * 60 * 60 * 24 * 30) {
+      localStorage.removeItem('mysmartmenu_session');
+      return false;
+    }
+    const snap = await getDoc(doc(db, 'restaurants', saved.restId));
+    if (!snap.exists() || snap.data().passwordHash !== saved.passwordHash) return false;
+    const data = snap.data();
+    if (!getSubscriptionStatus(data.subscription).active) { showView('expiredView'); return true; }
+    currentRestId = saved.restId; currentUser = data; waNumber = data.whatsapp || '';
+    document.getElementById('restDisplayName').value = data.displayName || '';
+    document.getElementById('restWhatsapp').value = data.whatsapp || '';
+    applyLanguage();
+    renderThemeControls(data.themeId || 'default');
+    updateSubStatus(data.subscription); await loadMenuItems(); const analytics = await loadAnalytics(); maybeShowWeeklyReminder(analytics); showView('editorView');
+    return true;
+  } catch (e) { console.warn('تعذر استعادة الجلسة', e); return false; }
+}
+
+(async function init() {
+  await loadSystemSettings();
+  const params = new URLSearchParams(window.location.search);
+  const restId = params.get('rest');
+  if (restId) loadCustomerMenu(restId.trim().toLowerCase());
+  else if (!(await restoreSession())) showView('subscriptionView');
+})();
+
 </script>
 </body>
 </html>
