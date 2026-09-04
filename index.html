@@ -74,14 +74,6 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .btn-gold { background: var(--gold); color: var(--white); }
 .btn-sm { width: auto; display: inline-block; padding: 7px 14px; font-size: 13px; margin-top: 6px; margin-left: 6px; }
 
-.toggle-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; display: inline-block; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 24px; cursor: pointer; transition: background 0.2s; }
-.toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; right: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
-.toggle input:checked + .toggle-slider { background: var(--teal); }
-.toggle input:checked + .toggle-slider:before { transform: translateX(-20px); }
-
 .img-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-top: 8px; display: none; border: 2px solid var(--teal-light); }
 .compress-info { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
@@ -1687,8 +1679,7 @@ window.adminDeleteRestaurant = async function(restId) {
 window.saveAdminSettings = async function() {
   const price = Number(document.getElementById('adminPrice').value);
   const ccp = document.getElementById('adminCCP').value.trim();
-  if (!price || price <= 0) return toast('⚠️ أدخل سعراً صحيحاً للاشتراك', 2500, 'warning');
-  if (!ccp) return toast('⚠️ أدخل رقم CCP صحيح', 2500, 'warning');
+  if (!price || !ccp) return toast('⚠️ أدخل السعر ورقم CCP بشكل صحيح', 2800, 'warning');
   try {
     await setDoc(doc(db, 'system', 'config'), { subscriptionPrice: price, ccp: ccp, updatedAt: new Date().toISOString() }, { merge: true });
     SUBSCRIPTION_PRICE = price;
@@ -1696,50 +1687,46 @@ window.saveAdminSettings = async function() {
     toast('💾 تم حفظ إعدادات النظام بنجاح', 3000, 'success');
   } catch (e) {
     console.error(e);
-    toast('❌ تعذر حفظ الإعدادات', 3000, 'danger');
+    toast('❌ تعذر حفظ إعدادات النظام', 3000, 'danger');
   }
 };
 
 window.saveRestInfo = async function() {
+  if (!currentRestId) return;
   const displayName = document.getElementById('restDisplayName').value.trim();
   const whatsapp = cleanPhone(document.getElementById('restWhatsapp').value.trim());
-  if (!displayName) return toast('⚠️ أدخل اسم المطعم', 2500, 'warning');
-  if (!whatsapp) return toast('⚠️ أدخل رقم واتساب صحيح', 2500, 'warning');
+  if (!displayName || !whatsapp) return toast('⚠️ أدخل اسم المطعم ورقم واتساب صحيحاً', 2800, 'warning');
   try {
     await setDoc(doc(db, 'restaurants', currentRestId), { displayName, whatsapp, updatedAt: new Date().toISOString() }, { merge: true });
     waNumber = whatsapp;
-    if (currentUser) currentUser.displayName = displayName;
-    if (currentUser) currentUser.whatsapp = whatsapp;
     toast('💾 تم حفظ إعدادات المطعم بنجاح', 3000, 'success');
   } catch (e) {
     console.error(e);
-    toast(isNetworkError(e) ? '⚠️ لا يوجد اتصال بالإنترنت؛ تعذر الحفظ' : '❌ تعذر حفظ الإعدادات', 3000, 'danger');
+    toast('❌ تعذر حفظ إعدادات المطعم', 3000, 'danger');
   }
 };
 
-function parseItemExtras(extrasInput) {
-  if (Array.isArray(extrasInput)) return extrasInput;
-  const raw = String(extrasInput || '').trim();
-  if (!raw) return [];
-  return raw.split('\n').map(function(line) {
+function parseItemExtras(val) {
+  if (Array.isArray(val)) return val;
+  if (!val || typeof val !== 'string') return [];
+  return val.split('\n').map(function(line) {
     const parts = line.split(':');
-    const name = parts[0].trim();
-    const price = Number(parts[1] || 0) || 0;
-    return name ? { name, price } : null;
+    const name = (parts[0] || '').trim();
+    const price = parts[1] ? Number(parts[1].trim()) || 0 : 0;
+    return name ? { name: name, price: price } : null;
   }).filter(Boolean);
 }
 
 window.addItem = async function() {
+  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2500, 'warning');
   const name = document.getElementById('itemName').value.trim();
   const category = document.getElementById('itemCategory').value;
   const price = Number(document.getElementById('itemPrice').value);
   const desc = document.getElementById('itemDesc').value.trim();
-  const extrasRaw = document.getElementById('itemExtras').value;
+  const extras = document.getElementById('itemExtras').value.trim();
   const imageFile = document.getElementById('itemImage').files[0];
 
-  if (!name) return toast('⚠️ أدخل اسم الطبق');
-  if (!price || price <= 0) return toast('⚠️ أدخل سعراً صحيحاً');
-  if (!networkOnline) return toast('⚠️ لا يوجد اتصال بالإنترنت لإضافة الطبق', 3000, 'warning');
+  if (!name || !price) return toast('⚠️ أدخل اسم الطبق والسعر على الأقل', 2800, 'warning');
 
   setLoading(true);
   try {
@@ -1750,58 +1737,47 @@ window.addItem = async function() {
       formData.append('file', compressed);
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formData.append('folder', 'mysmartmenu/items');
-      const response = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', { method: 'POST', body: formData });
-      const data = await response.json();
-      if (!response.ok || !data.secure_url) throw new Error(data.error && data.error.message ? data.error.message : 'تعذر رفع صورة الطبق');
-      imageUrl = data.secure_url;
+      const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.secure_url) imageUrl = data.secure_url;
     }
 
     const itemData = {
       name,
-      category: normalizeCategory(category),
+      category,
       price,
       desc,
-      extras: parseItemExtras(extrasRaw),
+      extras: parseItemExtras(extras),
       isAvailable: true,
       updatedAt: new Date().toISOString()
     };
-    if (imageUrl) itemData.image = imageUrl;
+    if (imageUrl) itemData.imageUrl = imageUrl;
 
-    if (editingIndex > -1 && menu[editingIndex] && menu[editingIndex].id) {
-      const itemId = menu[editingIndex].id;
-      if (!imageUrl && menu[editingIndex].image) itemData.image = menu[editingIndex].image;
-      await updateDoc(doc(db, 'restaurants', currentRestId, 'items', itemId), itemData);
+    if (editingIndex > -1) {
+      const item = menu[editingIndex];
+      if (!imageUrl && item.imageUrl) itemData.imageUrl = item.imageUrl;
+      await updateDoc(doc(db, 'restaurants', currentRestId, 'items', item.id), itemData);
       toast('✅ تم تحديث الطبق بنجاح', 2800, 'success');
+      cancelEdit();
     } else {
       itemData.createdAt = new Date().toISOString();
       await addDoc(collection(db, 'restaurants', currentRestId, 'items'), itemData);
-      toast('✅ تمت إضافة الطبق بنجاح', 2800, 'success');
+      toast('✅ تم إضافة الطبق بنجاح', 2800, 'success');
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemPrice').value = '';
+      document.getElementById('itemDesc').value = '';
+      document.getElementById('itemExtras').value = '';
+      document.getElementById('itemImage').value = '';
+      document.getElementById('imgPreview').style.display = 'none';
+      document.getElementById('compressInfo').textContent = '';
     }
-
-    document.getElementById('itemName').value = '';
-    document.getElementById('itemPrice').value = '';
-    document.getElementById('itemDesc').value = '';
-    document.getElementById('itemExtras').value = '';
-    document.getElementById('itemImage').value = '';
-    document.getElementById('imgPreview').style.display = 'none';
-    document.getElementById('compressInfo').textContent = '';
-    cancelEdit();
     await loadMenuItems();
   } catch (e) {
     console.error(e);
-    toast('❌ ' + (e.message || 'تعذر حفظ الطبق'), 3500, 'danger');
+    toast('❌ خطأ أثناء حفظ الطبق', 3000, 'danger');
   } finally {
     setLoading(false);
   }
-};
-
-window.cancelEdit = function() {
-  editingIndex = -1;
-  document.getElementById('formTitle').textContent = 'إضافة طبق جديد';
-  const btn = document.getElementById('addBtn');
-  btn.className = 'btn btn-success';
-  btn.innerHTML = '✅ إضافة الطبق';
-  document.getElementById('cancelBtn').style.display = 'none';
 };
 
 window.editItem = function(index) {
@@ -1809,40 +1785,45 @@ window.editItem = function(index) {
   editingIndex = index;
   const item = menu[index];
   document.getElementById('itemName').value = item.name || '';
-  document.getElementById('itemCategory').value = normalizeCategory(item.category);
+  document.getElementById('itemCategory').value = item.category || 'أطباق';
   document.getElementById('itemPrice').value = item.price || '';
   document.getElementById('itemDesc').value = item.desc || '';
-  document.getElementById('itemExtras').value = Array.isArray(item.extras) ? item.extras.map(function(e) { return e.name + (e.price ? ':' + e.price : ''); }).join('\n') : '';
-  document.getElementById('formTitle').textContent = 'تعديل طبق: ' + (item.name || '');
-  const btn = document.getElementById('addBtn');
-  btn.className = 'btn btn-primary';
-  btn.innerHTML = '💾 تحديث الطبق';
-  document.getElementById('cancelBtn').style.display = 'block';
-  window.scrollTo({ top: 400, behavior: 'smooth' });
-};
-
-window.toggleAvailability = async function(index) {
-  if (index < 0 || index >= menu.length) return;
-  const item = menu[index];
-  try {
-    const newStatus = !item.isAvailable;
-    await updateDoc(doc(db, 'restaurants', currentRestId, 'items', item.id), { isAvailable: newStatus });
-    item.isAvailable = newStatus;
-    renderAdminMenu();
-    updateStats();
-    toast(newStatus ? '✅ الطبق متاح الآن' : '⚠️ الطبق غير متاح مؤقتاً', 2200, 'success');
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر تغيير حالة الطبق', 3000, 'danger');
+  document.getElementById('itemExtras').value = Array.isArray(item.extras) ? item.extras.map(function(e) { return e.name + (e.price ? ': ' + e.price : ''); }).join('\n') : '';
+  const preview = document.getElementById('imgPreview');
+  if (item.imageUrl) {
+    preview.src = item.imageUrl;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
   }
+  document.getElementById('formTitle').textContent = 'تعديل الطبق';
+  const addBtn = document.getElementById('addBtn');
+  addBtn.textContent = '💾 تحديث الطبق';
+  addBtn.className = 'btn btn-blue';
+  document.getElementById('cancelBtn').style.display = 'block';
+  window.scrollTo({ top: document.getElementById('formTitle').offsetTop - 20, behavior: 'smooth' });
 };
 
-window.deleteItem = async function(index) {
-  if (index < 0 || index >= menu.length) return;
+window.cancelEdit = function() {
+  editingIndex = -1;
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemPrice').value = '';
+  document.getElementById('itemDesc').value = '';
+  document.getElementById('itemExtras').value = '';
+  document.getElementById('itemImage').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('compressInfo').textContent = '';
+  document.getElementById('formTitle').textContent = 'إضافة طبق جديد';
+  const addBtn = document.getElementById('addBtn');
+  addBtn.textContent = '✅ إضافة الطبق';
+  addBtn.className = 'btn btn-success';
+  document.getElementById('cancelBtn').style.display = 'none';
+};
+
+window.deleteItem = async function(id) {
   if (!confirm('هل أنت متأكد من حذف هذا الطبق؟')) return;
-  const item = menu[index];
   try {
-    await deleteDoc(doc(db, 'restaurants', currentRestId, 'items', item.id));
+    await deleteDoc(doc(db, 'restaurants', currentRestId, 'items', id));
     toast('🗑️ تم حذف الطبق', 2500, 'success');
     await loadMenuItems();
   } catch (e) {
@@ -1851,160 +1832,193 @@ window.deleteItem = async function(index) {
   }
 };
 
-window.setAdminCategory = function(index) {
-  adminCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, Number(index) || 0));
-  setVisibleCategory(document.getElementById('menuList'), adminCategoryIndex);
+window.toggleAvailability = async function(id, current) {
+  try {
+    await updateDoc(doc(db, 'restaurants', currentRestId, 'items', id), { isAvailable: !current, updatedAt: new Date().toISOString() });
+    await loadMenuItems();
+    toast('✅ تم تحديث حالة التوفر', 2000, 'success');
+  } catch (e) {
+    console.error(e);
+    toast('❌ تعذر تحديث الحالة', 2500, 'danger');
+  }
+};
+
+window.generateQR = function() {
+  if (!currentRestId) return;
+  const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
+  const container = document.getElementById('qrCodeCanvas');
+  container.innerHTML = '';
+  new QRCode(container, { text: url, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+  document.getElementById('qrLink').textContent = url;
+  toast('📱 تم إنتاج QR Code الخاص بمطعمك', 2600, 'success');
+};
+
+window.downloadPrintablePDF = async function() {
+  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2500, 'warning');
+  const btn = document.getElementById('downloadPdfButton');
+  btn.classList.add('is-loading');
+  try {
+    const { jsPDF } = window.jspdf;
+    const docPdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    docPdf.setFont('Helvetica', 'bold');
+    docPdf.setFontSize(22);
+    docPdf.text('MySmartMenu', 105, 20, { align: 'center' });
+    docPdf.setFontSize(14);
+    docPdf.text(document.getElementById('restDisplayName').value || currentRestId, 105, 30, { align: 'center' });
+    docPdf.setFontSize(10);
+    docPdf.text('Scan to View Menu & Order', 105, 38, { align: 'center' });
+
+    const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
+    const qrContainer = document.createElement('div');
+    new QRCode(qrContainer, { text: url, width: 300, height: 300, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+    
+    await new Promise(function(resolve) { setTimeout(resolve, 300); });
+    const qrImg = qrContainer.querySelector('canvas') || qrContainer.querySelector('img');
+    if (qrImg) {
+      const dataUrl = qrImg.toDataURL ? qrImg.toDataURL('image/png') : qrImg.src;
+      docPdf.addImage(dataUrl, 'PNG', 65, 55, 80, 80);
+    }
+
+    docPdf.setFontSize(11);
+    docPdf.text('1. Open your phone camera / فتح كاميرا الهاتف', 105, 155, { align: 'center' });
+    docPdf.text('2. Scan the QR code / مسح رمز الاستجابة السريعة', 105, 163, { align: 'center' });
+    docPdf.text('3. Browse menu & order via WhatsApp / تصفح القائمة واطلب عبر واتساب', 105, 171, { align: 'center' });
+
+    docPdf.save('Menu-QR-' + currentRestId + '.pdf');
+    toast('📄 تم تحميل قالب الطباعة PDF بنجاح', 3000, 'success');
+  } catch (e) {
+    console.error(e);
+    toast('❌ تعذر إنشاء ملف PDF', 3000, 'danger');
+  } finally {
+    btn.classList.remove('is-loading');
+  }
 };
 
 function renderAdminMenu() {
   const container = document.getElementById('menuList');
   if (!container) return;
   if (!menu.length) {
-    container.innerHTML = '<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد. أضف طبقك الأول من النموذج أعلاه.</div>';
+    container.innerHTML = '<div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div>';
+    return;
+  }
+  container.innerHTML = categoryTabsHTML(adminCategoryIndex, 'admin') + MENU_CATEGORIES.map(function(category, catIndex) {
+    const catItems = menu.filter(function(item) {
+      return normalizeCategory(item.category) === category.key;
+    });
+    const content = catItems.length ? catItems.map(function(item) {
+      const origIndex = menu.indexOf(item);
+      const imgHtml = item.imageUrl ? '<img src="' + esc(item.imageUrl) + '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-left:10px;" alt="">' : '';
+      return '<div class="admin-item ' + (item.isAvailable ? '' : 'unavailable') + '">' +
+        imgHtml +
+        '<div class="admin-item-info">' +
+          '<strong>' + esc(item.name) + ' <span style="font-size:12px;color:var(--muted);">(' + esc(item.category || 'أطباق') + ')</span></strong>' +
+          '<div class="price">' + Number(item.price || 0).toLocaleString('ar-DZ') + ' دج</div>' +
+          (item.desc ? '<div class="cat">' + esc(item.desc) + '</div>' : '') +
+        '</div>' +
+        '<div class="admin-item-actions">' +
+          '<button class="btn btn-sm ' + (item.isAvailable ? 'btn-danger' : 'btn-success') + '" onclick="toggleAvailability(\'' + item.id + '\', ' + item.isAvailable + ')">' + (item.isAvailable ? 'إيقاف' : 'تفعيل') + '</button>' +
+          '<button class="btn btn-sm btn-primary" onclick="editItem(' + origIndex + ')">تعديل</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteItem(\'' + item.id + '\')">حذف</button>' +
+        '</div>' +
+      '</div>';
+    }).join('') : '<div class="empty" style="padding:20px;">لا توجد أطباق في هذا القسم.</div>';
+
+    return '<div class="category-panel ' + (catIndex === adminCategoryIndex ? 'active' : '') + '" data-category-index="' + catIndex + '">' + content + '</div>';
+  }).join('');
+}
+
+window.setAdminCategory = function(index) {
+  adminCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, Number(index) || 0));
+  setVisibleCategory(document.getElementById('menuList'), adminCategoryIndex);
+};
+
+window.clearCustomerSearch = function() {
+  const input = document.getElementById('customerSearch');
+  if (input) input.value = '';
+  customerSearchTerm = '';
+  const clearBtn = document.getElementById('clearCustomerSearch');
+  if (clearBtn) clearBtn.classList.remove('show');
+  renderCustomerMenu();
+};
+
+function renderCustomerMenu() {
+  const container = document.getElementById('customerMenuList');
+  if (!container) return;
+  const filtered = customerMenuItems.filter(function(item) {
+    if (!item.isAvailable) return false;
+    if (!customerSearchTerm) return true;
+    const q = customerSearchTerm.toLowerCase();
+    return String(item.name || '').toLowerCase().includes(q) || String(item.desc || '').toLowerCase().includes(q);
+  });
+
+  if (customerSearchTerm && !filtered.length) {
+    container.innerHTML = '<div class="empty"><div class="icon">🔍</div>' + esc(t('noSearchResults')) + '</div>';
     return;
   }
 
-  const grouped = {};
-  MENU_CATEGORIES.forEach(function(cat) { grouped[cat.key] = []; });
-  menu.forEach(function(item, originalIndex) {
-    const cat = normalizeCategory(item.category);
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push({ item, originalIndex });
-  });
+  container.innerHTML = categoryTabsHTML(customerCategoryIndex, 'customer') + MENU_CATEGORIES.map(function(category, catIndex) {
+    const catItems = filtered.filter(function(item) {
+      return normalizeCategory(item.category) === category.key;
+    });
+    const content = catItems.length ? catItems.map(function(item) {
+      const imgHtml = item.imageUrl ? '<img class="customer-item-img" src="' + esc(item.imageUrl) + '" alt="' + esc(item.name) + '" loading="lazy">' : '<div class="customer-item-img-placeholder">🍽️</div>';
+      const extras = parseItemExtras(item.extras);
+      const btnAction = extras.length ? 'openItemOptions(customerItemsById[\'' + item.id + '\'])' : 'addToCart(\'' + esc(item.name).replace(/'/g, "\\'") + '\', ' + Number(item.price || 0) + ', \'' + esc(customerRestWhatsapp) + '\', [], 1)';
+      const btnText = extras.length ? t('customizeButton') : t('addToCartButton');
+      return '<div class="customer-item">' +
+        imgHtml +
+        '<div class="customer-item-body">' +
+          '<strong>' + esc(item.name) + '</strong>' +
+          (item.desc ? '<div class="desc">' + esc(item.desc) + '</div>' : '') +
+          '<div class="price">' + Number(item.price || 0).toLocaleString('ar-DZ') + ' ' + t('currency') + '</div>' +
+          '<button type="button" class="btn btn-primary btn-order" onclick="' + btnAction + '">' + btnText + '</button>' +
+        '</div>' +
+      '</div>';
+    }).join('') : '<div class="empty" style="padding:20px;"><div class="icon">🍽️</div>' + esc(t('noProducts')) + '</div>';
 
-  let html = categoryTabsHTML(adminCategoryIndex, 'admin');
-  MENU_CATEGORIES.forEach(function(cat, catIndex) {
-    const items = grouped[cat.key] || [];
-    html += '<div class="category-panel ' + (catIndex === adminCategoryIndex ? 'active' : '') + '" data-category-index="' + catIndex + '">';
-    if (!items.length) {
-      html += '<div class="empty" style="padding:20px 0;"><div class="icon" style="font-size:28px;">🍽️</div>' + (currentLanguage === 'fr' ? 'Aucun plat dans cette catégorie.' : 'لا توجد أطباق في هذا القسم.') + '</div>';
-    } else {
-      items.forEach(function(entry) {
-        const item = entry.item;
-        const i = entry.originalIndex;
-        html += '<div class="admin-item ' + (item.isAvailable ? '' : 'unavailable') + '">' +
-          '<div class="admin-item-info">' +
-            '<strong>' + esc(item.name) + '</strong>' +
-            '<div class="price">' + Number(item.price || 0).toLocaleString('ar-DZ') + ' دج</div>' +
-            '<div class="cat">' + esc(categoryLabel(cat)) + (item.desc ? ' • ' + esc(item.desc) : '') + '</div>' +
-          '</div>' +
-          '<div class="admin-item-actions">' +
-            '<button class="btn btn-sm ' + (item.isAvailable ? 'btn-danger' : 'btn-success') + '" onclick="toggleAvailability(' + i + ')">' + (item.isAvailable ? 'إيقاف' : 'تفعيل') + '</button>' +
-            '<button class="btn btn-sm btn-primary" onclick="editItem(' + i + ')">تعديل</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="deleteItem(' + i + ')">حذف</button>' +
-          '</div>' +
-        '</div>';
-      });
-    }
-    html += '</div>';
-  });
+    return '<div class="category-panel ' + (catIndex === customerCategoryIndex ? 'active' : '') + '" data-category-index="' + catIndex + '">' + content + '</div>';
+  }).join('');
 
-  container.innerHTML = html;
   bindSwipe(container, function(dir) {
-    adminCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, adminCategoryIndex + dir));
-    setAdminCategory(adminCategoryIndex);
+    const newIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, customerCategoryIndex + dir));
+    if (newIndex !== customerCategoryIndex) setCustomerCategory(newIndex);
   });
 }
 
-window.generateQR = function() {
-  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2500, 'warning');
-  const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
-  const container = document.getElementById('qrCodeCanvas');
-  container.innerHTML = '';
-  try {
-    new QRCode(container, { text: url, width: 180, height: 180, colorDark: "#008080", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
-    document.getElementById('qrLink').textContent = url;
-    toast('📱 تم إنشاء QR Code بنجاح', 2600, 'success');
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر إنشاء QR Code', 3000, 'danger');
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'customerSearch') {
+    customerSearchTerm = e.target.value.trim();
+    const clearBtn = document.getElementById('clearCustomerSearch');
+    if (clearBtn) clearBtn.classList.toggle('show', customerSearchTerm.length > 0);
+    renderCustomerMenu();
   }
-};
+});
 
-window.downloadPrintablePDF = async function() {
-  if (!currentRestId) return toast('⚠️ سجّل الدخول أولاً', 2500, 'warning');
-  const button = document.getElementById('downloadPdfButton');
-  if (button) button.classList.add('is-loading');
-  try {
-    const url = window.location.origin + window.location.pathname + '?rest=' + encodeURIComponent(currentRestId);
-    const { jsPDF } = window.jspdf;
-    const docPdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    
-    docPdf.setFillColor(0, 128, 128);
-    docPdf.rect(0, 0, 210, 40, 'F');
-    docPdf.setTextColor(255, 255, 255);
-    docPdf.setFont('helvetica', 'bold');
-    docPdf.setFontSize(24);
-    docPdf.text('MySmartMenu', 105, 22, { align: 'center' });
-    docPdf.setFontSize(12);
-    docPdf.text('Digital Menu & Ordering System', 105, 31, { align: 'center' });
-
-    docPdf.setTextColor(33, 33, 33);
-    docPdf.setFontSize(20);
-    docPdf.text('Scan to View Menu & Order', 105, 75, { align: 'center' });
-    docPdf.setFontSize(14);
-    docPdf.setTextColor(117, 117, 117);
-    docPdf.text('قم بمسح الكود بكاميرا هاتفك لاستعراض القائمة والطلب مباشرة', 105, 84, { align: 'center' });
-
-    const qrContainer = document.createElement('div');
-    new QRCode(qrContainer, { text: url, width: 300, height: 300, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
-    await new Promise(function(resolve) { setTimeout(resolve, 300); });
-    const qrCanvas = qrContainer.querySelector('canvas');
-    if (qrCanvas) {
-      const qrDataUrl = qrCanvas.toDataURL('image/png');
-      docPdf.addImage(qrDataUrl, 'PNG', 65, 98, 80, 80);
-    }
-
-    docPdf.setDrawColor(224, 224, 224);
-    docPdf.setLineWidth(0.5);
-    docPdf.roundedRect(45, 90, 120, 100, 5, 5, 'S');
-
-    docPdf.setFontSize(11);
-    docPdf.setTextColor(0, 128, 128);
-    docPdf.text(url, 105, 208, { align: 'center' });
-
-    docPdf.setFontSize(10);
-    docPdf.setTextColor(150, 150, 150);
-    docPdf.text('Powered by MySmartMenu - All rights reserved', 105, 280, { align: 'center' });
-
-    docPdf.save('MySmartMenu-' + currentRestId + '.pdf');
-    toast('📄 تم تحميل قالب الطباعة PDF بنجاح', 3000, 'success');
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر تحميل ملف PDF', 3000, 'danger');
-  } finally {
-    if (button) button.classList.remove('is-loading');
-  }
-};
-
-window.loadCustomerMenu = async function(restId) {
+async function initCustomerView(restId) {
   activeCustomerRestId = restId;
-  showView('customerView');
-  applyLanguage();
   try {
-    const snap = await getDoc(doc(db, 'restaurants', restId));
-    if (!snap.exists()) { showView('notFoundView'); return; }
-    const data = snap.data();
-    const subStatus = getSubscriptionStatus(data.subscription);
-    if (!subStatus.active) {
-      document.getElementById('customerRestName').textContent = data.displayName || restId;
-      document.getElementById('customerSubtitle').textContent = currentLanguage === 'fr' ? 'Ce restaurant a suspendu son abonnement.' : 'هذا المطعم متوقف مؤقتاً بسبب انتهاء الاشتراك.';
-      document.getElementById('customerMenuList').innerHTML = '<div class="empty"><div class="icon">⛔</div>' + (currentLanguage === 'fr' ? 'Menu temporairement indisponible.' : 'القائمة غير متاحة مؤقتاً.') + '</div>';
+    const restSnap = await getDoc(doc(db, 'restaurants', restId));
+    if (!restSnap.exists()) {
+      showView('notFoundView');
       return;
     }
-    customerRestWhatsapp = cleanPhone(data.whatsapp || '');
-    applyTheme(data.themeId || 'default');
-    document.getElementById('customerRestName').textContent = data.displayName || restId;
-    const callBtn = document.getElementById('customerCallButton');
-    if (customerRestWhatsapp) {
-      callBtn.href = 'tel:+' + customerRestWhatsapp;
-      callBtn.style.display = 'inline-block';
-    } else {
-      callBtn.style.display = 'none';
+    const restData = restSnap.data();
+    const subStatus = getSubscriptionStatus(restData.subscription);
+    if (!subStatus.active) {
+      showView('notFoundView');
+      return;
     }
+    customerRestWhatsapp = restData.whatsapp || '';
+    document.getElementById('customerRestName').textContent = restData.displayName || restId;
+    const callBtn = document.getElementById('customerCallButton');
+    if (callBtn && customerRestWhatsapp) {
+      callBtn.href = 'tel:' + customerRestWhatsapp;
+      callBtn.style.display = 'inline-block';
+    }
+    applyTheme(restData.themeId || 'default');
+    applyLanguage();
 
-    const q = query(collection(db, 'restaurants', restId, 'items'), orderBy('createdAt', 'desc'));
-    const itemsSnap = await getDocs(q);
+    const itemsSnap = await getDocs(query(collection(db, 'restaurants', restId, 'items'), orderBy('createdAt', 'desc')));
     customerMenuItems = [];
     customerItemsById = {};
     itemsSnap.forEach(function(docSnap) {
@@ -2013,141 +2027,58 @@ window.loadCustomerMenu = async function(restId) {
       customerMenuItems.push(item);
       customerItemsById[item.id] = item;
     });
+
     trackAnalytics(restId, 'views', 1);
+    showView('customerView');
     renderCustomerMenu();
   } catch (e) {
     console.error(e);
-    document.getElementById('customerMenuList').innerHTML = '<div class="empty"><div class="icon">❌</div>' + (currentLanguage === 'fr' ? 'Erreur de chargement du menu.' : 'حدث خطأ في تحميل القائمة.') + '</div>';
+    showView('notFoundView');
   }
-};
-
-window.renderCustomerMenu = function() {
-  const container = document.getElementById('customerMenuList');
-  if (!container) return;
-  const searchInput = document.getElementById('customerSearch');
-  customerSearchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  const clearBtn = document.getElementById('clearCustomerSearch');
-  if (clearBtn) clearBtn.classList.toggle('show', customerSearchTerm.length > 0);
-
-  let filtered = customerMenuItems;
-  if (customerSearchTerm) {
-    filtered = customerMenuItems.filter(function(item) {
-      return (item.name && item.name.toLowerCase().includes(customerSearchTerm)) || (item.desc && item.desc.toLowerCase().includes(customerSearchTerm)) || (item.category && item.category.toLowerCase().includes(customerSearchTerm));
-    });
-  }
-
-  if (!filtered.length) {
-    container.innerHTML = '<div class="empty"><div class="icon">🔍</div>' + (customerSearchTerm ? t('noSearchResults') : t('noProducts')) + '</div>';
-    return;
-  }
-
-  if (customerSearchTerm) {
-    container.innerHTML = '<div class="category-panel active">' + filtered.map(function(item) {
-      return customerItemHTML(item);
-    }).join('') + '</div>';
-    return;
-  }
-
-  const grouped = {};
-  MENU_CATEGORIES.forEach(function(cat) { grouped[cat.key] = []; });
-  filtered.forEach(function(item) {
-    const cat = normalizeCategory(item.category);
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
-  });
-
-  let html = categoryTabsHTML(customerCategoryIndex, 'customer');
-  MENU_CATEGORIES.forEach(function(cat, catIndex) {
-    const items = grouped[cat.key] || [];
-    html += '<div class="category-panel ' + (catIndex === customerCategoryIndex ? 'active' : '') + '" data-category-index="' + catIndex + '">';
-    if (!items.length) {
-      html += '<div class="empty" style="padding:20px 0;"><div class="icon" style="font-size:28px;">🍽️</div>' + t('noProducts') + '</div>';
-    } else {
-      items.forEach(function(item) { html += customerItemHTML(item); });
-    }
-    html += '</div>';
-  });
-
-  container.innerHTML = html;
-  bindSwipe(container, function(dir) {
-    customerCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, customerCategoryIndex + dir));
-    setCustomerCategory(customerCategoryIndex);
-  });
-};
-
-function customerItemHTML(item) {
-  const imgHTML = item.image
-    ? '<img class="customer-item-img" src="' + esc(item.image) + '" alt="' + esc(item.name) + '" loading="lazy">'
-    : '<div class="customer-item-img-placeholder">🍽️</div>';
-  const extras = parseItemExtras(item.extras);
-  const hasExtras = extras.length > 0;
-
-  const actionButton = !item.isAvailable
-    ? '<span class="unavail-tag">' + t('unavailable') + '</span>'
-    : (hasExtras
-        ? '<button type="button" class="btn btn-primary btn-order" onclick="openItemOptions(customerItemsById[\'' + item.id + '\'])">' + t('customizeButton') + '</button>'
-        : '<button type="button" class="btn btn-primary btn-order" onclick="addToCart(\'' + esc(item.name).replace(/'/g, "\\'") + '\', ' + item.price + ', \'' + customerRestWhatsapp + '\', [], 1)">' + t('addToCartButton') + '</button>');
-
-  return '<div class="customer-item ' + (item.isAvailable ? '' : 'unavailable') + '">' +
-    imgHTML +
-    '<div class="customer-item-body">' +
-      '<strong>' + esc(item.name) + '</strong>' +
-      (item.desc ? '<div class="desc">' + esc(item.desc) + '</div>' : '') +
-      '<div class="price">' + Number(item.price || 0).toLocaleString('ar-DZ') + ' ' + t('currency') + (hasExtras ? '+' : '') + '</div>' +
-      actionButton +
-    '</div>' +
-  '</div>';
 }
 
-const customerSearchInput = document.getElementById('customerSearch');
-if (customerSearchInput) {
-  customerSearchInput.addEventListener('input', function() { renderCustomerMenu(); });
-}
-
-window.clearCustomerSearch = function() {
-  const input = document.getElementById('customerSearch');
-  if (input) input.value = '';
-  renderCustomerMenu();
-};
-
-async function initApp() {
+window.addEventListener('DOMContentLoaded', async function() {
   await loadSystemSettings();
-  const params = new URLSearchParams(window.location.search);
-  const restParam = params.get('rest');
+  const urlParams = new URLSearchParams(window.location.search);
+  const restParam = urlParams.get('rest');
   if (restParam) {
-    await loadCustomerMenu(restParam);
+    await initCustomerView(restParam);
     return;
   }
 
-  const sessionRaw = localStorage.getItem('mysmartmenu_session');
-  if (sessionRaw) {
+  const saved = localStorage.getItem('mysmartmenu_session');
+  if (saved) {
     try {
-      const session = JSON.parse(sessionRaw);
+      const session = JSON.parse(saved);
       if (session && session.restId) {
-        const snap = await getDoc(doc(db, 'restaurants', session.restId));
-        if (snap.exists()) {
-          const data = snap.data();
-          currentRestId = session.restId;
-          currentUser = data;
-          waNumber = data.whatsapp || '';
-          const subStatus = getSubscriptionStatus(data.subscription);
-          if (!subStatus.active) { showView('expiredView'); return; }
-          document.getElementById('restDisplayName').value = data.displayName || '';
-          document.getElementById('restWhatsapp').value = data.whatsapp || '';
-          applyLanguage(); renderThemeControls(data.themeId || 'default'); updateSubStatus(data.subscription);
+        currentRestId = session.restId;
+        const restSnap = await getDoc(doc(db, 'restaurants', currentRestId));
+        if (restSnap.exists()) {
+          currentUser = restSnap.data();
+          waNumber = currentUser.whatsapp || '';
+          const subStatus = getSubscriptionStatus(currentUser.subscription);
+          if (!subStatus.active) {
+            showView('expiredView');
+            return;
+          }
+          document.getElementById('restDisplayName').value = currentUser.displayName || '';
+          document.getElementById('restWhatsapp').value = currentUser.whatsapp || '';
+          applyLanguage();
+          renderThemeControls(currentUser.themeId || 'default');
+          updateSubStatus(currentUser.subscription);
           await loadMenuItems();
-          const analytics = await loadAnalytics(); maybeShowWeeklyReminder(analytics);
+          const analytics = await loadAnalytics();
+          maybeShowWeeklyReminder(analytics);
           showView('editorView');
           return;
         }
       }
-    } catch (e) { console.warn('تعذر استعادة الجلسة', e); }
+    } catch (e) {
+      console.warn('تعذر استرجاع الجلسة', e);
+    }
   }
-
   showView('subscriptionView');
-}
-
-initApp();
+});
 </script>
 </body>
 </html>
