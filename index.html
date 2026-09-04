@@ -287,13 +287,8 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .upload-status.success { color: var(--success); }
 .upload-status.error { color: var(--danger); }
 
-.skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; }
-@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-@media print {
-  .no-print { display: none !important; }
-  .card { box-shadow: none; margin: 0; }
-}
+.bootstrap-notice { background: #e3f2fd; border: 1px solid #90caf9; color: #0d47a1; border-radius: 10px; padding: 12px; margin: 12px 0; font-size: 12px; line-height: 1.8; }
+.bootstrap-notice strong { display: block; margin-bottom: 4px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -360,7 +355,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
       لديك حساب؟ <button type="button" onclick="showLogin()">سجّل الدخول</button>
     </div>
     <div class="login-link">
-      <button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍💼 دخول الإدارة</button>
+      <button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍💼 لوحة الإدارة</button>
     </div>
   </div>
 </div>
@@ -384,23 +379,32 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <div class="login-link">
       <button type="button" onclick="showSignup()">← ليس لديك حساب؟ سجّل الآن</button>
     </div>
+    <div class="login-link">
+      <button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍💼 لوحة الإدارة</button>
+    </div>
   </div>
 </div>
 
 <!-- ADMIN LOGIN SCREEN -->
 <div id="adminLoginView" class="view">
-  <div class="card" style="max-width:360px;">
+  <div class="card" style="max-width:380px;">
     <div class="logo">My<span>Smart</span>Menu</div>
     <div class="subtitle">لوحة الإدارة</div>
-    <p style="font-size:12px;color:var(--danger);margin-bottom:12px;">
-      ⚠️ تنبيه أمني: يجب استخدام المصادقة الثنائية للإدارة في الإنتاج
-    </p>
+    
+    <div id="bootstrapNotice" class="bootstrap-notice">
+      <strong>🎯 أول تشغيل للنظام</strong>
+      إذا كانت هذه أول مرة تسجل فيها، سيتم إنشاء حساب المدير تلقائياً باستخدام بياناتك أدناه.
+    </div>
+    
     <label class="field-label" for="adminEmail">بريد الإدارة</label>
-    <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username">
+    <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username" value="Khalifamedjahed22@gmail.com">
+    
     <label class="field-label" for="adminPassword">كلمة مرور الإدارة</label>
     <input type="password" id="adminPassword" placeholder="أدخل كلمة المرور" autocomplete="current-password">
-    <button class="btn btn-primary" onclick="verifyAdmin()">دخول</button>
-    <button class="btn btn-gray" style="margin-top:8px;" onclick="showSignup()">رجوع</button>
+    
+    <button class="btn btn-primary" onclick="verifyAdmin()" id="adminLoginBtn">🔐 دخول</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="adminResetPassword()">✉️ نسيت كلمة مرور الإدارة؟</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="showSignup()">← رجوع</button>
   </div>
 </div>
 
@@ -688,11 +692,17 @@ const CONFIG = {
     templateId: 'YOUR_EMAILJS_TEMPLATE_ID',
     adminEmail: 'support@example.com'
   },
+  admin: {
+    email: 'Khalifamedjahed22@gmail.com'
+  },
   subscription: {
     days: 30,
     warningDays: 3,
     defaultPrice: 4000,
     defaultCCP: "007 99999 0018864026 62"
+  },
+  whatsapp: {
+    support: '213562419291'
   }
 };
 
@@ -722,7 +732,7 @@ const AppState = {
   customerItemsById: {},
   selectedItemForOptions: null,
   networkOnline: navigator.onLine,
-  searchDebounceTimer: null
+  adminAccountCreated: false
 };
 
 // ==================== CONSTANTS ====================
@@ -915,7 +925,6 @@ const Utils = {
           canvas.height = Math.round(img.height * scale);
           canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          // Try webp first, fallback to jpeg
           canvas.toBlob(
             (blob) => {
               if (blob) resolve(blob);
@@ -948,6 +957,18 @@ const Utils = {
     return String(name || 'item').trim().toLowerCase()
       .replace(/[^a-z0-9\u0600-\u06ff]+/gi, '_')
       .slice(0, 80) || 'item';
+  },
+
+  validatePassword(password) {
+    if (!password) return { valid: false, message: 'كلمة المرور مطلوبة' };
+    if (password.length < 8) return { valid: false, message: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' };
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    if (!hasUpper || !hasLower || !hasNumber) {
+      return { valid: false, message: 'كلمة المرور يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام' };
+    }
+    return { valid: true };
   }
 };
 
@@ -1019,7 +1040,23 @@ function showView(id) {
 
 window.showSignup = function() { showView('subscriptionView'); };
 window.showLogin = function() { showView('loginView'); };
-window.showAdminLogin = function() { showView('adminLoginView'); };
+window.showAdminLogin = async function() { 
+  showView('adminLoginView'); 
+  // تحقق من حالة حساب المدير
+  try {
+    const adminStatus = await getDoc(doc(db, 'system', 'admin'));
+    const notice = document.getElementById('bootstrapNotice');
+    if (adminStatus.exists() && adminStatus.data().created) {
+      AppState.adminAccountCreated = true;
+      if (notice) notice.innerHTML = '<strong>✅ حساب المدير جاهز</strong>أدخل بريدك وكلمة المرور للدخول إلى لوحة الإدارة.';
+    } else {
+      AppState.adminAccountCreated = false;
+      if (notice) notice.innerHTML = '<strong>🎯 أول تشغيل للنظام</strong>إذا كانت هذه أول مرة تسجل فيها، سيتم إنشاء حساب المدير تلقائياً باستخدام بياناتك أدناه.';
+    }
+  } catch (e) {
+    console.warn('تعذر التحقق من حالة الحساب:', e);
+  }
+};
 
 // ==================== NETWORK STATE ====================
 function showNetworkState() {
@@ -1138,12 +1175,13 @@ function authErrorMessage(error) {
   const map = {
     'auth/email-already-in-use': 'هذا البريد مستخدم من قبل',
     'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة',
-    'auth/weak-password': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+    'auth/weak-password': 'كلمة المرور ضعيفة (يجب أن تكون 6 أحرف على الأقل)',
     'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة',
     'auth/user-not-found': 'الحساب غير موجود',
     'auth/wrong-password': 'كلمة المرور غير صحيحة',
     'auth/too-many-requests': 'محاولات كثيرة؛ حاول لاحقاً',
-    'auth/network-request-failed': 'تعذر الاتصال بالإنترنت'
+    'auth/network-request-failed': 'تعذر الاتصال بالإنترنت',
+    'auth/operation-not-allowed': 'تسجيل البريد وكلمة المرور غير مفعّل في Firebase Console'
   };
   return map[code] || error.message || 'حدث خطأ غير متوقع';
 }
@@ -1245,7 +1283,6 @@ window.previewImage = function(input) {
   const file = input.files[0];
   if (!file) return;
   
-  // Validate file
   if (!file.type.startsWith('image/')) {
     toast('⚠️ الرجاء اختيار ملف صورة صالح', 3000, 'warning');
     input.value = '';
@@ -1331,7 +1368,6 @@ window.signupRestaurant = async function() {
   const receiptFile = document.getElementById('signupReceiptImage').files[0];
   const password = document.getElementById('signupPassword').value;
 
-  // Validation
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) return toast('⚠️ أدخل بريداً إلكترونياً صحيحاً');
   if (!restId) return toast('⚠️ أدخل معرف المطعم');
   if (!/^[a-z0-9_]+$/.test(restId)) return toast('⚠️ المعرف يجب أن يكون باللاتينية بدون مسافات');
@@ -1339,7 +1375,10 @@ window.signupRestaurant = async function() {
   if (!waRaw) return toast('⚠️ أدخل رقم واتساب');
   if (!receipt) return toast('⚠️ أدخل رقم الإيصال');
   if (!receiptFile) return toast('⚠️ ارفع صورة إيصال الدفع');
-  if (!password || password.length < 6) return toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+  
+  const passwordValidation = Utils.validatePassword(password);
+  if (!passwordValidation.valid) return toast('⚠️ ' + passwordValidation.message, 3500, 'warning');
+  
   if (!AppState.networkOnline) return toast('⚠️ لا يوجد اتصال بالإنترنت', 3000, 'warning');
 
   const btn = document.getElementById('signupBtn');
@@ -1348,14 +1387,10 @@ window.signupRestaurant = async function() {
   setSignupStatus('', '');
 
   try {
-    // Check if restaurant ID exists
     const existing = await getDoc(doc(db, 'restaurants', restId));
     if (existing.exists()) throw new Error('معرف المطعم مستخدم بالفعل. جرب معرفاً آخر');
     
-    // Upload receipt image
     const receiptUrl = await uploadReceiptImage(receiptFile);
-    
-    // Create user account
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     const user = credential.user;
     
@@ -1382,14 +1417,12 @@ window.signupRestaurant = async function() {
     
     await setDoc(doc(db, 'restaurants', restId), restaurantData);
     
-    // Send verification email
     try {
       await sendEmailVerification(user);
     } catch (verificationError) {
       console.warn('تعذر إرسال تأكيد البريد', verificationError);
     }
     
-    // Send notification email
     try {
       await sendSignupNotification({
         email,
@@ -1521,13 +1554,11 @@ window.logout = async function() {
     console.warn('تعذر تسجيل الخروج من Firebase Auth', e);
   }
   
-  // Reset state
   AppState.currentRestId = '';
   AppState.currentUser = null;
   AppState.menu = [];
   AppState.editingIndex = -1;
   
-  // Clear form fields
   document.getElementById('loginRestId').value = '';
   document.getElementById('loginPassword').value = '';
   document.getElementById('signupEmail').value = '';
@@ -1538,42 +1569,165 @@ window.logout = async function() {
   showView('loginView');
 };
 
-// ==================== ADMIN ====================
+// ==================== ADMIN LOGIN WITH SMART BOOTSTRAP ====================
 window.verifyAdmin = async function() {
   const email = document.getElementById('adminEmail').value.trim().toLowerCase();
   const password = document.getElementById('adminPassword').value;
+  const loginBtn = document.getElementById('adminLoginBtn');
   
-  if (!email || !password) {
-    return toast('⚠️ أدخل بريد وكلمة مرور الإدارة', 3000, 'warning');
+  // Validate email matches configured admin email
+  if (email.toLowerCase() !== CONFIG.admin.email.toLowerCase()) {
+    return toast('❌ بريد الإدارة غير صحيح. استخدم: ' + CONFIG.admin.email, 4000, 'danger');
   }
   
+  if (!password) return toast('⚠️ أدخل كلمة المرور', 2500, 'warning');
+  
+  // Disable button during processing
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = 'جارٍ التحقق... <span class="spinner"></span>';
+  
   try {
-    // Use Firebase Auth for admin authentication
-    const credential = await signInWithEmailAndPassword(auth, email, password);
-    const user = credential.user;
-    
-    // Check if user has admin role (custom claim or specific email)
-    const isAdmin = email === CONFIG.emailjs.adminEmail || user.email.endsWith('@admin.mysmartmenu.com');
-    
-    if (!isAdmin) {
-      await signOut(auth);
-      return toast('❌ ليس لديك صلاحيات الإدارة', 3000, 'danger');
+    // Check if admin account is already created (via Firestore flag)
+    let adminStatusSnap;
+    try {
+      adminStatusSnap = await getDoc(doc(db, 'system', 'admin'));
+    } catch (firestoreError) {
+      // If Firestore read fails, assume not created and proceed with creation attempt
+      adminStatusSnap = { exists: () => false };
     }
     
-    document.getElementById('adminEmail').value = '';
-    document.getElementById('adminPassword').value = '';
+    const isAdminCreated = adminStatusSnap.exists() && adminStatusSnap.data().created;
     
-    await loadAdminPanel();
-    showView('adminView');
-    toast('✅ مرحباً مدير النظام', 3000, 'gold');
+    if (isAdminCreated) {
+      // Normal login flow
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        
+        // Sign out any restaurant user session
+        localStorage.removeItem('mysmartmenu_session');
+        
+        await loadAdminPanel();
+        showView('adminView');
+        toast('✅ مرحباً مدير النظام', 3000, 'gold');
+        
+        document.getElementById('adminPassword').value = '';
+        return;
+      } catch (signInError) {
+        throw signInError;
+      }
+    } else {
+      // BOOTSTRAP FLOW: First-time admin account creation
+      
+      // Validate password strength for bootstrap
+      const passwordValidation = Utils.validatePassword(password);
+      if (!passwordValidation.valid) {
+        throw new Error('كلمة المرور ضعيفة: ' + passwordValidation.message);
+      }
+      
+      // Try to create the admin account
+      try {
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Save bootstrap flag to Firestore
+        await setDoc(doc(db, 'system', 'admin'), {
+          created: true,
+          createdAt: new Date().toISOString(),
+          email: email,
+          uid: credential.user.uid,
+          version: '1.0'
+        });
+        
+        // Update bootstrap notice
+        const notice = document.getElementById('bootstrapNotice');
+        if (notice) {
+          notice.innerHTML = '<strong>✅ تم إنشاء الحساب بنجاح!</strong>جاري الدخول إلى لوحة الإدارة...';
+          notice.style.background = '#e8f5e9';
+          notice.style.borderColor = '#a5d6a7';
+          notice.style.color = '#1b5e20';
+        }
+        
+        AppState.adminAccountCreated = true;
+        
+        // Sign out any restaurant user session
+        localStorage.removeItem('mysmartmenu_session');
+        
+        await loadAdminPanel();
+        showView('adminView');
+        toast('🎉 تم إنشاء حساب المدير بنجاح! مرحباً بك', 5000, 'gold');
+        
+        document.getElementById('adminPassword').value = '';
+        return;
+        
+      } catch (createError) {
+        // If creation fails with "email already in use", try to sign in
+        if (createError.code === 'auth/email-already-in-use') {
+          try {
+            await signInWithEmailAndPassword(auth, email, password);
+            
+            // Mark as created since account exists
+            await setDoc(doc(db, 'system', 'admin'), {
+              created: true,
+              createdAt: new Date().toISOString(),
+              email: email
+            }, { merge: true });
+            
+            localStorage.removeItem('mysmartmenu_session');
+            
+            await loadAdminPanel();
+            showView('adminView');
+            toast('✅ مرحباً مدير النظام', 3000, 'gold');
+            
+            document.getElementById('adminPassword').value = '';
+            return;
+          } catch (signInError) {
+            throw new Error('الحساب موجود لكن كلمة المرور غير صحيحة');
+          }
+        }
+        
+        // If operation-not-allowed, Firebase Auth needs to be enabled
+        if (createError.code === 'auth/operation-not-allowed') {
+          throw new Error('تسجيل الدخول بالبريد/كلمة المرور غير مفعّل. يرجى تفعيله من Firebase Console → Authentication → Sign-in method → Email/Password');
+        }
+        
+        throw createError;
+      }
+    }
     
-  } catch (e) {
-    console.error(e);
-    toast('❌ بيانات الإدارة غير صحيحة', 3000, 'danger');
+  } catch (error) {
+    console.error('Admin login error:', error);
+    const errorMessage = error.code ? authErrorMessage(error) : (error.message || 'خطأ غير معروف');
+    toast('❌ ' + errorMessage, 5000, 'danger');
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = '🔐 دخول';
   }
 };
 
-window.adminLogout = function() {
+window.adminResetPassword = async function() {
+  const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+  
+  if (email.toLowerCase() !== CONFIG.admin.email.toLowerCase()) {
+    return toast('⚠️ أدخل بريد الإدارة أولاً', 3000, 'warning');
+  }
+  
+  try {
+    await sendPasswordResetEmail(auth, email);
+    toast('✉️ أرسلنا رابط إعادة تعيين كلمة مرور الإدارة إلى: ' + email, 5000, 'success');
+  } catch (e) {
+    if (e.code === 'auth/user-not-found') {
+      toast('⚠️ لم يتم إنشاء حساب الإدارة بعد. سجّل الدخول مرة واحدة أولاً لإنشائه', 5000, 'warning');
+    } else {
+      toast('❌ ' + authErrorMessage(e), 4000, 'danger');
+    }
+  }
+};
+
+window.adminLogout = async function() {
+  try {
+    await signOut(auth);
+  } catch (e) {
+    console.warn('تعذر تسجيل الخروج من حساب المدير', e);
+  }
   showView('subscriptionView');
 };
 
@@ -1671,7 +1825,6 @@ window.adminExtendSub = async function(restId) {
     const currentEnd = data.subscription?.endDate ? new Date(data.subscription.endDate) : new Date();
     const now = new Date();
     
-    // FIXED: Use proper Date comparison
     const baseDate = currentEnd > now ? currentEnd : now;
     baseDate.setDate(baseDate.getDate() + 30);
     const newEnd = baseDate.toISOString();
@@ -1807,7 +1960,6 @@ window.addItem = async function() {
     let imageUrl = '';
     
     if (imageFile) {
-      // Validate image file
       if (!imageFile.type.startsWith('image/')) {
         throw new Error('الملف المحدد ليس صورة');
       }
@@ -1851,7 +2003,6 @@ window.addItem = async function() {
       await addDoc(collection(db, 'restaurants', AppState.currentRestId, 'items'), itemData);
       toast('✅ تم إضافة الطبق بنجاح', 2800, 'success');
       
-      // Clear form
       document.getElementById('itemName').value = '';
       document.getElementById('itemPrice').value = '';
       document.getElementById('itemDesc').value = '';
@@ -2330,7 +2481,6 @@ function renderCustomerMenu() {
         
         const extras = Utils.parseItemExtras(item.extras);
         
-        // FIXED: Use safe onclick handler with item ID instead of fragile string interpolation
         const btnAction = extras.length 
           ? `openItemOptions(customerItemsById['${item.id}'])` 
           : `addToCartDirect('${item.id}')`;
@@ -2419,7 +2569,6 @@ function updateCartUI() {
   if (document.getElementById('cartTotal')) document.getElementById('cartTotal').textContent = Utils.formatCurrency(total);
 }
 
-// FIXED: Use item ID instead of name for cart items to avoid conflicts
 window.addToCartDirect = function(itemId) {
   const item = AppState.customerItemsById[itemId];
   if (!item) return;
