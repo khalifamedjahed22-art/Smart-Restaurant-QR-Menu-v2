@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root {
   --teal: #008080;
@@ -259,6 +260,10 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .login-link { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
 .login-link button { background: none; border: none; color: var(--teal); font-weight: 600; cursor: pointer; text-decoration: underline; font-family: 'Cairo', sans-serif; font-size: 13px; }
 .login-link .admin-btn { color: var(--muted); font-size: 12px; }
+.upload-status { min-height:22px; margin:6px 0 10px; color:var(--muted); font-size:12px; line-height:1.6; }
+.upload-status.loading { color:var(--blue); }
+.upload-status.success { color:var(--success); }
+.upload-status.error { color:var(--danger); }
 </style>
 </head>
 <body>
@@ -301,14 +306,21 @@ SUBSCRIPTION / SIGNUP SCREEN
     <label class="field-label">معرف المطعم (باللاتينية)</label>
     <input type="text" id="signupRestId" placeholder="مثال: burger_house">
 
+    <label class="field-label">البريد الإلكتروني</label>
+    <input type="email" id="signupEmail" placeholder="name@example.com" autocomplete="email" required>
+
     <label class="field-label">اسم المطعم للعرض</label>
-    <input type="text" id="signupDisplayName" placeholder="مثال: برغر هاوس">
+    <input type="text" id="signupDisplayName" placeholder="مثال: برغر هاوس" required>
 
     <label class="field-label">رقم واتساب للطلبات</label>
     <input type="text" id="signupWhatsapp" placeholder="مثال: 213562419291">
 
     <label class="field-label">كود الإيصال (من البنك)</label>
-    <input type="text" id="signupReceipt" placeholder="أدخل رقم الإيصال أو كود التأكيد">
+    <input type="text" id="signupReceipt" placeholder="أدخل رقم الإيصال أو كود التأكيد" required>
+
+    <label class="field-label">صورة إيصال الدفع</label>
+    <input type="file" id="signupReceiptImage" accept="image/jpeg,image/png,image/webp" required>
+    <div id="receiptUploadStatus" class="upload-status" aria-live="polite"></div>
 
     <label class="field-label">كلمة المرور للوحة التحكم</label>
     <input type="password" id="signupPassword" placeholder="أنشئ كلمة مرور قوية">
@@ -333,13 +345,16 @@ LOGIN SCREEN
     <div class="logo">My<span>Smart</span>Menu</div>
     <div class="subtitle">تسجيل الدخول</div>
 
-    <label class="field-label">معرف المطعم</label>
-    <input type="text" id="loginRestId" placeholder="مثال: burger_house">
+    <label class="field-label">البريد الإلكتروني أو معرف المطعم</label>
+    <input type="text" id="loginRestId" placeholder="name@example.com أو burger_house" autocomplete="username">
+    <p class="countdown">للحسابات الجديدة استخدم البريد الإلكتروني. يمكن للحسابات القديمة استخدام معرف المطعم مؤقتاً.</p>
 
     <label class="field-label">كلمة المرور</label>
     <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
 
     <button class="btn btn-primary" onclick="loginRestaurant()">🔑 تسجيل الدخول</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="resetRestaurantPassword()">✉️ نسيت كلمة المرور؟</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="resendVerificationEmail()">✅ إعادة إرسال تأكيد البريد</button>
 
     <div class="login-link">
       <button type="button" onclick="showSignup()">← ليس لديك حساب؟ سجّل الآن</button>
@@ -639,6 +654,7 @@ FIREBASE + APP LOGIC
 ══════════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc, addDoc, updateDoc, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -652,6 +668,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
@@ -667,7 +684,13 @@ const WARNING_DAYS = 3;
 // إعدادات Cloudinary الموجودة أصلاً في النسخة الابتدائية؛ لا تحتاج إلى خادم إضافي.
 const CLOUDINARY_CLOUD_NAME = 'qhuatwqf';
 const CLOUDINARY_UPLOAD_PRESET = 's8dcykxc';
+// ضع القيم الثلاث من حساب EmailJS قبل النشر على GitHub Pages.
+const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID';
+const ADMIN_NOTIFICATION_EMAIL = 'support@example.com';
 let networkOnline = navigator.onLine;
+if (window.emailjs && !EMAILJS_PUBLIC_KEY.startsWith('YOUR_')) window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
 
 /* ════════════════════════════════
@@ -1425,64 +1448,116 @@ async function loadMenuItems() {
 }
 
 /* ════════════════════════════════
+AUTH + SIGNUP HELPERS
+════════════════════════════════ */
+function setSignupStatus(message, type) {
+  const el = document.getElementById('receiptUploadStatus');
+  if (!el) return;
+  el.className = 'upload-status ' + (type || '');
+  el.textContent = message || '';
+}
+
+async function uploadReceiptImage(file) {
+  if (!file) throw new Error('يرجى اختيار صورة إيصال الدفع');
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('صيغة الإيصال يجب أن تكون JPG أو PNG أو WEBP');
+  if (file.size > 5 * 1024 * 1024) throw new Error('حجم صورة الإيصال يجب ألا يتجاوز 5MB');
+  setSignupStatus('⏳ جارٍ رفع صورة الإيصال...', 'loading');
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  formData.append('folder', 'mysmartmenu/receipts');
+  const response = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', { method:'POST', body:formData });
+  const data = await response.json();
+  if (!response.ok || !data.secure_url) throw new Error(data.error && data.error.message ? data.error.message : 'تعذر رفع صورة الإيصال');
+  setSignupStatus('✅ تم رفع صورة الإيصال بنجاح', 'success');
+  return data.secure_url;
+}
+
+async function sendSignupNotification(payload) {
+  if (!window.emailjs || EMAILJS_PUBLIC_KEY.startsWith('YOUR_') || EMAILJS_SERVICE_ID.startsWith('YOUR_') || EMAILJS_TEMPLATE_ID.startsWith('YOUR_')) {
+    throw new Error('EMAILJS_NOT_CONFIGURED');
+  }
+  return window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, Object.assign({}, payload, { to_email: ADMIN_NOTIFICATION_EMAIL }));
+}
+
+function authErrorMessage(error) {
+  const code = error && error.code || '';
+  const map = {
+    'auth/email-already-in-use':'هذا البريد مستخدم من قبل',
+    'auth/invalid-email':'صيغة البريد الإلكتروني غير صحيحة',
+    'auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+    'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة',
+    'auth/user-not-found':'الحساب غير موجود',
+    'auth/wrong-password':'كلمة المرور غير صحيحة',
+    'auth/too-many-requests':'محاولات كثيرة؛ حاول لاحقاً',
+    'auth/network-request-failed':'تعذر الاتصال بالإنترنت'
+  };
+  return map[code] || error.message || 'حدث خطأ غير متوقع';
+}
+
+/* ════════════════════════════════
 SIGNUP
 ════════════════════════════════ */
 window.signupRestaurant = async function() {
+  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
   const restId = document.getElementById('signupRestId').value.trim().toLowerCase();
   const displayName = document.getElementById('signupDisplayName').value.trim();
   const waRaw = document.getElementById('signupWhatsapp').value.trim();
   const receipt = document.getElementById('signupReceipt').value.trim();
+  const receiptFile = document.getElementById('signupReceiptImage').files[0];
   const password = document.getElementById('signupPassword').value;
 
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) return toast('⚠️ أدخل بريداً إلكترونياً صحيحاً');
   if (!restId) return toast('⚠️ أدخل معرف المطعم');
   if (!/^[a-z0-9_]+$/.test(restId)) return toast('⚠️ المعرف يجب أن يكون باللاتينية بدون مسافات');
   if (!displayName) return toast('⚠️ أدخل اسم المطعم');
   if (!waRaw) return toast('⚠️ أدخل رقم واتساب');
   if (!receipt) return toast('⚠️ أدخل رقم الإيصال');
+  if (!receiptFile) return toast('⚠️ ارفع صورة إيصال الدفع');
   if (!password || password.length < 6) return toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+  if (!networkOnline) return toast('⚠️ لا يوجد اتصال بالإنترنت', 3000, 'warning');
 
   const btn = document.getElementById('signupBtn');
   btn.disabled = true;
-  btn.innerHTML = 'جارٍ التفعيل... <span class="spinner"></span>';
+  btn.innerHTML = 'جارٍ التفعيل والرفع... <span class="spinner"></span>';
+  setSignupStatus('', '');
 
   try {
-    const existing = await getDoc(doc(db, "restaurants", restId));
-    if (existing.exists()) {
-      btn.disabled = false;
-      btn.innerHTML = '🚀 تفعيل حسابي الآن';
-      return toast('❌ معرف المطعم مستخدم بالفعل. جرب معرفاً آخر أو سجّل الدخول');
-    }
-
+    const existing = await getDoc(doc(db, 'restaurants', restId));
+    if (existing.exists()) throw new Error('معرف المطعم مستخدم بالفعل. جرب معرفاً آخر');
+    const receiptUrl = await uploadReceiptImage(receiptFile);
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = credential.user;
     const now = new Date().toISOString();
     const endDate = getSubscriptionEnd(now).toISOString();
-
-    await setDoc(doc(db, "restaurants", restId), {
+    const restaurantData = {
+      ownerUid: user.uid,
+      email: email,
       displayName: displayName,
       whatsapp: cleanPhone(waRaw),
-      passwordHash: await sha256(password),
       receiptCode: receipt,
-      subscription: {
-        startDate: now,
-        endDate: endDate,
-        price: SUBSCRIPTION_PRICE,
-        status: 'active',
-        autoRenew: false
-      },
+      receiptUrl: receiptUrl,
+      subscription: { startDate: now, endDate: endDate, price: SUBSCRIPTION_PRICE, status: 'active', autoRenew: false },
       createdAt: now,
       updatedAt: now
-    });
-
-    toast('🎉 تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول', 4000, 'gold');
-
-    setTimeout(function() {
-      document.getElementById('loginRestId').value = restId;
-      document.getElementById('loginPassword').value = '';
-      showLogin();
-    }, 1500);
-
+    };
+    await setDoc(doc(db, 'restaurants', restId), restaurantData);
+    try { await sendEmailVerification(user); } catch (verificationError) { console.warn('تعذر إرسال تأكيد البريد', verificationError); }
+    try {
+      await sendSignupNotification({ email, restaurant_name: displayName, restaurant_slug: restId, whatsapp: cleanPhone(waRaw), receipt_code: receipt, receipt_image_url: receiptUrl, user_uid: user.uid, submitted_at: new Date().toLocaleString('ar-DZ') });
+      toast('🎉 تم التفعيل وإرسال البيانات إلى بريد الإدارة', 4500, 'gold');
+    } catch (mailError) {
+      console.warn('EmailJS غير مهيأ أو تعذر الإرسال', mailError);
+      toast('✅ تم إنشاء الحساب، لكن يلزم إعداد EmailJS لإرسال إشعار البريد', 5000, 'warning');
+    }
+    localStorage.setItem('mysmartmenu_session', JSON.stringify({ restId, uid: user.uid, email, savedAt: Date.now() }));
+    document.getElementById('loginRestId').value = email;
+    document.getElementById('loginPassword').value = '';
+    showLogin();
   } catch (e) {
     console.error(e);
-    toast('❌ خطأ في التفعيل. حاول مرة أخرى');
+    setSignupStatus('', '');
+    toast(e.message === 'معرف المطعم مستخدم بالفعل. جرب معرفاً آخر' ? '❌ ' + e.message : '❌ ' + authErrorMessage(e), 4500, 'danger');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '🚀 تفعيل حسابي الآن';
@@ -1493,55 +1568,57 @@ window.signupRestaurant = async function() {
 LOGIN
 ════════════════════════════════ */
 window.loginRestaurant = async function() {
-  const restId = document.getElementById('loginRestId').value.trim().toLowerCase();
+  const email = document.getElementById('loginRestId').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
-
-  if (!restId || !password) return toast('⚠️ أدخل جميع البيانات');
-
+  if (!email || !password) return toast('⚠️ أدخل البريد الإلكتروني وكلمة المرور');
+  if (!email.includes('@')) return toast('⚠️ استخدم البريد الإلكتروني المرتبط بالحساب');
   try {
-    const snap = await getDoc(doc(db, "restaurants", restId));
-    if (!snap.exists()) return toast('❌ معرف المطعم غير موجود');
-
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const user = credential.user;
+    const owned = await getDocs(query(collection(db, 'restaurants'), where('ownerUid', '==', user.uid)));
+    if (owned.empty) { await signOut(auth); return toast('❌ لم يتم العثور على مطعم مرتبط بهذا الحساب'); }
+    const snap = owned.docs[0];
+    const restId = snap.id;
     const data = snap.data();
-    const hash = await sha256(password);
-    if (data.passwordHash !== hash) return toast('❌ كلمة المرور غير صحيحة');
-
-    currentRestId = restId;
-    currentUser = data;
-    waNumber = data.whatsapp || '';
-    localStorage.setItem('mysmartmenu_session', JSON.stringify({ restId: restId, passwordHash: data.passwordHash, savedAt: Date.now() }));
-
+    currentRestId = restId; currentUser = data; waNumber = data.whatsapp || '';
+    localStorage.setItem('mysmartmenu_session', JSON.stringify({ restId, uid: user.uid, email: user.email, savedAt: Date.now() }));
     const subStatus = getSubscriptionStatus(data.subscription);
-    if (!subStatus.active) {
-      showView('expiredView');
-      return;
-    }
-
+    if (!subStatus.active) { showView('expiredView'); return; }
     document.getElementById('restDisplayName').value = data.displayName || '';
     document.getElementById('restWhatsapp').value = data.whatsapp || '';
-    applyLanguage();
-    renderThemeControls(data.themeId || 'default');
-    updateSubStatus(data.subscription);
+    applyLanguage(); renderThemeControls(data.themeId || 'default'); updateSubStatus(data.subscription);
     await loadMenuItems();
-    const analytics = await loadAnalytics();
-    maybeShowWeeklyReminder(analytics);
+    const analytics = await loadAnalytics(); maybeShowWeeklyReminder(analytics);
     showView('editorView');
-    toast('✅ تم تسجيل الدخول بنجاح');
-
-  } catch (e) {
-    console.error(e);
-    toast('❌ خطأ في تسجيل الدخول');
-  }
+    toast(user.emailVerified ? '✅ تم تسجيل الدخول بنجاح' : '✅ تم الدخول. تحقق من بريدك الإلكتروني للتأكيد', 4000, user.emailVerified ? 'success' : 'warning');
+  } catch (e) { console.error(e); toast('❌ ' + authErrorMessage(e), 4000, 'danger'); }
 };
 
-window.logout = function() {
+window.resetRestaurantPassword = async function() {
+  const email = document.getElementById('loginRestId').value.trim().toLowerCase();
+  if (!email || !email.includes('@')) return toast('⚠️ أدخل البريد الإلكتروني أولاً', 3000, 'warning');
+  try { await sendPasswordResetEmail(auth, email); toast('✉️ أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك', 4500, 'success'); }
+  catch (e) { toast('❌ ' + authErrorMessage(e), 4000, 'danger'); }
+};
+
+window.resendVerificationEmail = async function() {
+  if (!auth.currentUser) return toast('⚠️ سجّل الدخول أولاً ثم أعد إرسال رسالة التأكيد', 3500, 'warning');
+  try { await sendEmailVerification(auth.currentUser); toast('✅ أُعيد إرسال رسالة تأكيد البريد', 4000, 'success'); }
+  catch (e) { toast('❌ ' + authErrorMessage(e), 4000, 'danger'); }
+};
+
+window.logout = async function() {
   localStorage.removeItem('mysmartmenu_session');
+  try { await signOut(auth); } catch (e) { console.warn('تعذر تسجيل الخروج من Firebase Auth', e); }
   currentRestId = '';
   currentUser = null;
   menu = [];
   editingIndex = -1;
   document.getElementById('loginRestId').value = '';
   document.getElementById('loginPassword').value = '';
+  document.getElementById('signupEmail').value = '';
+  document.getElementById('signupReceiptImage').value = '';
+  setSignupStatus('', '');
   document.getElementById('itemName').value = '';
   document.getElementById('itemCategory').value = '';
   document.getElementById('itemPrice').value = '';
@@ -2246,12 +2323,10 @@ async function restoreSession() {
     const raw = localStorage.getItem('mysmartmenu_session');
     if (!raw) return false;
     const saved = JSON.parse(raw);
-    if (!saved.restId || !saved.passwordHash || Date.now() - Number(saved.savedAt || 0) > 1000 * 60 * 60 * 24 * 30) {
-      localStorage.removeItem('mysmartmenu_session');
-      return false;
-    }
+    const user = auth.currentUser;
+    if (!saved.restId || !saved.uid || !user || user.uid !== saved.uid) return false;
     const snap = await getDoc(doc(db, 'restaurants', saved.restId));
-    if (!snap.exists() || snap.data().passwordHash !== saved.passwordHash) return false;
+    if (!snap.exists() || snap.data().ownerUid !== user.uid) return false;
     const data = snap.data();
     if (!getSubscriptionStatus(data.subscription).active) { showView('expiredView'); return true; }
     currentRestId = saved.restId; currentUser = data; waNumber = data.whatsapp || '';
@@ -2264,7 +2339,14 @@ async function restoreSession() {
   } catch (e) { console.warn('تعذر استعادة الجلسة', e); return false; }
 }
 
+function waitForAuthReady() {
+  return new Promise(function(resolve) {
+    let unsubscribe = onAuthStateChanged(auth, function(user) { if (unsubscribe) unsubscribe(); resolve(user); });
+  });
+}
+
 (async function init() {
+  await waitForAuthReady();
   await loadSystemSettings();
   const params = new URLSearchParams(window.location.search);
   const restId = params.get('rest');
