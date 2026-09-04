@@ -60,6 +60,58 @@ body { font-family: 'Cairo', Arial, sans-serif; background: var(--gray-bg); colo
 .ccp-box { background: var(--teal-light); border: 1px solid #b2dfdb; border-radius: 10px; padding: 14px 16px; font-weight: 700; color: var(--teal-dark); font-size: 15px; margin: 14px 0; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; user-select: all; }
 .ccp-box::before { content: "🏦"; font-size: 20px; }
 
+/* ==================== تصميم حقل رقم الهاتف الاحترافي ==================== */
+.phone-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin: 8px 0;
+  direction: ltr;
+}
+.phone-country-code {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+  border: 1.5px solid var(--teal);
+  border-radius: 10px;
+  font-weight: 900;
+  color: var(--teal-dark);
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  min-width: 82px;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+  letter-spacing: 0.5px;
+}
+.phone-country-code .flag {
+  font-size: 18px;
+  line-height: 1;
+}
+.phone-number-input {
+  flex: 1;
+  direction: ltr;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.phone-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 2px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.phone-hint::before {
+  content: "💡";
+  font-size: 12px;
+}
+
 input[type="text"], input[type="number"], input[type="password"], input[type="email"], input[type="search"], input[type="tel"], textarea, select {
   display: block; width: 100%; padding: 12px 14px; margin: 8px 0;
   border: 1.5px solid var(--gray-border); border-radius: 10px;
@@ -71,6 +123,205 @@ textarea { resize: vertical; min-height: 80px; }
 input[type="file"] { display: block; width: 100%; margin: 8px 0; padding: 10px; border: 1.5px dashed var(--gray-border); border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 13px; background: #fafafa; cursor: pointer; transition: border-color 0.2s; }
 input[type="file"]:hover { border-color: var(--teal); }
 label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); display: block; margin-top: 10px; margin-bottom: 2px; }
+
+/* ==================== Toggle Switch لرقم الطاولة ==================== */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fafafa;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.toggle-row:hover { border-color: var(--teal-light); background: #f5fafa; }
+.toggle-row.active { border-color: var(--teal); background: var(--teal-light); }
+.toggle-input { display: none; }
+.toggle-switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  background: #ccc;
+  border-radius: 26px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.toggle-input:checked + .toggle-switch {
+  background: var(--teal);
+}
+.toggle-input:checked + .toggle-switch::after {
+  transform: translateX(20px);
+}
+.toggle-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  cursor: pointer;
+}
+.toggle-label small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* ==================== التصنيفات الديناميكية ==================== */
+.categories-manager {
+  background: #fafafa;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 10px 0;
+}
+.category-manager-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1.5px solid var(--gray-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 6px 0;
+  cursor: move;
+  transition: all 0.2s ease;
+}
+.category-manager-item:hover { border-color: var(--teal); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.category-manager-item.dragging { opacity: 0.5; }
+.category-manager-item.drag-over { border-color: var(--gold); background: #fff8e1; }
+.category-drag-handle {
+  color: var(--muted);
+  font-size: 18px;
+  cursor: grab;
+  user-select: none;
+  padding: 0 4px;
+}
+.category-drag-handle:active { cursor: grabbing; }
+.category-edit-input {
+  flex: 1;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 4px 6px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  margin: 0;
+  border-radius: 4px;
+}
+.category-edit-input:focus { border-color: var(--teal); background: #fff; outline: none; }
+.category-emoji-input {
+  width: 46px;
+  text-align: center;
+  font-size: 18px;
+  padding: 4px;
+  border: 1px solid var(--gray-border);
+  border-radius: 6px;
+  margin: 0;
+  background: var(--white);
+}
+.category-delete-btn {
+  border: 0;
+  background: #ffebee;
+  color: var(--danger);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+.category-delete-btn:hover { background: #ffcdd2; }
+.category-delete-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.new-category-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  align-items: center;
+}
+.new-category-row input { margin: 0; }
+
+/* ==================== مؤشر ضغط المنصة ==================== */
+.load-monitor-card {
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1.5px solid #ffecb3;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 14px 0;
+}
+.load-monitor-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: #6d4c00;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.load-bar-wrap {
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  height: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+}
+.load-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  transition: width 0.6s ease, background 0.6s ease;
+}
+.load-bar-fill.warn { background: linear-gradient(90deg, #ffb300, #ff9800); }
+.load-bar-fill.danger { background: linear-gradient(90deg, #e53935, #ef5350); animation: pulse 1.5s infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.load-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.load-stat {
+  text-align: center;
+  padding: 8px 4px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 8px;
+}
+.load-stat .num {
+  font-size: 16px;
+  font-weight: 900;
+  color: #6d4c00;
+  display: block;
+}
+.load-stat .lbl {
+  font-size: 10px;
+  color: #8b6b00;
+  line-height: 1.3;
+}
+.load-note {
+  font-size: 11px;
+  color: #8b6b00;
+  margin-top: 10px;
+  text-align: center;
+  line-height: 1.7;
+}
 
 .btn { display: block; width: 100%; padding: 13px 20px; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; text-align: center; margin-top: 10px; position: relative; overflow: hidden; }
 .btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
@@ -212,6 +463,12 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 .order-type.active { border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark); box-shadow: 0 0 0 2px rgba(0,128,128,.08); }
 .order-fields { display: none; }
 .order-fields.active { display: block; }
+.order-fields .field-optional-hint {
+  font-size: 11px;
+  color: var(--gold);
+  margin-top: 2px;
+  font-weight: 600;
+}
 
 .category-title { font-size: 16px; font-weight: 700; color: var(--teal-dark); margin: 20px 0 10px; border-bottom: 2px solid var(--teal-light); padding-bottom: 6px; }
 .category-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 2px 10px; margin: 4px 0 10px; border-bottom: 1px solid var(--teal-light); touch-action: pan-x; -ms-overflow-style: none; }
@@ -335,8 +592,15 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <label class="field-label" for="signupDisplayName">اسم المطعم للعرض</label>
     <input type="text" id="signupDisplayName" placeholder="مثال: برغر هاوس" required>
 
-    <label class="field-label" for="signupWhatsapp">رقم واتساب للطلبات</label>
-    <input type="tel" id="signupWhatsapp" placeholder="مثال: 213562419291" autocomplete="tel">
+    <label class="field-label">رقم واتساب للطلبات</label>
+    <div class="phone-input-wrapper">
+      <div class="phone-country-code">
+        <span class="flag">🇩🇿</span>
+        <span>+213</span>
+      </div>
+      <input type="tel" id="signupWhatsapp" class="phone-number-input" placeholder="555 123 4567" inputmode="numeric" maxlength="10" autocomplete="tel">
+    </div>
+    <div class="phone-hint">الرقم يبدأ بـ 05 أو 06 أو 07 متبوعاً بـ 8 أرقام (مثال: 5551234567)</div>
 
     <label class="field-label" for="signupReceipt">كود الإيصال (من البنك)</label>
     <input type="text" id="signupReceipt" placeholder="أدخل رقم الإيصال أو كود التأكيد" required>
@@ -380,7 +644,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
       <button type="button" onclick="showSignup()">← ليس لديك حساب؟ سجّل الآن</button>
     </div>
     <div class="login-link">
-      <button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍ لوحة الإدارة</button>
+      <button type="button" class="admin-btn" onclick="showAdminLogin()">👨 لوحة الإدارة</button>
     </div>
   </div>
 </div>
@@ -433,6 +697,31 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
         <div class="stat-card"><div class="num" id="adminActiveRests">0</div><div class="lbl">مشتركين نشطين</div></div>
         <div class="stat-card"><div class="num" id="adminExpiredRests">0</div><div class="lbl">منتهي الاشتراك</div></div>
         <div class="stat-card"><div class="num" id="adminTotalItems">0</div><div class="lbl">إجمالي الأطباق</div></div>
+      </div>
+
+      <div class="load-monitor-card" id="loadMonitorCard">
+        <div class="load-monitor-title">
+          <span>⚡</span>
+          <span>مؤشر ضغط المنصة واستخدام Firebase</span>
+        </div>
+        <div class="load-bar-wrap">
+          <div class="load-bar-fill" id="loadBarFill" style="width:0%"></div>
+        </div>
+        <div class="load-stats-grid">
+          <div class="load-stat">
+            <span class="num" id="platformTotalViews">0</span>
+            <span class="lbl">مشاهدات الشهر</span>
+          </div>
+          <div class="load-stat">
+            <span class="num" id="platformTotalOrders">0</span>
+            <span class="lbl">طلبات الشهر</span>
+          </div>
+          <div class="load-stat">
+            <span class="num" id="platformUsagePercent">0%</span>
+            <span class="lbl">نسبة الاستخدام</span>
+          </div>
+        </div>
+        <div class="load-note" id="loadNote">يتم تحديث المؤشرات تلقائياً كل دقيقة. الخطة المجانية لـ Firebase تسمح بـ 50,000 قراءة و20,000 كتابة يومياً.</div>
       </div>
     </div>
 
@@ -516,9 +805,41 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <div class="section-title">إعدادات المطعم</div>
     <label class="field-label" for="restDisplayName">اسم المطعم للعرض</label>
     <input type="text" id="restDisplayName" placeholder="مثال: برغر هاوس">
-    <label class="field-label" for="restWhatsapp">رقم واتساب للطلبات (مع رمز الدولة)</label>
-    <input type="tel" id="restWhatsapp" placeholder="مثال: 213562419291">
+
+    <label class="field-label">رقم واتساب للطلبات (مع رمز الدولة)</label>
+    <div class="phone-input-wrapper">
+      <div class="phone-country-code">
+        <span class="flag">🇩</span>
+        <span>+213</span>
+      </div>
+      <input type="tel" id="restWhatsapp" class="phone-number-input" placeholder="555 123 4567" inputmode="numeric" maxlength="10">
+    </div>
+    <div class="phone-hint">الرقم يبدأ بـ 05 أو 06 أو 07 متبوعاً بـ 8 أرقام</div>
+
+    <label class="field-label">رقم الطاولة للطلبات الداخلية</label>
+    <label class="toggle-row" id="toggleRowRequireTable">
+      <input type="checkbox" id="restRequireTableNumber" class="toggle-input">
+      <span class="toggle-switch"></span>
+      <span class="toggle-label">
+        إلزام الزبون بإدخال رقم الطاولة
+        <small>عند التعطيل، يتم إرسال الطلب دون مطالبة برقم الطاولة</small>
+      </span>
+    </label>
+
     <button class="btn btn-primary" style="margin-top:8px;" onclick="saveRestInfo()">💾 حفظ إعدادات المطعم</button>
+
+    <hr class="divider">
+    <div class="section-title">🗂️ إدارة تصنيفات المنيو</div>
+    <p class="countdown" style="margin-bottom:8px;">أنشئ، أعد تسمية، أو رتب التصنيفات حسب مطعمك. اسحب التصنيفات لإعادة ترتيبها.</p>
+    <div class="categories-manager" id="categoriesManager">
+      <div id="categoriesList"></div>
+      <div class="new-category-row">
+        <input type="text" class="category-emoji-input" id="newCategoryEmoji" placeholder="🍽️" maxlength="4">
+        <input type="text" class="category-edit-input" id="newCategoryName" placeholder="اسم التصنيف الجديد (مثال: شاورما)" maxlength="30">
+        <button type="button" class="btn btn-sm btn-primary" onclick="addNewCategory()" style="margin:0;">➕ إضافة</button>
+      </div>
+      <button type="button" class="btn btn-success" style="margin-top:10px;" onclick="saveCategoriesToFirebase()">💾 حفظ التصنيفات</button>
+    </div>
 
     <hr class="divider">
     <div class="section-title" id="formTitle">إضافة طبق جديد</div>
@@ -526,9 +847,6 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <input type="text" id="itemName" placeholder="مثال: برغر كلاسيكي" autocomplete="off">
     <label class="field-label" for="itemCategory">قسم الطبق</label>
     <select id="itemCategory">
-      <option value="أطباق">🍽️ الأطباق</option>
-      <option value="تحلية">🍰 التحلية</option>
-      <option value="مشروبات">🥤 المشروبات</option>
     </select>
     <label class="field-label" for="itemPrice">السعر (دج)</label>
     <input type="number" id="itemPrice" placeholder="مثال: 850" min="0" step="1">
@@ -547,7 +865,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 
     <hr class="divider">
     <div class="section-title">قائمة المنتجات حسب القسم</div>
-    <div class="swipe-hint">اسحب يميناً أو يساراً للتنقل بين الأطباق والتحلية والمشروبات</div>
+    <div class="swipe-hint">اسحب يميناً أو يساراً للتنقل بين الأقسام</div>
     <div id="menuList"><div class="empty"><div class="icon">🍽️</div>لا توجد أطباق بعد.</div></div>
 
     <hr class="divider">
@@ -621,6 +939,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <div id="dineInFields" class="order-fields active">
       <label class="field-label" for="orderTableNumber" data-i18n="tableNumberLabel">رقم الطاولة</label>
       <input type="text" id="orderTableNumber" data-i18n-placeholder="tableNumberPlaceholder" placeholder="مثال: 12" autocomplete="off">
+      <div class="field-optional-hint" id="tableNumberHint" style="display:none;">(اختياري - اتركه فارغاً إذا لم تعرف رقم الطاولة)</div>
       <label class="field-label" for="orderCustomerName" data-i18n="customerNameLabel">اسم الزبون</label>
       <input type="text" id="orderCustomerName" data-i18n-placeholder="customerNamePlaceholder" placeholder="أدخل اسمك" autocomplete="name">
     </div>
@@ -692,6 +1011,11 @@ const CONFIG = {
     templateId: 'template_qe66oxd',
     adminEmail: 'khalifamedjahed22@gmail.com'
   },
+  // ✅ Brevo عبر Cloudflare Worker — المفتاح مخفي بأمان في الخادم
+  brevo: {
+    workerUrl: 'https://mysmartmenu-email.khalifamedjahed22.workers.dev',
+    adminEmail: 'khalifamedjahed22@gmail.com'
+  },
   admin: {
     email: 'Khalifamedjahed22@gmail.com'
   },
@@ -703,6 +1027,11 @@ const CONFIG = {
   },
   whatsapp: {
     support: '213562419291'
+  },
+  firebaseLimits: {
+    dailyReads: 50000,
+    dailyWrites: 20000,
+    monthlyStorage: 1
   }
 };
 
@@ -732,14 +1061,16 @@ const AppState = {
   customerItemsById: {},
   selectedItemForOptions: null,
   networkOnline: navigator.onLine,
-  adminAccountCreated: false
+  adminAccountCreated: false,
+  categories: [],
+  customerCategories: [],
+  requireTableNumber: true
 };
 
-// ==================== CONSTANTS ====================
-const MENU_CATEGORIES = [
-  { key: 'أطباق', labelAr: '🍽️ الأطباق', labelFr: '🍽️ Plats' },
-  { key: 'تحلية', labelAr: '🍰 التحلية', labelFr: '🍰 Desserts' },
-  { key: 'مشروبات', labelAr: '🥤 المشروبات', labelFr: '🥤 Boissons' }
+const DEFAULT_CATEGORIES = [
+  { key: 'أطباق', emoji: '🍽️', labelAr: 'الأطباق', labelFr: 'Plats', order: 0 },
+  { key: 'تحلية', emoji: '🍰', labelAr: 'التحلية', labelFr: 'Desserts', order: 1 },
+  { key: 'مشروبات', emoji: '🥤', labelAr: 'المشروبات', labelFr: 'Boissons', order: 2 }
 ];
 
 const MENU_THEMES = [
@@ -831,7 +1162,18 @@ const Utils = {
     return div.innerHTML;
   },
 
+  cleanAlgerianPhone(num) {
+    let n = String(num || '').replace(/[\s\-().]/g, '');
+    n = n.replace(/^\+213/, '').replace(/^00213/, '').replace(/^213/, '');
+    n = n.replace(/^0/, '');
+    n = n.replace(/\D/g, '');
+    if (!/^[567]\d{8}$/.test(n)) return null;
+    return '213' + n;
+  },
+
   cleanPhone(num) {
+    const algerian = Utils.cleanAlgerianPhone(num);
+    if (algerian) return algerian;
     return String(num).replace(/[\s\-().]/g, '').replace(/^00/, '').replace(/^\+/, '');
   },
 
@@ -884,11 +1226,12 @@ const Utils = {
     ).join('، ') + ')';
   },
 
-  normalizeCategory(value) {
-    const text = String(value || '').trim().toLowerCase();
-    if (text.includes('مشروب') || text.includes('drink') || text.includes('beverage') || text.includes('juice')) return 'مشروبات';
-    if (text.includes('تحل') || text.includes('حلو') || text.includes('dessert') || text.includes('sweet') || text.includes('cake')) return 'تحلية';
-    return 'أطباق';
+  normalizeCategory(value, categories) {
+    const text = String(value || '').trim();
+    const cats = categories && categories.length ? categories : DEFAULT_CATEGORIES;
+    const exact = cats.find(c => c.key === text || c.labelAr === text);
+    if (exact) return exact.key;
+    return cats[0]?.key || 'أطباق';
   },
 
   getSubscriptionEnd(startDate) {
@@ -969,6 +1312,13 @@ const Utils = {
       return { valid: false, message: 'كلمة المرور يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام' };
     }
     return { valid: true };
+  },
+
+  generateCategoryKey(name) {
+    return 'cat_' + String(name).trim()
+      .replace(/[^a-z0-9\u0600-\u06ff]/gi, '_')
+      .toLowerCase()
+      .slice(0, 30) + '_' + Date.now().toString(36).slice(-4);
   }
 };
 
@@ -1185,6 +1535,89 @@ function authErrorMessage(error) {
   return map[code] || error.message || 'حدث خطأ غير متوقع';
 }
 
+// ==================== BREVO EMAIL INTEGRATION (عبر Cloudflare Worker) ====================
+async function sendBrevoNotification({ toEmail, toName, subject, htmlContent, templateParams }) {
+  const workerUrl = CONFIG.brevo.workerUrl;
+
+  if (!workerUrl) {
+    console.warn('Worker غير مهيأ - سيتم استخدام EmailJS');
+    return { success: false, fallback: true };
+  }
+
+  try {
+    const response = await fetch(workerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ toEmail, toName, subject, htmlContent, templateParams })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      console.log('✅ تم الإرسال عبر Cloudflare Worker (Brevo)');
+      return { success: true, messageId: result.messageId };
+    }
+
+    console.warn('Worker error:', result.error);
+    return { success: false, error: result.error };
+  } catch (error) {
+    console.warn('Worker connection error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+function buildSignupEmailHtml(payload) {
+  return `
+    <div style="font-family: 'Cairo', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f7f8; padding: 20px;">
+      <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #008080; margin: 0; font-size: 28px;">My<span style="color: #c9a84c;">Smart</span>Menu</h1>
+          <p style="color: #757575; margin-top: 8px;">🎉 اشتراك جديد!</p>
+        </div>
+        <div style="background: #e0f2f1; border-right: 4px solid #c9a84c; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="color: #006666; margin: 0 0 12px; font-size: 18px;">📋 تفاصيل المطعم الجديد</h2>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 0; color: #757575; font-weight: 600;">🏪 المطعم:</td>
+              <td style="padding: 6px 0; color: #212121; font-weight: 700;">${payload.restaurant_name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #757575; font-weight: 600;">🆔 المعرف:</td>
+              <td style="padding: 6px 0; color: #212121;"><code style="background: #f5f7f8; padding: 2px 8px; border-radius: 4px;">${payload.restaurant_slug}</code></td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #757575; font-weight: 600;">📧 البريد:</td>
+              <td style="padding: 6px 0;"><a href="mailto:${payload.email}" style="color: #008080;">${payload.email}</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #757575; font-weight: 600;">📱 واتساب:</td>
+              <td style="padding: 6px 0;"><a href="https://wa.me/${payload.whatsapp}" style="color: #008080;">+${payload.whatsapp}</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #757575; font-weight: 600;">🧾 كود الإيصال:</td>
+              <td style="padding: 6px 0; font-weight: 700; color: #c9a84c;">${payload.receipt_code}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #757575; font-weight: 600;">🕐 الوقت:</td>
+              <td style="padding: 6px 0; color: #757575; font-size: 13px;">${payload.submitted_at}</td>
+            </tr>
+          </table>
+        </div>
+        ${payload.receipt_image_url ? `
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${payload.receipt_image_url}" target="_blank" style="display: inline-block; padding: 12px 24px; background: #008080; color: white; border-radius: 10px; text-decoration: none; font-weight: 700;">
+            🖼️ عرض صورة الإيصال
+          </a>
+        </div>
+        ` : ''}
+        <div style="text-align: center; padding-top: 16px; border-top: 1px solid #e0e0e0; color: #757575; font-size: 12px;">
+          <p>تم الاستلام تلقائياً عبر منصة MySmartMenu</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // ==================== SYSTEM SETTINGS ====================
 async function loadSystemSettings() {
   try {
@@ -1349,28 +1782,54 @@ async function uploadReceiptImage(file) {
 }
 
 async function sendSignupNotification(payload) {
-  const cfg = CONFIG.emailjs;
-  if (!window.emailjs ||
-      cfg.publicKey.startsWith('YOUR_') ||
-      cfg.serviceId.startsWith('YOUR_') ||
-      cfg.templateId.startsWith('YOUR_')) {
-    throw new Error('EMAILJS_NOT_CONFIGURED');
+  const emailjsCfg = CONFIG.emailjs;
+
+  // محاولة الإرسال عبر Cloudflare Worker (Brevo) أولاً
+  try {
+    const workerResult = await sendBrevoNotification({
+      toEmail: CONFIG.brevo.adminEmail,
+      toName: 'MySmartMenu Admin',
+      subject: '🎉 اشتراك جديد: ' + (payload.restaurant_name || ''),
+      htmlContent: buildSignupEmailHtml(payload),
+      templateParams: payload
+    });
+
+    if (workerResult.success) {
+      console.log('✅ تم إرسال إشعار الاشتراك عبر Brevo (Cloudflare Worker)');
+      return { success: true, provider: 'brevo' };
+    }
+  } catch (brevoError) {
+    console.warn('فشل الإرسال عبر Brevo، سيتم المحاولة بـ EmailJS:', brevoError);
   }
 
-  const enriched = Object.assign({
-    name: payload.restaurant_name || 'مطعم جديد',
-    title: 'اشتراك جديد: ' + (payload.restaurant_name || ''),
-    message:
-      '🏪 المطعم: ' + payload.restaurant_name + ' (' + payload.restaurant_slug + ')\n' +
-      '📧 البريد: ' + payload.email + '\n' +
-      '📱 واتساب: ' + payload.whatsapp + '\n' +
-      '🧾 كود الإيصال: ' + payload.receipt_code + '\n' +
-      '🖼️ صورة الإيصال: ' + payload.receipt_image_url + '\n' +
-      '👤 UID: ' + payload.user_uid + '\n' +
-      '🕐 الوقت: ' + payload.submitted_at
-  }, payload, { to_email: cfg.adminEmail });
+  // fallback إلى EmailJS
+  if (window.emailjs &&
+      !emailjsCfg.publicKey.startsWith('YOUR_') &&
+      !emailjsCfg.serviceId.startsWith('YOUR_') &&
+      !emailjsCfg.templateId.startsWith('YOUR_')) {
+    try {
+      const enriched = Object.assign({
+        name: payload.restaurant_name || 'مطعم جديد',
+        title: 'اشتراك جديد: ' + (payload.restaurant_name || ''),
+        message:
+          '🏪 المطعم: ' + payload.restaurant_name + ' (' + payload.restaurant_slug + ')\n' +
+          '📧 البريد: ' + payload.email + '\n' +
+          '📱 واتساب: ' + payload.whatsapp + '\n' +
+          '🧾 كود الإيصال: ' + payload.receipt_code + '\n' +
+          '🖼️ صورة الإيصال: ' + payload.receipt_image_url + '\n' +
+          '👤 UID: ' + payload.user_uid + '\n' +
+          '🕐 الوقت: ' + payload.submitted_at
+      }, payload, { to_email: emailjsCfg.adminEmail });
 
-  return window.emailjs.send(cfg.serviceId, cfg.templateId, enriched);
+      await window.emailjs.send(emailjsCfg.serviceId, emailjsCfg.templateId, enriched);
+      console.log('✅ تم الإرسال عبر EmailJS (fallback)');
+      return { success: true, provider: 'emailjs' };
+    } catch (emailjsError) {
+      console.warn('EmailJS fallback failed:', emailjsError);
+    }
+  }
+
+  return { success: false, error: 'فشل الإرسال عبر كلا النظامين' };
 }
 
 window.signupRestaurant = async function() {
@@ -1386,7 +1845,12 @@ window.signupRestaurant = async function() {
   if (!restId) return toast('⚠️ أدخل معرف المطعم');
   if (!/^[a-z0-9_]+$/.test(restId)) return toast('⚠️ المعرف يجب أن يكون باللاتينية بدون مسافات');
   if (!displayName) return toast('⚠️ أدخل اسم المطعم');
-  if (!waRaw) return toast('⚠️ أدخل رقم واتساب');
+  
+  const cleanedPhone = Utils.cleanAlgerianPhone(waRaw);
+  if (!cleanedPhone) {
+    return toast('⚠️ أدخل رقماً جزائرياً صحيحاً (يبدأ بـ 05 أو 06 أو 07 متبوعاً بـ 8 أرقام)', 4000, 'warning');
+  }
+  
   if (!receipt) return toast('⚠️ أدخل رقم الإيصال');
   if (!receiptFile) return toast('⚠️ ارفع صورة إيصال الدفع');
 
@@ -1415,7 +1879,7 @@ window.signupRestaurant = async function() {
       ownerUid: user.uid,
       email: email,
       displayName: displayName,
-      whatsapp: Utils.cleanPhone(waRaw),
+      whatsapp: cleanedPhone,
       receiptCode: receipt,
       receiptUrl: receiptUrl,
       subscription: {
@@ -1425,6 +1889,8 @@ window.signupRestaurant = async function() {
         status: 'active',
         autoRenew: false
       },
+      categories: DEFAULT_CATEGORIES,
+      requireTableNumber: true,
       createdAt: now,
       updatedAt: now
     };
@@ -1438,19 +1904,24 @@ window.signupRestaurant = async function() {
     }
 
     try {
-      await sendSignupNotification({
+      const notifResult = await sendSignupNotification({
         email,
         restaurant_name: displayName,
         restaurant_slug: restId,
-        whatsapp: Utils.cleanPhone(waRaw),
+        whatsapp: cleanedPhone,
         receipt_code: receipt,
         receipt_image_url: receiptUrl,
         user_uid: user.uid,
         submitted_at: new Date().toLocaleString('ar-DZ')
       });
-      toast('🎉 تم التفعيل وإرسال البيانات إلى بريد الإدارة', 4500, 'gold');
+      
+      if (notifResult.success) {
+        toast('🎉 تم التفعيل وإرسال البيانات إلى بريد الإدارة عبر ' + notifResult.provider, 4500, 'gold');
+      } else {
+        toast('✅ تم إنشاء الحساب، لكن تعذر إرسال إشعار البريد', 5000, 'warning');
+      }
     } catch (mailError) {
-      console.warn('EmailJS غير مهيأ أو تعذر الإرسال', mailError);
+      console.warn('تعذر إرسال الإشعار', mailError);
       toast('✅ تم إنشاء الحساب، لكن تعذر إرسال إشعار البريد', 5000, 'warning');
     }
 
@@ -1504,6 +1975,11 @@ window.loginRestaurant = async function() {
     AppState.currentUser = data;
     AppState.waNumber = data.whatsapp || '';
 
+    AppState.categories = (data.categories && data.categories.length) 
+      ? data.categories 
+      : [...DEFAULT_CATEGORIES];
+    AppState.requireTableNumber = data.requireTableNumber !== false;
+
     localStorage.setItem('mysmartmenu_session', JSON.stringify({
       restId,
       uid: user.uid,
@@ -1518,11 +1994,24 @@ window.loginRestaurant = async function() {
     }
 
     document.getElementById('restDisplayName').value = data.displayName || '';
-    document.getElementById('restWhatsapp').value = data.whatsapp || '';
+    
+    const rawPhone = data.whatsapp || '';
+    const displayPhone = rawPhone.replace(/^213/, '');
+    document.getElementById('restWhatsapp').value = displayPhone;
+    
+    const requireTableCheckbox = document.getElementById('restRequireTableNumber');
+    if (requireTableCheckbox) {
+      requireTableCheckbox.checked = AppState.requireTableNumber;
+      const toggleRow = document.getElementById('toggleRowRequireTable');
+      if (toggleRow) toggleRow.classList.toggle('active', AppState.requireTableNumber);
+    }
 
     applyLanguage();
     renderThemeControls(data.themeId || 'default');
     updateSubStatus(data.subscription);
+    
+    populateCategorySelect();
+    renderCategoryManager();
 
     await loadMenuItems();
     await loadAnalytics();
@@ -1572,6 +2061,8 @@ window.logout = async function() {
   AppState.currentUser = null;
   AppState.menu = [];
   AppState.editingIndex = -1;
+  AppState.categories = [];
+  AppState.requireTableNumber = true;
 
   document.getElementById('loginRestId').value = '';
   document.getElementById('loginPassword').value = '';
@@ -1612,6 +2103,7 @@ window.verifyAdmin = async function() {
       await signInWithEmailAndPassword(auth, email, password);
       localStorage.removeItem('mysmartmenu_session');
       await loadAdminPanel();
+      await loadPlatformLoadMonitor();
       showView('adminView');
       toast('✅ مرحباً مدير النظام', 3000, 'gold');
       document.getElementById('adminPassword').value = '';
@@ -1645,6 +2137,7 @@ window.verifyAdmin = async function() {
         localStorage.removeItem('mysmartmenu_session');
 
         await loadAdminPanel();
+        await loadPlatformLoadMonitor();
         showView('adminView');
         toast('🎉 تم إنشاء حساب المدير بنجاح! مرحباً بك', 5000, 'gold');
 
@@ -1665,6 +2158,7 @@ window.verifyAdmin = async function() {
             localStorage.removeItem('mysmartmenu_session');
 
             await loadAdminPanel();
+            await loadPlatformLoadMonitor();
             showView('adminView');
             toast('✅ مرحباً مدير النظام', 3000, 'gold');
 
@@ -1731,6 +2225,10 @@ window.switchTab = function(evt, panelId) {
   evt.currentTarget.classList.add('active');
   evt.currentTarget.setAttribute('aria-selected', 'true');
   document.getElementById(panelId).classList.add('active');
+  
+  if (panelId === 'tabStats') {
+    loadPlatformLoadMonitor();
+  }
 };
 
 async function loadAdminPanel() {
@@ -1801,6 +2299,66 @@ async function loadAdminPanel() {
   } catch (e) {
     console.error(e);
     listEl.innerHTML = '<div class="empty"><div class="icon">❌</div>تعذر تحميل قائمة المطاعم.</div>';
+  }
+}
+
+async function loadPlatformLoadMonitor() {
+  const fill = document.getElementById('loadBarFill');
+  const percentEl = document.getElementById('platformUsagePercent');
+  const viewsEl = document.getElementById('platformTotalViews');
+  const ordersEl = document.getElementById('platformTotalOrders');
+  const noteEl = document.getElementById('loadNote');
+  
+  if (!fill || !percentEl || !viewsEl || !ordersEl) return;
+  
+  let totalViews = 0;
+  let totalOrders = 0;
+  
+  try {
+    const restaurantsSnap = await getDocs(collection(db, 'restaurants'));
+    const today = new Date();
+    const daysToCheck = Math.min(30, today.getDate());
+    
+    for (const restDoc of restaurantsSnap.docs) {
+      const restId = restDoc.id;
+      for (let i = 0; i < daysToCheck; i++) {
+        const dateKey = Utils.analyticsDateKey(Utils.analyticsDateOffset(i));
+        try {
+          const analyticsSnap = await getDoc(doc(db, 'restaurants', restId, 'analytics', dateKey));
+          if (analyticsSnap.exists()) {
+            const data = analyticsSnap.data();
+            totalViews += Number(data.views || 0);
+            totalOrders += Number(data.orders || 0);
+          }
+        } catch (e) { /* ignore individual errors */ }
+      }
+    }
+  } catch (e) {
+    console.warn('تعذر تحميل بيانات الحمل:', e);
+  }
+  
+  const estimatedDailyReads = (totalViews * 3) / 30;
+  const estimatedDailyWrites = (totalOrders * 5) / 30;
+  
+  const readPercent = (estimatedDailyReads / CONFIG.firebaseLimits.dailyReads) * 100;
+  const writePercent = (estimatedDailyWrites / CONFIG.firebaseLimits.dailyWrites) * 100;
+  const overallPercent = Math.max(readPercent, writePercent, 1);
+  const safePercent = Math.min(100, overallPercent);
+  
+  viewsEl.textContent = totalViews.toLocaleString('ar-DZ');
+  ordersEl.textContent = totalOrders.toLocaleString('ar-DZ');
+  percentEl.textContent = Math.round(safePercent) + '%';
+  fill.style.width = safePercent + '%';
+  
+  fill.classList.remove('warn', 'danger');
+  if (safePercent >= 80) {
+    fill.classList.add('danger');
+    noteEl.innerHTML = '⚠️ <strong>تحذير!</strong> الحمل مرتفع جداً (' + Math.round(safePercent) + '%). فكّر في الترقية إلى خطة Blaze قريباً.';
+  } else if (safePercent >= 50) {
+    fill.classList.add('warn');
+    noteEl.innerHTML = '⚡ الحمل متوسط. راقب الاستهلاك بانتظام. الخطة المجانية تسمح بـ 50,000 قراءة و20,000 كتابة يومياً.';
+  } else {
+    noteEl.innerHTML = '✅ الحمل ضمن الحدود الآمنة. يتم تحديث المؤشرات تلقائياً.';
   }
 }
 
@@ -1911,23 +2469,252 @@ window.saveRestInfo = async function() {
   if (!AppState.currentRestId) return;
 
   const displayName = document.getElementById('restDisplayName').value.trim();
-  const whatsapp = Utils.cleanPhone(document.getElementById('restWhatsapp').value.trim());
+  const whatsappRaw = document.getElementById('restWhatsapp').value.trim();
+  const requireTable = document.getElementById('restRequireTableNumber').checked;
 
-  if (!displayName || !whatsapp) return toast('⚠️ أدخل اسم المطعم ورقم واتساب صحيحاً', 2800, 'warning');
+  if (!displayName) return toast('⚠️ أدخل اسم المطعم', 2800, 'warning');
+  
+  const whatsapp = Utils.cleanAlgerianPhone(whatsappRaw);
+  if (!whatsapp) {
+    return toast('⚠️ أدخل رقماً جزائرياً صحيحاً (يبدأ بـ 05 أو 06 أو 07 متبوعاً بـ 8 أرقام)', 4000, 'warning');
+  }
 
   try {
     await setDoc(doc(db, 'restaurants', AppState.currentRestId), {
       displayName,
       whatsapp,
+      requireTableNumber: requireTable,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
     AppState.waNumber = whatsapp;
+    AppState.requireTableNumber = requireTable;
     toast('💾 تم حفظ إعدادات المطعم بنجاح', 3000, 'success');
   } catch (e) {
     console.error(e);
     toast('❌ تعذر حفظ إعدادات المطعم', 3000, 'danger');
   }
+};
+
+// ==================== CATEGORIES MANAGEMENT ====================
+function populateCategorySelect() {
+  const select = document.getElementById('itemCategory');
+  if (!select) return;
+  
+  const cats = AppState.categories.length ? AppState.categories : DEFAULT_CATEGORIES;
+  select.innerHTML = cats.map(cat => 
+    `<option value="${Utils.escapeHtml(cat.key)}">${Utils.escapeHtml(cat.emoji || '🍽️')} ${Utils.escapeHtml(cat.labelAr)}</option>`
+  ).join('');
+}
+
+function renderCategoryManager() {
+  const list = document.getElementById('categoriesList');
+  if (!list) return;
+  
+  const cats = AppState.categories.length ? AppState.categories : [...DEFAULT_CATEGORIES];
+  
+  if (!cats.length) {
+    list.innerHTML = '<div class="empty" style="padding:20px;"><div class="icon">🗂️</div>لا توجد تصنيفات. أضف تصنيفاً جديداً.</div>';
+    return;
+  }
+  
+  list.innerHTML = cats.map((cat, index) => `
+    <div class="category-manager-item" 
+         draggable="true" 
+         data-category-index="${index}"
+         ondragstart="dragCategoryStart(event, ${index})"
+         ondragover="dragCategoryOver(event)"
+         ondragenter="dragCategoryEnter(event)"
+         ondragleave="dragCategoryLeave(event)"
+         ondrop="dropCategory(event, ${index})"
+         ondragend="dragCategoryEnd(event)">
+      <span class="category-drag-handle" title="اسحب لإعادة الترتيب">⋮⋮</span>
+      <input type="text" class="category-emoji-input" 
+             value="${Utils.escapeHtml(cat.emoji || '🍽️')}" 
+             maxlength="4"
+             onchange="updateCategoryEmoji(${index}, this.value)"
+             title="الإيموجي">
+      <input type="text" class="category-edit-input" 
+             value="${Utils.escapeHtml(cat.labelAr)}" 
+             maxlength="30"
+             onchange="updateCategoryName(${index}, this.value)"
+             title="اسم التصنيف">
+      <button type="button" class="category-delete-btn" 
+              onclick="deleteCategory(${index})"
+              ${cats.length <= 1 ? 'disabled title="يجب وجود تصنيف واحد على الأقل"' : 'title="حذف التصنيف"'}>
+        🗑️
+      </button>
+    </div>
+  `).join('');
+}
+
+window.updateCategoryName = function(index, newName) {
+  const trimmed = newName.trim();
+  if (!trimmed) {
+    toast('⚠️ لا يمكن ترك اسم التصنيف فارغاً', 2500, 'warning');
+    renderCategoryManager();
+    return;
+  }
+  
+  if (!AppState.categories.length) {
+    AppState.categories = [...DEFAULT_CATEGORIES];
+  }
+  
+  AppState.categories[index].labelAr = trimmed;
+  AppState.categories[index].key = Utils.generateCategoryKey(trimmed);
+};
+
+window.updateCategoryEmoji = function(index, emoji) {
+  if (!AppState.categories.length) {
+    AppState.categories = [...DEFAULT_CATEGORIES];
+  }
+  AppState.categories[index].emoji = emoji.trim() || '🍽️';
+};
+
+window.addNewCategory = function() {
+  const emojiInput = document.getElementById('newCategoryEmoji');
+  const nameInput = document.getElementById('newCategoryName');
+  const emoji = emojiInput.value.trim() || '🍽️';
+  const name = nameInput.value.trim();
+  
+  if (!name) {
+    toast('⚠️ أدخل اسم التصنيف الجديد', 2500, 'warning');
+    nameInput.focus();
+    return;
+  }
+  
+  const existing = AppState.categories.find(c => 
+    c.labelAr.toLowerCase() === name.toLowerCase()
+  );
+  if (existing) {
+    toast('⚠️ هذا التصنيف موجود بالفعل', 2500, 'warning');
+    return;
+  }
+  
+  if (!AppState.categories.length) {
+    AppState.categories = [...DEFAULT_CATEGORIES];
+  }
+  
+  const newCat = {
+    key: Utils.generateCategoryKey(name),
+    emoji: emoji,
+    labelAr: name,
+    labelFr: name,
+    order: AppState.categories.length
+  };
+  
+  AppState.categories.push(newCat);
+  emojiInput.value = '';
+  nameInput.value = '';
+  
+  renderCategoryManager();
+  populateCategorySelect();
+  toast('✅ تم إضافة التصنيف (اضغط "حفظ التصنيفات" للتثبيت)', 3000, 'success');
+};
+
+window.deleteCategory = function(index) {
+  if (!AppState.categories.length) {
+    AppState.categories = [...DEFAULT_CATEGORIES];
+  }
+  
+  if (AppState.categories.length <= 1) {
+    toast('⚠️ يجب وجود تصنيف واحد على الأقل', 2500, 'warning');
+    return;
+  }
+  
+  const catName = AppState.categories[index].labelAr;
+  if (!confirm(`هل أنت متأكد من حذف تصنيف "${catName}"؟\n\n⚠️ تنبيه: الأطباق المرتبطة بهذا التصنيف ستبقى لكن لن تظهر بشكل صحيح في واجهة الزبون حتى تحوّلها لتصنيف آخر.`)) {
+    return;
+  }
+  
+  AppState.categories.splice(index, 1);
+  AppState.categories.forEach((cat, i) => cat.order = i);
+  
+  renderCategoryManager();
+  populateCategorySelect();
+  toast('🗑️ تم حذف التصنيف', 2500, 'success');
+};
+
+window.saveCategoriesToFirebase = async function() {
+  if (!AppState.currentRestId) {
+    return toast('⚠️ سجّل الدخول أولاً', 2500, 'warning');
+  }
+  
+  if (!AppState.categories.length) {
+    return toast('⚠️ لا توجد تصنيفات للحفظ', 2500, 'warning');
+  }
+  
+  try {
+    const categoriesToSave = AppState.categories.map((cat, i) => ({
+      key: cat.key,
+      emoji: cat.emoji || '🍽️',
+      labelAr: cat.labelAr,
+      labelFr: cat.labelFr || cat.labelAr,
+      order: i
+    }));
+    
+    await setDoc(doc(db, 'restaurants', AppState.currentRestId), {
+      categories: categoriesToSave,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    
+    toast('💾 تم حفظ التصنيفات في قاعدة البيانات بنجاح', 3000, 'success');
+    renderAdminMenu();
+  } catch (e) {
+    console.error(e);
+    toast('❌ تعذر حفظ التصنيفات', 3000, 'danger');
+  }
+};
+
+let dragCategorySourceIndex = null;
+
+window.dragCategoryStart = function(event, index) {
+  dragCategorySourceIndex = index;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', String(index));
+  event.target.closest('.category-manager-item').classList.add('dragging');
+};
+
+window.dragCategoryOver = function(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+};
+
+window.dragCategoryEnter = function(event) {
+  event.preventDefault();
+  const item = event.target.closest('.category-manager-item');
+  if (item) item.classList.add('drag-over');
+};
+
+window.dragCategoryLeave = function(event) {
+  const item = event.target.closest('.category-manager-item');
+  if (item) item.classList.remove('drag-over');
+};
+
+window.dropCategory = function(event, targetIndex) {
+  event.preventDefault();
+  const item = event.target.closest('.category-manager-item');
+  if (item) item.classList.remove('drag-over');
+  
+  if (dragCategorySourceIndex === null || dragCategorySourceIndex === targetIndex) return;
+  
+  if (!AppState.categories.length) {
+    AppState.categories = [...DEFAULT_CATEGORIES];
+  }
+  
+  const [movedItem] = AppState.categories.splice(dragCategorySourceIndex, 1);
+  AppState.categories.splice(targetIndex, 0, movedItem);
+  
+  AppState.categories.forEach((cat, i) => cat.order = i);
+  
+  renderCategoryManager();
+  populateCategorySelect();
+};
+
+window.dragCategoryEnd = function(event) {
+  event.target.closest('.category-manager-item').classList.remove('dragging');
+  document.querySelectorAll('.category-manager-item').forEach(el => el.classList.remove('drag-over'));
+  dragCategorySourceIndex = null;
 };
 
 // ==================== ITEM MANAGEMENT ====================
@@ -2176,19 +2963,32 @@ window.downloadPrintablePDF = async function() {
 };
 
 // ==================== ADMIN MENU RENDERING ====================
-function categoryLabel(category) {
+function getCategoryLabel(category) {
+  const cats = AppState.categories.length ? AppState.categories : DEFAULT_CATEGORIES;
+  const found = cats.find(c => c.key === category.key || c.key === category);
+  if (found) {
+    return currentLanguage === 'fr' 
+      ? `${found.emoji || '🍽️'} ${found.labelFr || found.labelAr}` 
+      : `${found.emoji || '🍽️'} ${found.labelAr}`;
+  }
   return currentLanguage === 'fr' ? category.labelFr : category.labelAr;
 }
 
 function categoryTabsHTML(activeIndex, prefix) {
+  const cats = (prefix === 'admin' && AppState.categories.length) 
+    ? AppState.categories 
+    : (prefix === 'customer' && AppState.customerCategories.length)
+      ? AppState.customerCategories
+      : DEFAULT_CATEGORIES;
+  
   return `<div class="category-tabs ${prefix}-category-tabs" role="tablist">` +
-    MENU_CATEGORIES.map((category, index) => {
+    cats.map((category, index) => {
       return `<button type="button" class="category-tab ${index === activeIndex ? 'active' : ''}"
               data-category-tab="${prefix}-${index}"
               onclick="${prefix === 'admin' ? 'setAdminCategory' : 'setCustomerCategory'}(${index})"
               role="tab"
               aria-selected="${index === activeIndex}">
-        ${categoryLabel(category)}
+        ${Utils.escapeHtml(getCategoryLabel(category))}
       </button>`;
     }).join('') +
   '</div>';
@@ -2206,7 +3006,8 @@ function setVisibleCategory(root, index) {
 }
 
 window.setAdminCategory = function(index) {
-  AppState.adminCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, Number(index) || 0));
+  const maxIndex = AppState.categories.length ? AppState.categories.length - 1 : 2;
+  AppState.adminCategoryIndex = Math.max(0, Math.min(maxIndex, Number(index) || 0));
   setVisibleCategory(document.getElementById('menuList'), AppState.adminCategoryIndex);
 };
 
@@ -2219,9 +3020,11 @@ function renderAdminMenu() {
     return;
   }
 
+  const cats = AppState.categories.length ? AppState.categories : DEFAULT_CATEGORIES;
+
   container.innerHTML = categoryTabsHTML(AppState.adminCategoryIndex, 'admin') +
-    MENU_CATEGORIES.map((category, catIndex) => {
-      const catItems = AppState.menu.filter(item => Utils.normalizeCategory(item.category) === category.key);
+    cats.map((category, catIndex) => {
+      const catItems = AppState.menu.filter(item => Utils.normalizeCategory(item.category, cats) === category.key);
 
       const content = catItems.length ? catItems.map(item => {
         const origIndex = AppState.menu.indexOf(item);
@@ -2232,7 +3035,7 @@ function renderAdminMenu() {
         return `<div class="admin-item ${item.isAvailable ? '' : 'unavailable'}">
           ${imgHtml}
           <div class="admin-item-info">
-            <strong>${Utils.escapeHtml(item.name)} <span style="font-size:12px;color:var(--muted);">(${Utils.escapeHtml(item.category || 'أطباق')})</span></strong>
+            <strong>${Utils.escapeHtml(item.name)} <span style="font-size:12px;color:var(--muted);">(${Utils.escapeHtml(item.category || category.labelAr)})</span></strong>
             <div class="price">${Utils.formatCurrency(item.price || 0)} دج</div>
             ${item.desc ? `<div class="cat">${Utils.escapeHtml(item.desc)}</div>` : ''}
           </div>
@@ -2438,13 +3241,16 @@ function bindSwipe(element, onSwipe) {
 }
 
 window.setCustomerCategory = function(index) {
-  AppState.customerCategoryIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, Number(index) || 0));
+  const cats = AppState.customerCategories.length ? AppState.customerCategories : DEFAULT_CATEGORIES;
+  AppState.customerCategoryIndex = Math.max(0, Math.min(cats.length - 1, Number(index) || 0));
   setVisibleCategory(document.getElementById('customerMenuList'), AppState.customerCategoryIndex);
 };
 
 function renderCustomerMenu() {
   const container = document.getElementById('customerMenuList');
   if (!container) return;
+  
+  const cats = AppState.customerCategories.length ? AppState.customerCategories : DEFAULT_CATEGORIES;
 
   const filtered = AppState.customerMenuItems.filter(item => {
     if (!item.isAvailable) return false;
@@ -2461,13 +3267,13 @@ function renderCustomerMenu() {
   }
 
   container.innerHTML = categoryTabsHTML(AppState.customerCategoryIndex, 'customer') +
-    MENU_CATEGORIES.map((category, catIndex) => {
-      const catItems = filtered.filter(item => Utils.normalizeCategory(item.category) === category.key);
+    cats.map((category, catIndex) => {
+      const catItems = filtered.filter(item => Utils.normalizeCategory(item.category, cats) === category.key);
 
       const content = catItems.length ? catItems.map(item => {
         const imgHtml = item.imageUrl
           ? `<img class="customer-item-img" src="${Utils.escapeHtml(item.imageUrl)}" alt="${Utils.escapeHtml(item.name)}" loading="lazy">`
-          : '<div class="customer-item-img-placeholder">🍽️</div>';
+          : `<div class="customer-item-img-placeholder">${category.emoji || '🍽️'}</div>`;
 
         const extras = Utils.parseItemExtras(item.extras);
 
@@ -2486,13 +3292,14 @@ function renderCustomerMenu() {
             <button type="button" class="btn btn-primary btn-order" onclick="${btnAction}">${btnText}</button>
           </div>
         </div>`;
-      }).join('') : `<div class="empty" style="padding:20px;"><div class="icon">🍽️</div>${Utils.escapeHtml(t('noProducts'))}</div>`;
+      }).join('') : `<div class="empty" style="padding:20px;"><div class="icon">${category.emoji || '🍽️'}</div>${Utils.escapeHtml(t('noProducts'))}</div>`;
 
       return `<div class="category-panel ${catIndex === AppState.customerCategoryIndex ? 'active' : ''}" data-category-index="${catIndex}">${content}</div>`;
     }).join('');
 
   bindSwipe(container, (dir) => {
-    const newIndex = Math.max(0, Math.min(MENU_CATEGORIES.length - 1, AppState.customerCategoryIndex + dir));
+    const maxIndex = cats.length - 1;
+    const newIndex = Math.max(0, Math.min(maxIndex, AppState.customerCategoryIndex + dir));
     if (newIndex !== AppState.customerCategoryIndex) setCustomerCategory(newIndex);
   });
 }
@@ -2516,6 +3323,11 @@ async function initCustomerView(restId) {
     }
 
     AppState.customerRestWhatsapp = restData.whatsapp || '';
+    AppState.requireTableNumber = restData.requireTableNumber !== false;
+    AppState.customerCategories = (restData.categories && restData.categories.length)
+      ? restData.categories
+      : [...DEFAULT_CATEGORIES];
+    
     document.getElementById('customerRestName').textContent = restData.displayName || restId;
 
     const callBtn = document.getElementById('customerCallButton');
@@ -2658,6 +3470,7 @@ window.checkoutCart = function() {
 
   setTimeout(() => {
     document.getElementById('orderTableNumber')?.focus();
+    updateTableNumberRequirement();
   }, 50);
 };
 
@@ -2744,7 +3557,37 @@ window.selectOrderType = function(type) {
 
   document.getElementById('dineInFields').classList.toggle('active', type === 'dineIn');
   document.getElementById('deliveryFields').classList.toggle('active', type === 'delivery');
+  
+  if (type === 'dineIn') {
+    updateTableNumberRequirement();
+  }
 };
+
+function updateTableNumberRequirement() {
+  const tableInput = document.getElementById('orderTableNumber');
+  const hintEl = document.getElementById('tableNumberHint');
+  const label = document.querySelector('label[for="orderTableNumber"]');
+  
+  if (!tableInput) return;
+  
+  if (AppState.requireTableNumber) {
+    tableInput.required = true;
+    tableInput.setAttribute('aria-required', 'true');
+    if (hintEl) hintEl.style.display = 'none';
+    if (label) {
+      label.textContent = currentLanguage === 'fr' ? 'Numéro de table' : 'رقم الطاولة';
+    }
+  } else {
+    tableInput.required = false;
+    tableInput.removeAttribute('aria-required');
+    if (hintEl) hintEl.style.display = 'block';
+    if (label) {
+      label.textContent = currentLanguage === 'fr' 
+        ? 'Numéro de table (optionnel)' 
+        : 'رقم الطاولة (اختياري)';
+    }
+  }
+}
 
 window.sendOrderViaWhatsApp = function() {
   if (!AppState.cart.length) return toast('⚠️ السلة فارغة', 2500, 'warning');
@@ -2764,11 +3607,21 @@ window.sendOrderViaWhatsApp = function() {
     const table = document.getElementById('orderTableNumber').value.trim();
     const customer = document.getElementById('orderCustomerName').value.trim();
 
-    if (!table || !customer) return toast('⚠️ أدخل رقم الطاولة واسم الزبون', 2800, 'danger');
+    if (!customer) {
+      return toast('⚠️ أدخل اسم الزبون', 2800, 'danger');
+    }
+    
+    if (AppState.requireTableNumber && !table) {
+      return toast('⚠️ أدخل رقم الطاولة', 2800, 'danger');
+    }
 
-    message += 'أكل في المطعم\n' +
-               '🪑 رقم الطاولة: ' + table + '\n' +
-               '👤 اسم الزبون: ' + customer;
+    message += 'أكل في المطعم\n';
+    if (table) {
+      message += '🪑 رقم الطاولة: ' + table + '\n';
+    } else {
+      message += '🪑 رقم الطاولة: غير محدد\n';
+    }
+    message += '👤 اسم الزبون: ' + customer;
   } else {
     const address = document.getElementById('orderAddress').value.trim();
     const phone = document.getElementById('orderPhone').value.trim();
@@ -2820,11 +3673,36 @@ window.addEventListener('DOMContentLoaded', async function() {
           }
 
           document.getElementById('restDisplayName').value = AppState.currentUser.displayName || '';
-          document.getElementById('restWhatsapp').value = AppState.currentUser.whatsapp || '';
+          
+          const rawPhone = AppState.currentUser.whatsapp || '';
+          const displayPhone = rawPhone.replace(/^213/, '');
+          document.getElementById('restWhatsapp').value = displayPhone;
+
+          AppState.categories = (AppState.currentUser.categories && AppState.currentUser.categories.length)
+            ? AppState.currentUser.categories
+            : [...DEFAULT_CATEGORIES];
+          AppState.requireTableNumber = AppState.currentUser.requireTableNumber !== false;
+
+          const requireTableCheckbox = document.getElementById('restRequireTableNumber');
+          if (requireTableCheckbox) {
+            requireTableCheckbox.checked = AppState.requireTableNumber;
+            const toggleRow = document.getElementById('toggleRowRequireTable');
+            if (toggleRow) toggleRow.classList.toggle('active', AppState.requireTableNumber);
+          }
+
+          if (requireTableCheckbox) {
+            requireTableCheckbox.addEventListener('change', function() {
+              const toggleRow = document.getElementById('toggleRowRequireTable');
+              if (toggleRow) toggleRow.classList.toggle('active', this.checked);
+            });
+          }
 
           applyLanguage();
           renderThemeControls(AppState.currentUser.themeId || 'default');
           updateSubStatus(AppState.currentUser.subscription);
+          
+          populateCategorySelect();
+          renderCategoryManager();
 
           await loadMenuItems();
           await loadAnalytics();
@@ -2841,7 +3719,6 @@ window.addEventListener('DOMContentLoaded', async function() {
   showView('subscriptionView');
 });
 
-// ==================== MODAL BACKDROP CLICK ====================
 document.getElementById('orderModalBackdrop').addEventListener('click', function(event) {
   if (event.target === this) closeOrderModal();
 });
@@ -2850,7 +3727,6 @@ document.getElementById('itemOptionsBackdrop').addEventListener('click', functio
   if (event.target === this) closeItemOptions();
 });
 
-// ==================== KEYBOARD ACCESSIBILITY ====================
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     const orderModal = document.getElementById('orderModalBackdrop');
@@ -2861,15 +3737,20 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Initialize network state
 showNetworkState();
 
-// Initialize EmailJS with the real public key
 if (window.emailjs && !CONFIG.emailjs.publicKey.startsWith('YOUR_')) {
   window.emailjs.init({ publicKey: CONFIG.emailjs.publicKey });
 }
 
-// Expose customerItemsById for onclick handlers
+const requireTableCheckboxInit = document.getElementById('restRequireTableNumber');
+if (requireTableCheckboxInit) {
+  requireTableCheckboxInit.addEventListener('change', function() {
+    const toggleRow = document.getElementById('toggleRowRequireTable');
+    if (toggleRow) toggleRow.classList.toggle('active', this.checked);
+  });
+}
+
 window.customerItemsById = AppState.customerItemsById;
 </script>
 </body>
