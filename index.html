@@ -1015,7 +1015,7 @@ body.dark-mode .theme-mode-toggle { background:#253536; color:#fff; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc, addDoc, updateDoc, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ==================== CONFIGURATION ====================
@@ -1067,6 +1067,8 @@ const CONFIG = {
 const app = initializeApp(CONFIG.firebase);
 const auth = getAuth(app);
 const db = getFirestore(app);
+// إبقاء جلسة Firebase محفوظة بعد إغلاق الصفحة أو إعادة تحميلها.
+setPersistence(auth, browserLocalPersistence).catch(error => console.warn('تعذر حفظ جلسة Firebase:', error));
 
 // ==================== STATE MANAGEMENT ====================
 const AppState = {
@@ -1352,6 +1354,27 @@ const Utils = {
   }
 };
 
+// طبقة توافق تحافظ على عمل المطاعم المنشأة بالمخطط القديم والجديد.
+function normalizeRestaurantData(raw = {}) {
+  const legacySubscription = raw.subscription && typeof raw.subscription === 'object' ? raw.subscription : {};
+  const subscription = {
+    ...legacySubscription,
+    startDate: legacySubscription.startDate || raw.startDate || raw.createdAt || new Date().toISOString(),
+    endDate: legacySubscription.endDate || raw.endDate || '',
+    price: Number(legacySubscription.price || raw.price || CONFIG.subscription.defaultPrice),
+    plan: legacySubscription.plan || raw.plan || 'monthly',
+    durationDays: Number(legacySubscription.durationDays || raw.durationDays || (raw.plan === 'yearly' ? 365 : CONFIG.subscription.days)),
+    status: legacySubscription.status || raw.status || 'active',
+    frozen: Boolean(legacySubscription.frozen || raw.frozen)
+  };
+  return {
+    ...raw,
+    ownerUid: raw.ownerUid || raw.uid || '',
+    receiptCode: raw.receiptCode || raw.receipt || '',
+    receiptUrl: raw.receiptUrl || raw.receiptImageUrl || '',
+    subscription
+  };
+}
 // ==================== I18N ====================
 let currentLanguage = localStorage.getItem('mysmartmenu_language') || 'ar';
 
@@ -2033,7 +2056,11 @@ window.loginRestaurant = async function() {
     const credential = await signInWithEmailAndPassword(auth, email, password);
     const user = credential.user;
 
-    const owned = await getDocs(query(collection(db, 'restaurants'), where('ownerUid', '==', user.uid)));
+    let owned = await getDocs(query(collection(db, 'restaurants'), where('ownerUid', '==', user.uid)));
+    // توافق مع الحسابات الأقدم التي استخدمت الحقل uid.
+    if (owned.empty) {
+      owned = await getDocs(query(collection(db, 'restaurants'), where('uid', '==', user.uid)));
+    }
     if (owned.empty) {
       await signOut(auth);
       return toast('❌ لم يتم العثور على مطعم مرتبط بهذا الحساب');
@@ -2041,8 +2068,7 @@ window.loginRestaurant = async function() {
 
     const snap = owned.docs[0];
     const restId = snap.id;
-    const data = snap.data();
-
+        const data = normalizeRestaurantData(snap.data());
     AppState.currentRestId = restId;
     AppState.currentUser = data;
     AppState.waNumber = data.whatsapp || '';
@@ -3390,7 +3416,7 @@ async function initCustomerView(restId) {
       return;
     }
 
-    const restData = restSnap.data();
+    const restData = normalizeRestaurantData(restSnap.data());
     const subStatus = Utils.getSubscriptionStatus(restData.subscription);
 
     if (!subStatus.active) {
@@ -3739,7 +3765,7 @@ window.addEventListener('DOMContentLoaded', async function() {
 
         const restSnap = await getDoc(doc(db, 'restaurants', AppState.currentRestId));
         if (restSnap.exists()) {
-          AppState.currentUser = restSnap.data();
+          AppState.currentUser = normalizeRestaurantData(restSnap.data());
           AppState.waNumber = AppState.currentUser.whatsapp || '';
 
           const subStatus = Utils.getSubscriptionStatus(AppState.currentUser.subscription);
