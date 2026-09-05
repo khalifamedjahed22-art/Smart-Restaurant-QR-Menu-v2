@@ -546,10 +546,28 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
 
 .bootstrap-notice { background: #e3f2fd; border: 1px solid #90caf9; color: #0d47a1; border-radius: 10px; padding: 12px; margin: 12px 0; font-size: 12px; line-height: 1.8; }
 .bootstrap-notice strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.plans-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0 14px; }
+.plan-choice { position:relative; width:100%; border:2px solid var(--gray-border); background:var(--white); cursor:pointer; text-align:center; font-family:'Cairo',sans-serif; }
+.plan-choice.active { border-color:var(--teal); box-shadow:0 0 0 3px rgba(0,128,128,.12); }
+.plan-choice-featured { border-color:var(--gold); }
+.plan-choice .plan-name,.plan-choice .plan-price,.plan-choice .plan-features,.plan-choice .plan-badge,.plan-saving { display:block; }
+.plan-badge { display:inline-block !important; background:#eef7f6; color:var(--teal-dark); border-radius:20px; padding:3px 9px; font-size:10px; margin-bottom:5px; }
+.plan-badge.featured { background:#fff3cd; color:#8a6500; }
+.plan-saving { color:var(--success); font-size:11px; font-weight:800; margin:2px 0 4px; }
+.self-service-banner { background:linear-gradient(135deg,#e8f5e9,#eef8f7); border:1px solid #b2dfdb; color:var(--teal-dark); border-radius:12px; padding:12px 14px; margin:10px 0 14px; display:flex; flex-direction:column; gap:3px; font-size:12px; line-height:1.8; }
+.self-service-banner strong { font-size:14px; }
+.self-service-note,.selected-plan-note { background:#eef8f7; border:1px solid #b2dfdb; color:var(--teal-dark); border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.8; margin:8px 0 12px; text-align:center; }
+.selected-plan-note { background:#fff8e1; border-color:#ffecb3; color:#6d4c00; }
+.theme-mode-toggle { position:fixed; left:14px; bottom:14px; z-index:1000; border:1px solid var(--gray-border); background:var(--white); color:var(--text); border-radius:22px; padding:8px 12px; font-family:'Cairo',sans-serif; font-weight:700; font-size:11px; cursor:pointer; box-shadow:0 3px 12px rgba(0,0,0,.14); }
+body.dark-mode { --gray-bg:#101617; --gray-border:#334244; --text:#eef7f6; --muted:#a7b8b8; --white:#172021; --teal-light:#183d3d; --menu-bg:#101617; --menu-surface:#172021; --menu-text:#eef7f6; --menu-muted:#a7b8b8; }
+body.dark-mode input,body.dark-mode textarea,body.dark-mode select,body.dark-mode .plan-choice,body.dark-mode .admin-item,body.dark-mode .category-manager-item { background:#1d292a; color:var(--text); }
+body.dark-mode .theme-mode-toggle { background:#253536; color:#fff; }
+@media (max-width:560px) { .plans-grid { grid-template-columns:1fr; } .theme-mode-toggle { left:10px; bottom:10px; } }
 </style>
 </head>
 <body>
 <div id="offlineBanner" class="offline-banner" role="alert">⚠️ لا يوجد اتصال بالإنترنت. تحقق من الشبكة قبل الحفظ أو التفعيل.</div>
+<button id="themeModeToggle" class="theme-mode-toggle" type="button" onclick="toggleDarkMode()" aria-label="تبديل الوضع الليلي">🌙 الوضع الليلي</button>
 
 <!-- SUBSCRIPTION / SIGNUP SCREEN -->
 <div id="subscriptionView" class="view active">
@@ -557,24 +575,31 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <div class="logo">My<span>Smart</span>Menu</div>
     <div class="subtitle">القائمة الرقمية الذكية للمطاعم</div>
 
-    <div class="section-title">اختر باقتك</div>
-    <div class="plan-card">
-      <div class="plan-name">الباقة الشهرية</div>
-      <div class="plan-price" id="planPriceDisplay">4,000 <span>دج/شهر</span></div>
-      <div class="plan-features">
-        ✓ قائمة رقمية احترافية<br>
-        ✓ QR Code خاص بمطعمك<br>
-        ✓ طلبات مباشرة عبر واتساب<br>
-        ✓ إحصائيات وتحليلات<br>
-        ✓ دعم فني 24/7
-      </div>
+    <div class="section-title">اختر باقتك المناسبة</div>
+    <div class="plans-grid" role="radiogroup" aria-label="اختيار باقة الاشتراك">
+      <button type="button" class="plan-card plan-choice active" id="monthlyPlanCard" onclick="selectSubscriptionPlan('monthly')" aria-pressed="true">
+        <span class="plan-badge">الأكثر مرونة</span>
+        <span class="plan-name">الباقة الشهرية</span>
+        <span class="plan-price" id="monthlyPriceDisplay">2,000 <span>دج/شهر</span></span>
+        <span class="plan-features">✓ قائمة رقمية احترافية<br>✓ QR Code خاص بمطعمك<br>✓ طلبات واتساب وإحصائيات<br>✓ إدارة ذاتية كاملة</span>
+      </button>
+      <button type="button" class="plan-card plan-choice plan-choice-featured" id="yearlyPlanCard" onclick="selectSubscriptionPlan('yearly')" aria-pressed="false">
+        <span class="plan-badge featured">الأكثر توفيراً</span>
+        <span class="plan-name">الباقة السنوية</span>
+        <span class="plan-price" id="yearlyPriceDisplay">20,000 <span>دج/سنة</span></span>
+        <span class="plan-saving">وفّر 4,000 دج سنوياً</span>
+        <span class="plan-features">✓ كل مزايا الباقة الشهرية<br>✓ سعر ثابت لمدة سنة<br>✓ دعم وأولوية في التحديثات</span>
+      </button>
     </div>
+    <input type="hidden" id="selectedSubscriptionPlan" value="monthly">
+    <div id="selfServiceNote" class="self-service-note">⚡ بعد التفعيل، تدير مطعمك بنفسك: أطباقك، تصنيفاتك، صورك، أسعارك، وتوفرك دون انتظار تدخل الإدارة.</div>
 
     <div class="section-title">طريقة الدفع</div>
     <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">
       أرسل المبلغ عبر CCP ثم أدخل بياناتك لتفعيل حسابك فوراً.
     </p>
     <div class="ccp-box" id="ccpDisplay">CCP: 007 99999 0018864026 62</div>
+    <div id="selectedPlanPaymentNote" class="selected-plan-note">المبلغ المطلوب حالياً: <strong>2,000 دج</strong></div>
     <a href="https://wa.me/213562419291?text=مرحباً، أرسلت إيصال الدفع لتفعيل خدمة القائمة الرقمية"
        target="_blank" rel="noopener noreferrer" class="btn btn-wa" style="text-decoration:none;display:block;">
       📲 أرسل الإيصال على واتساب
@@ -621,9 +646,8 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <div class="login-link">
       <button type="button" class="admin-btn" onclick="showAdminLogin()">👨‍💼 لوحة الإدارة</button>
     </div>
-  </div>
+    </div>
 </div>
-
 <!-- LOGIN SCREEN -->
 <div id="loginView" class="view">
   <div class="card" style="max-width:400px;">
@@ -728,7 +752,9 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
     <div id="tabSettings" class="tab-panel" role="tabpanel">
       <div class="section-title">إعدادات النظام</div>
       <label class="field-label" for="adminPrice">سعر الاشتراك الشهري (دج)</label>
-      <input type="number" id="adminPrice" value="4000" min="0" step="100">
+      <input type="number" id="adminPrice" value="2000" min="0" step="100">
+      <label class="field-label" for="adminYearlyPrice">سعر الاشتراك السنوي (دج)</label>
+      <input type="number" id="adminYearlyPrice" value="20000" min="0" step="100">
       <label class="field-label" for="adminCCP">رقم CCP للدفع</label>
       <input type="text" id="adminCCP" value="007 99999 0018864026 62">
       <button class="btn btn-primary" onclick="saveAdminSettings()">💾 حفظ الإعدادات</button>
@@ -750,6 +776,7 @@ label.field-label { font-size: 13px; font-weight: 600; color: var(--muted); disp
       <span id="subStatusText">الاشتراك نشط</span>
     </div>
     <div class="countdown" id="subCountdown"></div>
+    <div class="self-service-banner"><strong>⚡ أنت تدير منيو مطعمك بنفسك</strong><span>أضف وعدّل الأطباق، التصنيفات، الصور، الأسعار، التوفر، وأجواء المنيو مباشرة من هذه اللوحة.</span></div>
 
     <div class="stats-grid">
       <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">إجمالي الأطباق</div></div>
@@ -1022,7 +1049,8 @@ const CONFIG = {
   subscription: {
     days: 30,
     warningDays: 3,
-    defaultPrice: 4000,
+    defaultPrice: 2000,
+    defaultYearlyPrice: 20000,
     defaultCCP: "007 99999 0018864026 62"
   },
   whatsapp: {
@@ -1048,7 +1076,9 @@ const AppState = {
   currentRestId: "",
   currentUser: null,
   subscriptionPrice: CONFIG.subscription.defaultPrice,
+  subscriptionYearlyPrice: CONFIG.subscription.defaultYearlyPrice,
   subscriptionCCP: CONFIG.subscription.defaultCCP,
+  selectedPlan: 'monthly',
   activeOrder: { name: '', price: 0, whatsapp: '', type: 'dineIn' },
   activeCustomerRestId: '',
   cart: [],
@@ -1234,9 +1264,9 @@ const Utils = {
     return cats[0]?.key || 'أطباق';
   },
 
-  getSubscriptionEnd(startDate) {
+  getSubscriptionEnd(startDate, durationDays = CONFIG.subscription.days) {
     const d = new Date(startDate);
-    d.setDate(d.getDate() + CONFIG.subscription.days);
+    d.setDate(d.getDate() + Number(durationDays || CONFIG.subscription.days));
     return d;
   },
 
@@ -1618,6 +1648,32 @@ function buildSignupEmailHtml(payload) {
   `;
 }
 
+// ==================== PLAN + THEME UX ====================
+window.selectSubscriptionPlan = function(plan) {
+  const yearly = plan === 'yearly';
+  AppState.selectedPlan = yearly ? 'yearly' : 'monthly';
+  const hidden = document.getElementById('selectedSubscriptionPlan');
+  if (hidden) hidden.value = AppState.selectedPlan;
+  document.getElementById('monthlyPlanCard')?.classList.toggle('active', !yearly);
+  document.getElementById('yearlyPlanCard')?.classList.toggle('active', yearly);
+  document.getElementById('monthlyPlanCard')?.setAttribute('aria-pressed', String(!yearly));
+  document.getElementById('yearlyPlanCard')?.setAttribute('aria-pressed', String(yearly));
+  const amount = yearly ? AppState.subscriptionYearlyPrice : AppState.subscriptionPrice;
+  const note = document.getElementById('selectedPlanPaymentNote');
+  if (note) note.innerHTML = 'المبلغ المطلوب حالياً: <strong>' + Utils.formatCurrency(amount) + ' دج</strong>';
+};
+function applyDarkMode(enabled) {
+  document.body.classList.toggle('dark-mode', Boolean(enabled));
+  const button = document.getElementById('themeModeToggle');
+  if (button) button.textContent = enabled ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي';
+}
+window.toggleDarkMode = function() {
+  const enabled = !document.body.classList.contains('dark-mode');
+  localStorage.setItem('mysmartmenu_dark_mode', enabled ? '1' : '0');
+  applyDarkMode(enabled);
+};
+applyDarkMode(localStorage.getItem('mysmartmenu_dark_mode') === '1');
+
 // ==================== SYSTEM SETTINGS ====================
 async function loadSystemSettings() {
   try {
@@ -1625,17 +1681,28 @@ async function loadSystemSettings() {
     if (!snap.exists()) return;
 
     const cfg = snap.data();
-    if (Number(cfg.subscriptionPrice) > 0) AppState.subscriptionPrice = Number(cfg.subscriptionPrice);
+    const storedMonthlyPrice = Number(cfg.subscriptionPrice);
+    const storedYearlyPrice = Number(cfg.subscriptionYearlyPrice);
+    // ترحيل القيم القديمة تلقائياً حتى لا يظهر 1500 أو 4000 بعد تحديث الكود.
+    AppState.subscriptionPrice = [1500, 4000].includes(storedMonthlyPrice) || !storedMonthlyPrice ? CONFIG.subscription.defaultPrice : storedMonthlyPrice;
+    AppState.subscriptionYearlyPrice = !storedYearlyPrice || storedYearlyPrice === 40000 ? CONFIG.subscription.defaultYearlyPrice : storedYearlyPrice;
     if (cfg.ccp) AppState.subscriptionCCP = String(cfg.ccp);
 
     const priceEl = document.getElementById('planPriceDisplay');
     const ccpEl = document.getElementById('ccpDisplay');
     if (priceEl) priceEl.innerHTML = Utils.formatCurrency(AppState.subscriptionPrice) + ' <span>دج/شهر</span>';
+    const monthlyEl = document.getElementById('monthlyPriceDisplay');
+    const yearlyEl = document.getElementById('yearlyPriceDisplay');
+    if (monthlyEl) monthlyEl.innerHTML = Utils.formatCurrency(AppState.subscriptionPrice) + ' <span>دج/شهر</span>';
+    if (yearlyEl) yearlyEl.innerHTML = Utils.formatCurrency(AppState.subscriptionYearlyPrice) + ' <span>دج/سنة</span>';
     if (ccpEl) ccpEl.textContent = 'CCP: ' + AppState.subscriptionCCP;
+    window.selectSubscriptionPlan(AppState.selectedPlan || 'monthly');
 
     const adminPrice = document.getElementById('adminPrice');
     const adminCcp = document.getElementById('adminCCP');
     if (adminPrice) adminPrice.value = AppState.subscriptionPrice;
+    const adminYearlyPrice = document.getElementById('adminYearlyPrice');
+    if (adminYearlyPrice) adminYearlyPrice.value = AppState.subscriptionYearlyPrice;
     if (adminCcp) adminCcp.value = AppState.subscriptionCCP;
   } catch (e) {
     console.warn('تعذر تحميل إعدادات النظام', e);
@@ -1840,7 +1907,9 @@ window.signupRestaurant = async function() {
   const receipt = document.getElementById('signupReceipt').value.trim();
   const receiptFile = document.getElementById('signupReceiptImage').files[0];
   const password = document.getElementById('signupPassword').value;
-
+  const selectedPlan = document.getElementById('selectedSubscriptionPlan')?.value === 'yearly' ? 'yearly' : 'monthly';
+  const selectedPrice = selectedPlan === 'yearly' ? AppState.subscriptionYearlyPrice : AppState.subscriptionPrice;
+  const selectedDurationDays = selectedPlan === 'yearly' ? 365 : CONFIG.subscription.days;
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) return toast('⚠️ أدخل بريداً إلكترونياً صحيحاً');
   if (!restId) return toast('⚠️ أدخل معرف المطعم');
   if (!/^[a-z0-9_]+$/.test(restId)) return toast('⚠️ المعرف يجب أن يكون باللاتينية بدون مسافات');
@@ -1873,8 +1942,7 @@ window.signupRestaurant = async function() {
     const user = credential.user;
 
     const now = new Date().toISOString();
-    const endDate = Utils.getSubscriptionEnd(now).toISOString();
-
+    const endDate = Utils.getSubscriptionEnd(now, selectedDurationDays).toISOString();
     const restaurantData = {
       ownerUid: user.uid,
       email: email,
@@ -1885,7 +1953,9 @@ window.signupRestaurant = async function() {
       subscription: {
         startDate: now,
         endDate: endDate,
-        price: AppState.subscriptionPrice,
+        price: selectedPrice,
+        plan: selectedPlan,
+        durationDays: selectedDurationDays,
         status: 'active',
         autoRenew: false
       },
@@ -1911,6 +1981,8 @@ window.signupRestaurant = async function() {
         whatsapp: cleanedPhone,
         receipt_code: receipt,
         receipt_image_url: receiptUrl,
+        subscription_plan: selectedPlan === 'yearly' ? 'سنوية' : 'شهرية',
+        subscription_price: Utils.formatCurrency(selectedPrice) + ' دج',
         user_uid: user.uid,
         submitted_at: new Date().toLocaleString('ar-DZ')
       });
@@ -2443,19 +2515,23 @@ window.adminDeleteRestaurant = async function(restId) {
 
 window.saveAdminSettings = async function() {
   const price = Number(document.getElementById('adminPrice').value);
+  const yearlyPrice = Number(document.getElementById('adminYearlyPrice').value);
   const ccp = document.getElementById('adminCCP').value.trim();
-
-  if (!price || !ccp) return toast('⚠️ أدخل السعر ورقم CCP بشكل صحيح', 2800, 'warning');
-
+  if (!price || !yearlyPrice || !ccp) return toast('⚠️ أدخل أسعار الباقات ورقم CCP بشكل صحيح', 2800, 'warning');
   try {
     await setDoc(doc(db, 'system', 'config'), {
       subscriptionPrice: price,
+      subscriptionYearlyPrice: yearlyPrice,
       ccp: ccp,
       updatedAt: new Date().toISOString()
     }, { merge: true });
-
     AppState.subscriptionPrice = price;
+    AppState.subscriptionYearlyPrice = yearlyPrice;
     AppState.subscriptionCCP = ccp;
+    const monthlyEl = document.getElementById('monthlyPriceDisplay');
+    const yearlyEl = document.getElementById('yearlyPriceDisplay');
+    if (monthlyEl) monthlyEl.innerHTML = Utils.formatCurrency(price) + ' <span>دج/شهر</span>';
+    if (yearlyEl) yearlyEl.innerHTML = Utils.formatCurrency(yearlyPrice) + ' <span>دج/سنة</span>';
 
     toast('💾 تم حفظ إعدادات النظام بنجاح', 3000, 'success');
   } catch (e) {
