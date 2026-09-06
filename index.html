@@ -1562,7 +1562,7 @@ window.selectTheme = async function(themeId) {
   try {
     await setDoc(doc(db, 'restaurants', AppState.currentRestId), {
       themeId: theme.id,
-      themeUpdatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     }, { merge: true });
     toast('🎨 تم تطبيق وحفظ أجواء المنيو', 2800, 'success');
   } catch (error) {
@@ -3857,3 +3857,4 @@ window.customerItemsById = AppState.customerItemsById;
 </script>
 </body>
 </html>
+
