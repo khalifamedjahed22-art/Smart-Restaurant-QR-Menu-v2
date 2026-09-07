@@ -1087,6 +1087,7 @@ const AppState = {
   selectedThemeId: 'default',
   adminCategoryIndex: 0,
   customerCategoryIndex: 0,
+  analyticsInterval: null,
   customerMenuItems: [],
   customerRestWhatsapp: '',
   customerSearchTerm: '',
@@ -1318,7 +1319,17 @@ const Utils = {
   },
 
   analyticsDateKey(date) {
-    return date.toISOString().slice(0, 10);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  },
+
+  analyticsMonthStartKey() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}-01`;
   },
 
   analyticsDateOffset(daysAgo) {
@@ -2161,6 +2172,10 @@ window.logout = async function() {
   AppState.editingIndex = -1;
   AppState.categories = [];
   AppState.requireTableNumber = true;
+  if (AppState.analyticsInterval) {
+    clearInterval(AppState.analyticsInterval);
+    AppState.analyticsInterval = null;
+  }
 
   document.getElementById('loginRestId').value = '';
   document.getElementById('loginPassword').value = '';
@@ -3157,6 +3172,13 @@ function renderAdminMenu() {
 async function trackAnalytics(restId, field, amount = 1, metadata) {
   if (!restId || !['views', 'orders'].includes(field)) return;
 
+  // منع تسجيل مشاهدات متكررة من نفس الجلسة في نفس اليوم
+  if (field === 'views') {
+    const sessionKey = 'msm_view_' + restId + '_' + Utils.analyticsDateKey(new Date());
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, '1');
+  }
+
   try {
     const dayId = Utils.analyticsDateKey(new Date());
     const payload = {
@@ -3174,6 +3196,7 @@ async function trackAnalytics(restId, field, amount = 1, metadata) {
     }
 
     await setDoc(doc(db, 'restaurants', restId, 'analytics', dayId), payload, { merge: true });
+    console.log('📊 Analytics tracked:', field, amount, 'for', restId, 'on', dayId);
   } catch (error) {
     console.warn('تعذر تسجيل الإحصائية:', error);
   }
@@ -3199,38 +3222,53 @@ async function loadAnalytics() {
 
   const weekly = { views: 0, orders: 0, itemCounts: {}, itemLabels: {} };
   const monthly = { views: 0, orders: 0, itemCounts: {}, itemLabels: {} };
+  const monthStartKey = Utils.analyticsMonthStartKey();
 
   try {
+    // جلب آخر 30 يوماً (للـ weekly + احتياطي للـ monthly)
     const refs = [];
     for (let i = 0; i < 30; i++) {
-      refs.push(getDoc(doc(db, 'restaurants', AppState.currentRestId, 'analytics', Utils.analyticsDateKey(Utils.analyticsDateOffset(i)))));
+      refs.push({
+        dayOffset: i,
+        promise: getDoc(doc(db, 'restaurants', AppState.currentRestId, 'analytics', Utils.analyticsDateKey(Utils.analyticsDateOffset(i))))
+      });
     }
 
-    const snapshots = await Promise.all(refs);
+    const results = await Promise.allSettled(refs.map(r => r.promise));
 
-    snapshots.forEach((snapshot, index) => {
-      if (!snapshot.exists()) return;
+    results.forEach((result, index) => {
+      if (result.status !== 'fulfilled' || !result.value.exists()) return;
 
-      const data = snapshot.data() || {};
-      const target = index < 7 ? weekly : null;
+      const data = result.value.data() || {};
+      const dayOffset = refs[index].dayOffset;
+      const docDateKey = Utils.analyticsDateKey(Utils.analyticsDateOffset(dayOffset));
+      const isThisWeek = dayOffset < 7;
+      const isThisMonth = docDateKey >= monthStartKey;
 
-      monthly.views += Number(data.views || 0);
-      monthly.orders += Number(data.orders || 0);
+      const views = Number(data.views || 0);
+      const orders = Number(data.orders || 0);
+
+      if (isThisWeek) {
+        weekly.views += views;
+        weekly.orders += orders;
+      }
+
+      if (isThisMonth) {
+        monthly.views += views;
+        monthly.orders += orders;
+      }
 
       Object.keys(data.itemCounts || {}).forEach(key => {
-        monthly.itemCounts[key] = (monthly.itemCounts[key] || 0) + Number(data.itemCounts[key] || 0);
-        monthly.itemLabels[key] = data.itemLabels?.[key] || monthly.itemLabels[key];
+        const count = Number(data.itemCounts[key] || 0);
+        if (isThisWeek) {
+          weekly.itemCounts[key] = (weekly.itemCounts[key] || 0) + count;
+          weekly.itemLabels[key] = data.itemLabels?.[key] || weekly.itemLabels[key];
+        }
+        if (isThisMonth) {
+          monthly.itemCounts[key] = (monthly.itemCounts[key] || 0) + count;
+          monthly.itemLabels[key] = data.itemLabels?.[key] || monthly.itemLabels[key];
+        }
       });
-
-      if (target) {
-        target.views += Number(data.views || 0);
-        target.orders += Number(data.orders || 0);
-
-        Object.keys(data.itemCounts || {}).forEach(key => {
-          target.itemCounts[key] = (target.itemCounts[key] || 0) + Number(data.itemCounts[key] || 0);
-          target.itemLabels[key] = data.itemLabels?.[key] || target.itemLabels[key];
-        });
-      }
     });
   } catch (error) {
     console.warn('تعذر تحميل الإحصائيات:', error);
@@ -3256,6 +3294,7 @@ async function loadAnalytics() {
   const stats = { weekly, monthly, topItem: buildTopItem(monthly.itemCounts, monthly.itemLabels) };
   maybeShowWeeklyReminder(stats);
 
+  console.log('📈 Analytics loaded:', { weekly: values.weeklyViews + ' views / ' + values.weeklyOrders + ' orders', monthly: values.monthlyViews + ' views / ' + values.monthlyOrders + ' orders' });
   return stats;
 }
 
@@ -3808,6 +3847,14 @@ window.addEventListener('DOMContentLoaded', async function() {
 
           await loadMenuItems();
           await loadAnalytics();
+
+          // تحديث تلقائي للإحصائيات كل 60 ثانية
+          if (AppState.analyticsInterval) clearInterval(AppState.analyticsInterval);
+          AppState.analyticsInterval = setInterval(() => {
+            if (document.getElementById('editorView').classList.contains('active')) {
+              loadAnalytics();
+            }
+          }, 60000);
 
           showView('editorView');
           return;
