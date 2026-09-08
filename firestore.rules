@@ -17,17 +17,17 @@ service cloud.firestore {
 
     function activeRestaurant(restaurantId) {
       let r = get(/databases/$(database)/documents/restaurants/$(restaurantId)).data;
-      return r.subscription.status == 'active' && r.subscription.frozen != true;
+      return r.subscription != null &&
+        (r.subscription.status == null || r.subscription.status == 'active') &&
+        r.subscription.frozen != true;
     }
 
     match /restaurants/{restaurantId} {
-      // Public menu needs the restaurant document. Keep sensitive payment data OUT of this document.
       allow read: if admin() || owner(restaurantId) || activeRestaurant(restaurantId);
 
       allow create: if signedIn() &&
         request.resource.data.ownerUid == request.auth.uid;
 
-      // Owners may edit only menu/profile presentation fields. Subscription ownership stays server-side.
       allow update: if admin() || (owner(restaurantId) &&
         request.resource.data.ownerUid == resource.data.ownerUid &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -43,7 +43,6 @@ service cloud.firestore {
         allow delete: if admin() || owner(restaurantId);
       }
 
-      // Analytics is written only by the Cloud Function.
       match /analytics/{dayId} {
         allow read: if admin() || owner(restaurantId);
         allow write: if false;
@@ -51,8 +50,12 @@ service cloud.firestore {
     }
 
     match /system/{docId} {
-      allow read: if docId == 'config';
+      allow read: if docId == 'config' || admin();
       allow write: if admin();
+    }
+
+    match /system/admin {
+      allow read: if admin();
     }
   }
 }
