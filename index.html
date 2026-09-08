@@ -12,6 +12,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
 <meta name="description" content="القائمة الرقمية الذكية للمطاعم - اطلب عبر واتساب">
 <meta name="theme-color" content="#008080">
+<meta name="application-name" content="MySmartMenu">
+<meta name="version" content="2.0.0-secure">
 <style>
 :root {
   --teal: #008080;
@@ -1015,7 +1017,8 @@ body.dark-mode .theme-mode-toggle { background:#253536; color:#fff; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, deleteDoc, addDoc, updateDoc, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ==================== CONFIGURATION ====================
@@ -1043,9 +1046,7 @@ const CONFIG = {
     workerUrl: 'https://mysmartmenu-email.khalifamedjahed22.workers.dev',
     adminEmail: 'khalifamedjahed22@gmail.com'
   },
-  admin: {
-    email: 'Khalifamedjahed22@gmail.com'
-  },
+  functions: { region: 'europe-west1' },
   subscription: {
     days: 30,
     warningDays: 3,
@@ -1067,6 +1068,9 @@ const CONFIG = {
 const app = initializeApp(CONFIG.firebase);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functions = getFunctions(app, CONFIG.functions.region);
+const trackAnalyticsCallable = httpsCallable(functions, 'trackAnalytics');
+const adminActionCallable = httpsCallable(functions, 'adminAction');
 // إبقاء جلسة Firebase محفوظة بعد إغلاق الصفحة أو إعادة تحميلها.
 setPersistence(auth, browserLocalPersistence).catch(error => console.warn('تعذر حفظ جلسة Firebase:', error));
 
@@ -2031,13 +2035,9 @@ window.signupRestaurant = async function() {
       toast('✅ تم إنشاء الحساب، لكن تعذر إرسال إشعار البريد', 5000, 'warning');
     }
 
-    localStorage.setItem('mysmartmenu_session', JSON.stringify({
-      restId,
-      uid: user.uid,
-      email,
-      savedAt: Date.now()
-    }));
-
+    try { await signOut(auth); } catch (_) {}
+    localStorage.removeItem('mysmartmenu_session');
+    toast('📧 تم إنشاء الحساب. افتح بريدك وأكد الحساب ثم سجّل الدخول.', 6500, 'success');
     document.getElementById('loginRestId').value = email;
     document.getElementById('loginPassword').value = '';
     showLogin();
@@ -2066,6 +2066,12 @@ window.loginRestaurant = async function() {
   try {
     const credential = await signInWithEmailAndPassword(auth, email, password);
     const user = credential.user;
+
+    if (!user.emailVerified) {
+      try { await sendEmailVerification(user); } catch (_) {}
+      await signOut(auth);
+      return toast('📧 يجب تأكيد بريدك الإلكتروني أولاً. أرسلنا رسالة تأكيد جديدة.', 5500, 'warning');
+    }
 
     let owned = await getDocs(query(collection(db, 'restaurants'), where('ownerUid', '==', user.uid)));
     // توافق مع الحسابات الأقدم التي استخدمت الحقل uid.
@@ -2192,108 +2198,31 @@ window.verifyAdmin = async function() {
   const email = document.getElementById('adminEmail').value.trim().toLowerCase();
   const password = document.getElementById('adminPassword').value;
   const loginBtn = document.getElementById('adminLoginBtn');
-
-  if (email.toLowerCase() !== CONFIG.admin.email.toLowerCase()) {
-    return toast('❌ بريد الإدارة غير صحيح. استخدم: ' + CONFIG.admin.email, 4000, 'danger');
-  }
-
-  if (!password) return toast('⚠️ أدخل كلمة المرور', 2500, 'warning');
-
+  if (!email || !password) return toast('⚠️ أدخل البريد وكلمة المرور', 2500, 'warning');
   loginBtn.disabled = true;
   loginBtn.innerHTML = 'جارٍ التحقق... <span class="spinner"></span>';
-
   try {
-    let adminStatusSnap;
-    try {
-      adminStatusSnap = await getDoc(doc(db, 'system', 'admin'));
-    } catch (firestoreError) {
-      adminStatusSnap = { exists: () => false };
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const user = credential.user;
+    if (!user.emailVerified) {
+      try { await sendEmailVerification(user); } catch (_) {}
+      await signOut(auth);
+      throw new Error('يجب تأكيد بريد المدير قبل الدخول.');
     }
-
-    const isAdminCreated = adminStatusSnap.exists() && adminStatusSnap.data().created;
-
-    if (isAdminCreated) {
-      await signInWithEmailAndPassword(auth, email, password);
-      localStorage.removeItem('mysmartmenu_session');
-      await loadAdminPanel();
-      await loadPlatformLoadMonitor();
-      showView('adminView');
-      toast('✅ مرحباً مدير النظام', 3000, 'gold');
-      document.getElementById('adminPassword').value = '';
-      return;
-    } else {
-      const passwordValidation = Utils.validatePassword(password);
-      if (!passwordValidation.valid) {
-        throw new Error('كلمة المرور ضعيفة: ' + passwordValidation.message);
-      }
-
-      try {
-        const credential = await createUserWithEmailAndPassword(auth, email, password);
-
-        await setDoc(doc(db, 'system', 'admin'), {
-          created: true,
-          createdAt: new Date().toISOString(),
-          email: email,
-          uid: credential.user.uid,
-          version: '1.0'
-        });
-
-        const notice = document.getElementById('bootstrapNotice');
-        if (notice) {
-          notice.innerHTML = '<strong>✅ تم إنشاء الحساب بنجاح!</strong>جاري الدخول إلى لوحة الإدارة...';
-          notice.style.background = '#e8f5e9';
-          notice.style.borderColor = '#a5d6a7';
-          notice.style.color = '#1b5e20';
-        }
-
-        AppState.adminAccountCreated = true;
-        localStorage.removeItem('mysmartmenu_session');
-
-        await loadAdminPanel();
-        await loadPlatformLoadMonitor();
-        showView('adminView');
-        toast('🎉 تم إنشاء حساب المدير بنجاح! مرحباً بك', 5000, 'gold');
-
-        document.getElementById('adminPassword').value = '';
-        return;
-
-      } catch (createError) {
-        if (createError.code === 'auth/email-already-in-use') {
-          try {
-            await signInWithEmailAndPassword(auth, email, password);
-
-            await setDoc(doc(db, 'system', 'admin'), {
-              created: true,
-              createdAt: new Date().toISOString(),
-              email: email
-            }, { merge: true });
-
-            localStorage.removeItem('mysmartmenu_session');
-
-            await loadAdminPanel();
-            await loadPlatformLoadMonitor();
-            showView('adminView');
-            toast('✅ مرحباً مدير النظام', 3000, 'gold');
-
-            document.getElementById('adminPassword').value = '';
-            return;
-          } catch (signInError) {
-            throw new Error('الحساب موجود لكن كلمة المرور غير صحيحة');
-          }
-        }
-
-        if (createError.code === 'auth/operation-not-allowed') {
-          throw new Error('فعّل Email/Password من Firebase Console ← Authentication ← Sign-in method');
-        }
-
-        throw createError;
-      }
+    const token = await getIdTokenResult(user, true);
+    if (token.claims.admin !== true) {
+      await signOut(auth);
+      throw new Error('هذا الحساب ليس لديه صلاحية مدير. فعّل Custom Claim باسم admin عبر الخادم.');
     }
-
+    localStorage.removeItem('mysmartmenu_session');
+    await loadAdminPanel();
+    await loadPlatformLoadMonitor();
+    showView('adminView');
+    toast('✅ مرحباً مدير النظام', 3000, 'gold');
+    document.getElementById('adminPassword').value = '';
   } catch (error) {
     console.error('Admin login error:', error);
-    const errorMessage = error.code ? authErrorMessage(error) : (error.message || 'خطأ غير معروف');
-    toast('❌ ' + errorMessage, 5000, 'danger');
+    toast('❌ ' + (error.code ? authErrorMessage(error) : (error.message || 'تعذر الدخول')), 5000, 'danger');
   } finally {
     loginBtn.disabled = false;
     loginBtn.innerHTML = '🔐 دخول';
@@ -2302,20 +2231,12 @@ window.verifyAdmin = async function() {
 
 window.adminResetPassword = async function() {
   const email = document.getElementById('adminEmail').value.trim().toLowerCase();
-
-  if (email.toLowerCase() !== CONFIG.admin.email.toLowerCase()) {
-    return toast('⚠️ أدخل بريد الإدارة أولاً', 3000, 'warning');
-  }
-
+  if (!email || !email.includes('@')) return toast('⚠️ أدخل بريد المدير أولاً', 3000, 'warning');
   try {
     await sendPasswordResetEmail(auth, email);
-    toast('✉️ أرسلنا رابط إعادة تعيين كلمة مرور الإدارة إلى: ' + email, 5000, 'success');
+    toast('✉️ أرسلنا رابط إعادة تعيين كلمة المرور إلى البريد المدخل', 5000, 'success');
   } catch (e) {
-    if (e.code === 'auth/user-not-found') {
-      toast('⚠️ لم يتم إنشاء حساب الإدارة بعد. سجّل الدخول مرة واحدة أولاً لإنشائه', 5000, 'warning');
-    } else {
-      toast('❌ ' + authErrorMessage(e), 4000, 'danger');
-    }
+    toast('❌ ' + authErrorMessage(e), 4000, 'danger');
   }
 };
 
@@ -2475,83 +2396,32 @@ async function loadPlatformLoadMonitor() {
   }
 }
 
+async function callAdminAction(action, restId, extra = {}) {
+  const result = await adminActionCallable({ action, restId, ...extra });
+  return result.data;
+}
+
 window.adminExtendSub = async function(restId) {
-  try {
-    const refDoc = doc(db, 'restaurants', restId);
-    const snap = await getDoc(refDoc);
-
-    if (!snap.exists()) return toast('⚠️ المطعم غير موجود', 2500, 'warning');
-
-    const data = snap.data();
-    const currentEnd = data.subscription?.endDate ? new Date(data.subscription.endDate) : new Date();
-    const now = new Date();
-
-    const baseDate = currentEnd > now ? currentEnd : now;
-    baseDate.setDate(baseDate.getDate() + 30);
-    const newEnd = baseDate.toISOString();
-
-    await updateDoc(refDoc, {
-      'subscription.endDate': newEnd,
-      'subscription.status': 'active',
-      'subscription.frozen': false,
-      updatedAt: new Date().toISOString()
-    });
-
-    toast('✅ تم تمديد اشتراك المطعم 30 يوماً', 3000, 'success');
-    loadAdminPanel();
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر تمديد الاشتراك', 3000, 'danger');
-  }
+  try { await callAdminAction('extendSubscription', restId, { days: 30 }); toast('✅ تم تمديد الاشتراك 30 يوماً', 3000, 'success'); await loadAdminPanel(); }
+  catch (e) { console.error(e); toast('❌ تعذر تمديد الاشتراك', 3500, 'danger'); }
 };
 
 window.adminSetExpiry = async function(restId) {
   const dateStr = prompt('أدخل تاريخ انتهاء الاشتراك الجديد (YYYY-MM-DD):');
   if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
-
-  try {
-    const newEnd = new Date(dateStr + 'T23:59:59').toISOString();
-    await updateDoc(doc(db, 'restaurants', restId), {
-      'subscription.endDate': newEnd,
-      updatedAt: new Date().toISOString()
-    });
-    toast('✅ تم تحديث تاريخ انتهاء الاشتراك', 3000, 'success');
-    loadAdminPanel();
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر تحديث التاريخ', 3000, 'danger');
-  }
+  try { await callAdminAction('setExpiry', restId, { date: dateStr }); toast('✅ تم تحديث تاريخ انتهاء الاشتراك', 3000, 'success'); await loadAdminPanel(); }
+  catch (e) { console.error(e); toast('❌ تعذر تحديث التاريخ', 3500, 'danger'); }
 };
 
 window.adminToggleFreeze = async function(restId, currentFrozen) {
-  try {
-    await updateDoc(doc(db, 'restaurants', restId), {
-      'subscription.frozen': !currentFrozen,
-      updatedAt: new Date().toISOString()
-    });
-    toast((!currentFrozen ? '🧊 تم تجميد الحساب' : '▶️ تم إلغاء تجميد الحساب'), 2800, 'success');
-    loadAdminPanel();
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر تغيير حالة التجميد', 3000, 'danger');
-  }
+  try { await callAdminAction('toggleFreeze', restId, { frozen: !currentFrozen }); toast(!currentFrozen ? '🧊 تم تجميد الحساب' : '▶️ تم إلغاء التجميد', 2800, 'success'); await loadAdminPanel(); }
+  catch (e) { console.error(e); toast('❌ تعذر تغيير حالة التجميد', 3000, 'danger'); }
 };
 
 window.adminDeleteRestaurant = async function(restId) {
-  if (!confirm('هل أنت متأكد من حذف هذا المطعم وجميع أطباقه؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-
-  try {
-    const itemsSnap = await getDocs(collection(db, 'restaurants', restId, 'items'));
-    for (const itemDoc of itemsSnap.docs) {
-      await deleteDoc(doc(db, 'restaurants', restId, 'items', itemDoc.id));
-    }
-    await deleteDoc(doc(db, 'restaurants', restId));
-    toast('🗑️ تم حذف المطعم بنجاح', 3000, 'success');
-    loadAdminPanel();
-  } catch (e) {
-    console.error(e);
-    toast('❌ تعذر حذف المطعم', 3000, 'danger');
-  }
+  if (!confirm('هل أنت متأكد من حذف هذا المطعم وجميع بياناته؟ لا يمكن التراجع.')) return;
+  try { await callAdminAction('deleteRestaurant', restId); toast('🗑️ تم حذف المطعم وبياناته', 3500, 'success'); await loadAdminPanel(); }
+  catch (e) { console.error(e); toast('❌ تعذر حذف المطعم', 3500, 'danger'); }
 };
 
 window.saveAdminSettings = async function() {
@@ -3171,35 +3041,20 @@ function renderAdminMenu() {
 // ==================== ANALYTICS ====================
 async function trackAnalytics(restId, field, amount = 1, metadata) {
   if (!restId || !['views', 'orders'].includes(field)) return;
-
-  // منع تسجيل مشاهدات متكررة من نفس الجلسة في نفس اليوم
   if (field === 'views') {
     const sessionKey = 'msm_view_' + restId + '_' + Utils.analyticsDateKey(new Date());
     if (sessionStorage.getItem(sessionKey)) return;
     sessionStorage.setItem(sessionKey, '1');
   }
-
   try {
-    const dayId = Utils.analyticsDateKey(new Date());
-    const payload = {
-      date: dayId,
-      [field]: increment(amount),
-      updatedAt: new Date().toISOString()
-    };
-
-    if (field === 'orders' && metadata && Array.isArray(metadata.items)) {
-      metadata.items.forEach(item => {
-        const key = Utils.analyticsItemKey(item.name);
-        payload['itemCounts.' + key] = increment(Number(item.quantity || 1));
-        payload['itemLabels.' + key] = String(item.name || 'طبق');
-      });
-    }
-
-    await setDoc(doc(db, 'restaurants', restId, 'analytics', dayId), payload, { merge: true });
-    console.log('📊 Analytics tracked:', field, amount, 'for', restId, 'on', dayId);
-  } catch (error) {
-    console.warn('تعذر تسجيل الإحصائية:', error);
-  }
+    await trackAnalyticsCallable({
+      restId, field,
+      amount: Math.max(1, Math.min(20, Number(amount) || 1)),
+      items: field === 'orders' && metadata?.items ? metadata.items.map(item => ({
+        itemId: item.itemId || item.id || '', name: String(item.name || 'طبق').slice(0, 120), quantity: Math.max(1, Math.min(20, Number(item.quantity) || 1))
+      })) : []
+    });
+  } catch (error) { console.warn('تعذر تسجيل الإحصائية:', error); }
 }
 
 function buildTopItem(counts, labels) {
@@ -3515,18 +3370,17 @@ function updateCartUI() {
 window.addToCartDirect = function(itemId) {
   const item = AppState.customerItemsById[itemId];
   if (!item) return;
-
-  window.addToCart(item.name, item.price, AppState.customerRestWhatsapp, item.extras, 1);
+  window.addToCart(item.name, item.price, AppState.customerRestWhatsapp, item.extras, 1, item.id);
 };
 
-window.addToCart = function(name, price, whatsapp, extras, quantity) {
+window.addToCart = function(name, price, whatsapp, extras, quantity, itemId = '') {
   const cleanWa = Utils.cleanPhone(whatsapp || '');
   const normalizedExtras = Utils.parseItemExtras(extras || []);
   const extrasKey = JSON.stringify(normalizedExtras);
   const addQuantity = Math.max(1, Math.min(20, Number(quantity) || 1));
 
   const existing = AppState.cart.find(item => {
-    return item.name === String(name) &&
+    return item.itemId === String(itemId || '') &&
            item.whatsapp === cleanWa &&
            JSON.stringify(Utils.parseItemExtras(item.extras)) === extrasKey;
   });
@@ -3535,6 +3389,7 @@ window.addToCart = function(name, price, whatsapp, extras, quantity) {
     existing.quantity += addQuantity;
   } else {
     AppState.cart.push({
+      itemId: String(itemId || ''),
       name: String(name),
       price: Number(price) || 0,
       extras: normalizedExtras,

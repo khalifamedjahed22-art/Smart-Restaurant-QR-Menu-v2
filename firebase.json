@@ -1,0 +1,8 @@
+{
+  "functions": { "source": "functions" },
+  "firestore": { "rules": "firestore.rules" },
+  "hosting": {
+    "public": ".",
+    "ignore": ["firebase.json", "firestore.rules", "functions/**", "set-admin-claim.mjs", "README.md"]
+  }
+}
