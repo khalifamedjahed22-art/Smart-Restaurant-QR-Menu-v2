@@ -23,4 +23,6 @@ jobs:
         run: npm install
 
       - name: Deploy to Firebase
-        run: npx firebase-tools deploy --only functions --token "${{ secrets.FIREBASE_TOKEN }}" --project mysmartmenu-80a57
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: npx firebase-tools deploy --only functions --project mysmartmenu-80a57
