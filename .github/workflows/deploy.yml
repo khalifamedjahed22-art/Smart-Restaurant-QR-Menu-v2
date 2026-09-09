@@ -23,6 +23,9 @@ jobs:
         run: npm install
 
       - name: Deploy to Firebase
+        uses: w9jds/firebase-action@v11.23.0
+        with:
+          args: deploy --only functions
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: npx firebase-tools deploy --only functions --project mysmartmenu-80a57
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          PROJECT_ID: mysmartmenu-80a57
